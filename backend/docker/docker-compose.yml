@@ -1,0 +1,52 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: artaround-app
+    working_dir: /app
+    command: sh -c "if [ ! -d node_modules ] || [ -z \"$(ls -A node_modules 2>/dev/null)\" ]; then npm install; fi && npm run dev"
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    environment:
+      NODE_ENV: development
+      NODE_OPTIONS: --inspect=0.0.0.0:9229
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      MONGO_HOST: mongo
+      MONGO_PORT: "27017"
+      MONGO_DB: artaround
+      MONGO_USER: artaround
+      MONGO_PASSWORD: artaround
+      MONGO_URI: mongodb://artaround:artaround@mongo:27017/artaround?authSource=admin
+    volumes:
+      - ..:/app
+      - node_modules:/app/node_modules
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    container_name: artaround-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: artaround
+      MONGO_INITDB_ROOT_PASSWORD: artaround
+      MONGO_INITDB_DATABASE: artaround
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'db.adminCommand({ ping: 1 })' | mongosh --quiet -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin localhost:27017/admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  node_modules:
