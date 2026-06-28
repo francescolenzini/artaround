@@ -2,6 +2,17 @@ const crypto = require('crypto');
 const RequestLog = require('../models/RequestLog');
 const { sanitizeOutput } = require('../services/maskSensitive');
 
+// Il logging non deve MAI far fallire la richiesta: se la sanitizzazione del
+// payload va in errore (es. documenti Mongoose idratati con riferimenti
+// circolari), si registra un segnaposto invece di propagare l'eccezione.
+function safeSanitize(value) {
+  try {
+    return sanitizeOutput(value);
+  } catch (error) {
+    return { type: 'unloggable', info: `sanitize failed: ${error.message}` };
+  }
+}
+
 function requestLogger(req, res, next) {
   const startDate = new Date();
   const start = process.hrtime.bigint();
@@ -10,13 +21,13 @@ function requestLogger(req, res, next) {
   req.correlationId = correlationId;
   res.setHeader('x-correlation-id', correlationId);
 
-  const requestPayload = sanitizeOutput(req.body);
+  const requestPayload = safeSanitize(req.body);
 
   const originalJson = res.json.bind(res);
   const originalSend = res.send.bind(res);
 
   res.json = (body) => {
-    res.locals.responsePayload = sanitizeOutput(body);
+    res.locals.responsePayload = safeSanitize(body);
     return originalJson(body);
   };
 
@@ -27,7 +38,7 @@ function requestLogger(req, res, next) {
         length: body.length,
       };
     } else {
-      res.locals.responsePayload = sanitizeOutput(body);
+      res.locals.responsePayload = safeSanitize(body);
     }
     return originalSend(body);
   };

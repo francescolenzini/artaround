@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround — Marketplace / Editor</title>
+
+    <!-- Tailwind via CDN (richiesto dalla traccia) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                50: '#f5f3ff',
+                100: '#ede9fe',
+                200: '#ddd6fe',
+                300: '#c4b5fd',
+                400: '#a78bfa',
+                500: '#8b5cf6',
+                600: '#7c3aed',
+                700: '#6d28d9',
+                800: '#5b21b6',
+                900: '#4c1d95',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+
+  <body class="h-full bg-slate-50 text-slate-800 font-sans antialiased">
+    <!-- ============================ LOGIN ============================ -->
+    <div
+      id="login-view"
+      class="hidden min-h-full items-center justify-center p-4"
+    >
+      <div class="w-full max-w-md">
+        <div class="mb-8 text-center">
+          <div
+            class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-2xl font-bold text-white shadow-lg shadow-brand-600/30"
+          >
+            A
+          </div>
+          <h1 class="text-2xl font-bold text-slate-900">ArtAround</h1>
+          <p class="mt-1 text-sm text-slate-500">Marketplace / Editor dei contenuti</p>
+        </div>
+
+        <form
+          id="login-form"
+          class="space-y-5 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
+        >
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700" for="login-username"
+              >Username</label
+            >
+            <input
+              id="login-username"
+              name="username"
+              type="text"
+              autocomplete="username"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              placeholder="es. admin"
+            />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700" for="login-password"
+              >Password</label
+            >
+            <input
+              id="login-password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <p id="login-error" class="hidden rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"></p>
+
+          <button
+            id="login-submit"
+            type="submit"
+            class="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:ring-2 focus:ring-brand-500/40 disabled:opacity-60"
+          >
+            Accedi
+          </button>
+        </form>
+
+        <p class="mt-6 text-center text-xs text-slate-400">
+          Tecnologie Web · UniBO — backend Node/Express/MongoDB
+        </p>
+      </div>
+    </div>
+
+    <!-- ============================ APP SHELL ============================ -->
+    <div id="app-shell" class="hidden h-full">
+      <div class="flex h-full">
+        <aside
+          id="sidebar"
+          class="flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white"
+        ></aside>
+
+        <div class="flex min-w-0 flex-1 flex-col">
+          <header id="topbar" class="shrink-0 border-b border-slate-200 bg-white"></header>
+          <main id="view" class="flex-1 overflow-y-auto bg-slate-50 p-6"></main>
+        </div>
+      </div>
+    </div>
+
+    <!-- Container per i toast -->
+    <div
+      id="toast-container"
+      class="pointer-events-none fixed bottom-5 right-5 z-50 flex flex-col gap-2"
+    ></div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

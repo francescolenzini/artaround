@@ -1,3 +1,6 @@
 node_modules/
 .DS_Store
 *.log
+
+# Config del dev server del marketplace: contiene la API key, non versionare
+frontend/marketplace/serve.config.json
