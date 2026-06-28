@@ -7,13 +7,18 @@ services:
     working_dir: /app
     command: sh -c "if [ ! -d node_modules ] || [ -z \"$(ls -A node_modules 2>/dev/null)\" ]; then npm install; fi && npm run dev"
     ports:
-      - "3000:3000"
+      - "3001:3001"
       - "9229:9229"
     environment:
+      PORT: "3001"
       NODE_ENV: development
       NODE_OPTIONS: --inspect=0.0.0.0:9229
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
+      JWT_SECRET: dev-jwt-secret-change-me
+      JWT_EXPIRES_IN: 8h
+      SWAGGER_USER: swagger
+      SWAGGER_PASSWORD: swagger
       MONGO_HOST: mongo
       MONGO_PORT: "27017"
       MONGO_DB: artaround

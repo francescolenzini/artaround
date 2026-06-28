@@ -1,0 +1,173 @@
+@startuml ArtAround Architecture
+!theme plain
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam defaultFontName "Segoe UI"
+skinparam package<<planned>> {
+  BackgroundColor #F5F5F5
+  BorderColor #999999
+  BorderStyle dashed
+}
+skinparam component<<planned>> {
+  BackgroundColor #F0F0F0
+  BorderColor #999999
+  BorderStyle dashed
+  FontColor #666666
+}
+
+title ArtAround - Diagramma Architetturale\n(continuo = implementato, tratteggiato = pianificato)
+
+' ── Attori ──
+actor "Visitatore" as VIS
+actor "Autore/Curatore" as AUT
+actor "Super Admin" as SA
+actor "Developer" as DEV
+
+' ── Frontend Navigator (pianificato) ──
+package "ArtAround Navigator (smartphone)\n[PIANIFICATO - framework JS/TS a scelta]" as NAV <<planned>> {
+  [Selezione museo/visita] as NavSelect <<planned>>
+  [Navigazione (mappa oggetti)] as NavMap <<planned>>
+  [Presentazione (TTS + testo)] as NavPresent <<planned>>
+  [Comandi vocali\n(vocabolario controllato)] as NavVoice <<planned>>
+  [UI accessibile a bottoni] as NavA11y <<planned>>
+}
+
+' ── Frontend Marketplace/Editor (pianificato) ──
+package "ArtAround Marketplace/Editor (PC)\n[PIANIFICATO - vanilla JS/TS, no framework SPA]" as MKT <<planned>> {
+  [Selezione museo] as MktSelect <<planned>>
+  [Editor visite] as MktVisitEditor <<planned>>
+  [Creazione contenuti/item] as MktContent <<planned>>
+  [Pubblicazione\n(licenza/prezzo/vendite)] as MktPublish <<planned>>
+}
+
+' ── Frontend - contratto tipi (esistente) ──
+package "Frontend - contratto tipi [ESISTENTE]" as FE {
+  [TypeScript Types\nindex.ts] as FETypes
+  [Mock Data\nmockData.ts] as FEMock
+}
+
+' ── API Gateway ──
+package "Express.js REST API [ESISTENTE]" as API {
+
+  package "Middleware Pipeline" as MW {
+    [JSON Parser\n(2MB limit)] as JSONParser
+    [Request Logger\n+ Correlation ID] as ReqLog
+    [API Key Auth\n(x-api-key header)] as APIKeyAuth
+    [JWT Auth\n(Bearer token)] as JWTAuth
+    [Role Guard\n(requireRole per-rotta)] as RoleGuard
+    [Async Handler\n+ Error Handler] as ErrHandler
+  }
+
+  package "Routes / Controllers" as ROUTES {
+    [POST /auth/login] as AuthRoute
+    [CRUD /museums] as MuseumRoute
+    [CRUD /artworks] as ArtworkRoute
+    [CRUD /artwork-items] as ItemRoute
+    [CRUD /visits] as VisitRoute
+    [GET|POST /activities\n(solo lettura/creazione)] as ActivityRoute
+    [GET/POST/PATCH /users] as UserRoute
+    [/api-keys] as ApiKeyRoute
+    [/request-logs] as LogRoute
+  }
+
+  package "Services" as SVC {
+    [Pagination Service\n(search, sort, filter)] as Pagination
+    [Tenant Scoping\n(canAccessMuseum, scopedMuseumFilter)] as Tenant
+    [ID Generator\n(prefix-timestamp-random)] as IDGen
+    [Sensitive Data Masking\n(sanitizeOutput)] as Mask
+  }
+
+  package "Documentation" as DOCS {
+    [Swagger UI\n(/docs, /docs-json)] as SwaggerUI
+    [OpenAPI 3.0.3 Spec\n(/docs/openapi.json)] as OpenAPISpec
+    [Basic Auth\nProtection] as BasicAuth
+  }
+}
+
+' ── Data Layer ──
+database "MongoDB 7" as MONGO {
+  package "Business Collections" as BIZ_COL {
+    collections "museums" as col_mus
+    collections "users" as col_usr
+    collections "artworks" as col_art
+    collections "artworkitems" as col_items
+    collections "visits" as col_vis
+    collections "activities" as col_act
+  }
+  package "Infrastructure Collections" as INFRA_COL {
+    collections "apikeys" as col_apikeys
+    collections "requestlogs" as col_logs
+  }
+}
+
+' ── Docker Environment ──
+package "Docker Compose (DEV locale) [ESISTENTE]" as DOCKER {
+  node "artaround-app\n(Node.js + nodemon)" as AppContainer
+  node "artaround-mongo\n(MongoDB 7)" as MongoContainer
+}
+
+package "Deploy finale [PIANIFICATO]\n2 container dipartimento UniBO" as DEPT <<planned>> {
+  node "Container 1: app/i Node.js\n(backend + Navigator + Marketplace build)" as DeptApp <<planned>>
+  node "Container 2: MongoDB" as DeptMongo <<planned>>
+}
+
+' ── CLI Tools ──
+package "CLI Scripts [ESISTENTE]" as CLI {
+  [seed.js\n(dati demo - sotto i minimi di consegna)] as Seed
+  [apikey-cli.js\n(generate/disable/list)] as ApiKeyCLI
+}
+
+' ── Relazioni Attori -> Sistema ──
+VIS --> NAV : "usa durante la visita"
+AUT --> MKT : "crea/pubblica contenuti"
+SA --> API : "API Key + JWT\n(full access)"
+AUT --> API : "API Key + JWT\n(scoped access, come museum_curator)"
+DEV --> SwaggerUI : "Basic Auth"
+DEV --> CLI
+
+' ── Frontend client -> Backend ──
+NAV ..> API : "REST JSON\n(da implementare)"
+MKT ..> API : "REST JSON\n(da implementare)"
+
+' ── Middleware Flow ──
+JSONParser -down-> ReqLog
+ReqLog -down-> APIKeyAuth
+APIKeyAuth -down-> JWTAuth
+JWTAuth -down-> RoleGuard
+RoleGuard -down-> ErrHandler
+
+' ── Routes -> Services ──
+ROUTES --> Pagination
+ROUTES --> Tenant
+ROUTES --> IDGen
+ReqLog --> Mask
+
+' ── Routes -> MongoDB ──
+MuseumRoute --> col_mus
+ArtworkRoute --> col_art
+ItemRoute --> col_items
+VisitRoute --> col_vis
+ActivityRoute --> col_act
+UserRoute --> col_usr
+AuthRoute --> col_usr
+ApiKeyRoute --> col_apikeys
+LogRoute --> col_logs
+ReqLog --> col_logs
+
+' ── Docker ──
+AppContainer --> MongoContainer : "mongodb://\nartaround:27017"
+DeptApp ..> DeptMongo : "[pianificato]"
+
+' ── Frontend tipi -> Backend (contratto) ──
+FETypes ..> API : "contratto tipi\n(REST JSON)"
+FEMock ..> FETypes : "implementa"
+
+' ── CLI -> DB ──
+Seed --> MONGO
+ApiKeyCLI --> col_apikeys
+
+' ── Docs ──
+BasicAuth --> SwaggerUI
+SwaggerUI --> OpenAPISpec
+
+@enduml
