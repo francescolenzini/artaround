@@ -121,6 +121,13 @@ function PlayerPage() {
     setModal({ title: "Stile", body: "Stile non disponibile" });
   }, []);
 
+  const handleExit = useCallback(() => {
+    if (window.confirm("Vuoi uscire dalla visita?")) {
+      stopSpeak();
+      navigate({ to: "/visits" });
+    }
+  }, [navigate]);
+
   const showLogistics = useCallback(
     (key: keyof NonNullable<typeof museum>["logistics"]) => {
       const text = museum?.logistics?.[key];
@@ -140,15 +147,9 @@ function PlayerPage() {
         return currentItem?.content?.ttsText && speak(currentItem.content.ttsText);
       if (has("di più", "di piu", "dimmi di più", "dimmi di piu"))
         return fetchRegister("avanzato");
-      if (
-        has(
-          "di meno",
-          "dimmi di meno",
-          "non capisco",
-          "troppo semplice",
-        )
-      )
-        return fetchRegister("elementare");
+      if (has("di meno", "dimmi di meno")) return fetchRegister("elementare");
+      if (has("non capisco", "troppo semplice"))
+        return setToast("Registro alternativo non disponibile");
       if (has("autore")) return showAuthor();
       if (has("stile")) return showStyle();
       if (has("uscita")) return showLogistics("exit");
@@ -201,7 +202,13 @@ function PlayerPage() {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       {/* Header */}
       <header className="border-b border-border bg-card/40 px-4 pt-4 pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            onClick={handleExit}
+            className="min-h-[40px] rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold"
+          >
+            ✕ Esci
+          </button>
           <span className="text-sm font-semibold uppercase tracking-wider text-primary">
             Tappa {idx + 1} di {total}
           </span>
@@ -275,11 +282,14 @@ function PlayerPage() {
             🎤
           </button>
           <button
-            disabled={isLast}
-            onClick={() => goTo(idx + 1)}
-            className="min-h-[48px] flex-1 rounded-lg bg-primary px-3 py-2 text-base font-semibold text-primary-foreground disabled:opacity-40"
+            onClick={() =>
+              isLast
+                ? navigate({ to: "/visit-complete/$visitId", params: { visitId } })
+                : goTo(idx + 1)
+            }
+            className="min-h-[48px] flex-1 rounded-lg bg-primary px-3 py-2 text-base font-semibold text-primary-foreground"
           >
-            Avanti ▶
+            {isLast ? "Fine ✓" : "Avanti ▶"}
           </button>
         </div>
 
@@ -297,6 +307,18 @@ function PlayerPage() {
           <SmallBtn label="Di meno" onClick={() => fetchRegister("elementare")} />
           <SmallBtn label="Autore" onClick={showAuthor} />
           <SmallBtn label="Stile" onClick={showStyle} />
+        </div>
+
+        {/* Row 2b registro */}
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <SmallBtn
+            label="Non capisco"
+            onClick={() => setToast("Registro alternativo non disponibile")}
+          />
+          <SmallBtn
+            label="Troppo semplice"
+            onClick={() => setToast("Registro alternativo non disponibile")}
+          />
         </div>
 
         {/* Row 3 logistics */}
