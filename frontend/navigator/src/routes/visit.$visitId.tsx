@@ -82,10 +82,12 @@ function VisitDetail() {
               </div>
               <div className="flex-1">
                 <div className="text-base font-semibold">
-                  {it?.title ?? labelForType(s.type)}
+                  {it?.content?.title ?? s.title ?? labelForType(s.type)}
                 </div>
                 <div className="mt-1 text-sm text-muted-foreground">
-                  {it?.register ? `Registro: ${it.register}` : s.type}
+                  {it?.classification?.languageRegister
+                    ? `Registro: ${it.classification.languageRegister}`
+                    : s.type}
                 </div>
               </div>
             </li>

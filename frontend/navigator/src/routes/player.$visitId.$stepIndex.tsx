@@ -116,17 +116,11 @@ function PlayerPage() {
   );
 
   const showAuthor = useCallback(() => {
-    setModal({
-      title: "Autore",
-      body: currentItem?.artist || "Autore non disponibile",
-    });
-  }, [currentItem]);
+    setModal({ title: "Autore", body: "Autore non disponibile" });
+  }, []);
   const showStyle = useCallback(() => {
-    setModal({
-      title: "Stile",
-      body: currentItem?.style || "Stile non disponibile",
-    });
-  }, [currentItem]);
+    setModal({ title: "Stile", body: "Stile non disponibile" });
+  }, []);
 
   const showLogistics = useCallback(
     (key: keyof NonNullable<typeof museum>["logistics"]) => {
@@ -165,7 +159,7 @@ function PlayerPage() {
       if (has("ostacoli")) return showLogistics("obstacles");
       setToast(`Comando non riconosciuto: "${text}"`);
     },
-    [idx, goTo, currentItem, fetchRegister, showAuthor, showStyle, showLogistics],
+    [idx, goTo, currentItem, fetchRegister, showAuthor, showStyle, showLogistics], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const toggleMic = useCallback(() => {
@@ -226,9 +220,9 @@ function PlayerPage() {
 
       {/* Content */}
       <main className="flex-1 overflow-y-auto px-5 py-6">
-        {currentItem?.title && (
+        {(currentItem?.content?.title ?? step.title) && (
           <h2 className="mb-2 text-2xl font-bold text-primary">
-            {currentItem.title}
+            {currentItem?.content?.title ?? step.title}
           </h2>
         )}
         {step.directionsFromPrevious && (
