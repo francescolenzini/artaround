@@ -739,6 +739,7 @@ async function seed() {
           title: 'La Primavera — Botticelli',
           directionsFromPrevious: 'Entrate nella Sala 10-14 di Botticelli. La Primavera è sulla parete di fondo a sinistra: il grande dipinto con le figure su sfondo scuro.',
           itemId: iPrimaveraEl,
+          mapCoords: { x: 28, y: 42, floor: 1 },
           order: 1,
         },
         {
@@ -747,6 +748,7 @@ async function seed() {
           title: 'La nascita di Venere — Botticelli',
           directionsFromPrevious: 'Rimanete nella stessa sala. La Nascita di Venere è sulla parete opposta alla Primavera, a pochi passi.',
           itemId: iVenereEl,
+          mapCoords: { x: 28, y: 48, floor: 1 },
           order: 2,
         },
         {
@@ -755,6 +757,7 @@ async function seed() {
           title: 'Annunciazione — Leonardo da Vinci',
           directionsFromPrevious: 'Uscite dalla Sala 10-14, girate a destra nel corridoio e percorretelo fino alla Sala 35 (Leonardo). L\'Annunciazione è la prima grande opera sulla parete sinistra entrando.',
           itemId: iAnnunciazioneEl,
+          mapCoords: { x: 62, y: 28, floor: 1 },
           order: 3,
         },
         {
@@ -763,6 +766,7 @@ async function seed() {
           title: 'Adorazione dei Magi — Leonardo da Vinci',
           directionsFromPrevious: 'Rimanete nella Sala 35. L\'Adorazione dei Magi è sulla parete di fronte, in posizione centrale.',
           itemId: iAdorazioneEl,
+          mapCoords: { x: 62, y: 35, floor: 1 },
           order: 4,
         },
         {
@@ -771,6 +775,7 @@ async function seed() {
           title: 'Tondo Doni — Michelangelo',
           directionsFromPrevious: 'Proseguite lungo il corridoio fino alla Sala 41 (Michelangelo e Raffaello). Il Tondo Doni è nella prima nicchia a destra entrando, riconoscibile per la cornice in legno dorato e la forma circolare.',
           itemId: iTondoDoniEl,
+          mapCoords: { x: 62, y: 52, floor: 1 },
           order: 5,
         },
         {
@@ -779,6 +784,7 @@ async function seed() {
           title: 'Madonna del Cardellino — Raffaello',
           directionsFromPrevious: 'Rimanete nella Sala 41. La Madonna del Cardellino di Raffaello è sulla parete laterale sinistra, non lontano dal Tondo Doni.',
           itemId: iMadonnaEl,
+          mapCoords: { x: 62, y: 58, floor: 1 },
           order: 6,
         },
         {
@@ -787,6 +793,7 @@ async function seed() {
           title: 'Ritratto di Leone X — Raffaello',
           directionsFromPrevious: 'Spostatevi verso la parete di fondo della Sala 41: il Ritratto di Leone X occupa una posizione centrale di grande visibilità.',
           itemId: iLeoneXEl,
+          mapCoords: { x: 62, y: 64, floor: 1 },
           order: 7,
         },
         {
@@ -795,6 +802,7 @@ async function seed() {
           title: 'Flora — Tiziano',
           directionsFromPrevious: 'Uscite dalla Sala 41 e avanzate lungo il corridoio fino alla Sala 83 (Tiziano e pittura veneziana). La Flora è nella prima sala veneziana, sulla parete destra.',
           itemId: iFloraEl,
+          mapCoords: { x: 62, y: 12, floor: 2 },
           order: 8,
         },
         {
@@ -803,6 +811,7 @@ async function seed() {
           title: 'Venere di Urbino — Tiziano',
           directionsFromPrevious: 'Rimanete nella Sala 83. La Venere di Urbino è esposta sulla parete opposta alla Flora, di fronte a voi.',
           itemId: iVenereUrbinoEl,
+          mapCoords: { x: 62, y: 18, floor: 2 },
           order: 9,
         },
         {
@@ -811,6 +820,7 @@ async function seed() {
           title: 'Medusa — Caravaggio',
           directionsFromPrevious: 'Percorrete il corridoio fino alla Sala 90 (Caravaggio). La Medusa è esposta su un supporto apposito al centro della sala, visibile da tutti i lati.',
           itemId: iMedusaEl,
+          mapCoords: { x: 28, y: 15, floor: 2 },
           order: 10,
         },
         {
@@ -819,6 +829,7 @@ async function seed() {
           title: 'Sacrificio di Isacco — Caravaggio',
           directionsFromPrevious: 'Rimanete nella Sala 90. Il Sacrificio di Isacco è appeso sulla parete sinistra, accanto alla Medusa.',
           itemId: iSacrifEl,
+          mapCoords: { x: 28, y: 22, floor: 2 },
           order: 11,
         },
         {
@@ -827,6 +838,7 @@ async function seed() {
           title: 'Giuditta e Oloferne — Artemisia Gentileschi',
           directionsFromPrevious: 'Proseguite nella Sala 96 (Artemisia Gentileschi). La Giuditta è l\'opera principale della sala, visibile appena entrati sulla parete di fondo.',
           itemId: iGiudittaEl,
+          mapCoords: { x: 28, y: 35, floor: 2 },
           order: 12,
         },
       ],
@@ -856,6 +868,7 @@ async function seed() {
           title: 'La Primavera — analisi critica',
           directionsFromPrevious: 'Dal primo piano, percorrete il corridoio est fino alla Sala 10-14. La Primavera è sulla parete di fondo a sinistra.',
           itemId: iPrimaveraAv,
+          mapCoords: { x: 28, y: 42, floor: 1 },
           order: 1,
         },
         {
@@ -864,6 +877,7 @@ async function seed() {
           title: 'La nascita di Venere — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 10-14. La Nascita di Venere è sulla parete opposta, visibile a pochi passi.',
           itemId: iVenereAv,
+          mapCoords: { x: 28, y: 48, floor: 1 },
           order: 2,
         },
         {
@@ -872,6 +886,7 @@ async function seed() {
           title: 'Annunciazione — analisi critica',
           directionsFromPrevious: 'Uscite dalla Sala 10-14, girate a destra e percorrete il corridoio fino alla Sala 35 (Leonardo da Vinci). L\'Annunciazione è sulla parete sinistra entrando.',
           itemId: iAnnunciazioneAv,
+          mapCoords: { x: 62, y: 28, floor: 1 },
           order: 3,
         },
         {
@@ -880,6 +895,7 @@ async function seed() {
           title: 'Adorazione dei Magi — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 35. L\'Adorazione dei Magi è sulla parete frontale, in posizione centrale.',
           itemId: iAdorazioneAv,
+          mapCoords: { x: 62, y: 35, floor: 1 },
           order: 4,
         },
         {
@@ -888,6 +904,7 @@ async function seed() {
           title: 'Tondo Doni — analisi critica',
           directionsFromPrevious: 'Avanzate lungo il corridoio fino alla Sala 41 (Michelangelo e Raffaello). Il Tondo Doni è nella prima nicchia a destra entrando nella sala.',
           itemId: iTondoDoniAv,
+          mapCoords: { x: 62, y: 52, floor: 1 },
           order: 5,
         },
         {
@@ -896,6 +913,7 @@ async function seed() {
           title: 'Madonna del Cardellino — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 41. La Madonna del Cardellino è sulla parete laterale sinistra.',
           itemId: iMadonnaAv,
+          mapCoords: { x: 62, y: 58, floor: 1 },
           order: 6,
         },
         {
@@ -904,6 +922,7 @@ async function seed() {
           title: 'Ritratto di Leone X — analisi critica',
           directionsFromPrevious: 'Spostatevi verso la parete di fondo della Sala 41: il Ritratto di Leone X è esposto in posizione preminente.',
           itemId: iLeoneXAv,
+          mapCoords: { x: 62, y: 64, floor: 1 },
           order: 7,
         },
         {
@@ -912,6 +931,7 @@ async function seed() {
           title: 'Flora — analisi critica',
           directionsFromPrevious: 'Uscite dalla Sala 41 e percorrete il corridoio fino alla Sala 83 (pittura veneziana, Tiziano). La Flora è sulla parete destra della sala.',
           itemId: iFloraAv,
+          mapCoords: { x: 62, y: 12, floor: 2 },
           order: 8,
         },
         {
@@ -920,6 +940,7 @@ async function seed() {
           title: 'Venere di Urbino — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 83. Voltate verso la parete opposta: la Venere di Urbino è il pendant della Flora.',
           itemId: iVenereUrbinoAv,
+          mapCoords: { x: 62, y: 18, floor: 2 },
           order: 9,
         },
         {
@@ -928,6 +949,7 @@ async function seed() {
           title: 'Sacrificio di Isacco — analisi critica',
           directionsFromPrevious: 'Continuate verso la Sala 90 (Caravaggio). Il Sacrificio di Isacco è sulla parete sinistra della sala.',
           itemId: iSacrifAv,
+          mapCoords: { x: 28, y: 22, floor: 2 },
           order: 10,
         },
       ],
@@ -958,6 +980,7 @@ async function seed() {
           title: 'La nascita di Venere',
           directionsFromPrevious: 'Salite al primo piano e seguite il corridoio fino alla Sala 10-14. La Nascita di Venere è sulla parete di fondo — la vedrete subito, è grandissima!',
           itemId: iVenereEl,
+          mapCoords: { x: 28, y: 48, floor: 1 },
           order: 1,
         },
         {
@@ -966,6 +989,7 @@ async function seed() {
           title: 'La Primavera',
           directionsFromPrevious: 'Giratevi: La Primavera è sulla parete di fronte, a soli pochi passi dalla Nascita di Venere.',
           itemId: iPrimaveraEl,
+          mapCoords: { x: 28, y: 42, floor: 1 },
           order: 2,
         },
         {
@@ -974,6 +998,7 @@ async function seed() {
           title: 'L\'Annunciazione di Leonardo',
           directionsFromPrevious: 'Uscite dalla Sala di Botticelli, girate a destra e camminate lungo il corridoio. Alla Sala 35 siete arrivati da Leonardo! L\'Annunciazione è sulla parete sinistra.',
           itemId: iAnnunciazioneEl,
+          mapCoords: { x: 62, y: 28, floor: 1 },
           order: 3,
         },
         {
@@ -982,6 +1007,7 @@ async function seed() {
           title: 'L\'Adorazione dei Magi',
           directionsFromPrevious: 'Rimanete nella stessa sala di Leonardo. L\'Adorazione dei Magi è sulla parete di fronte a voi — il grande dipinto marrone che sembra incompiuto.',
           itemId: iAdorazioneEl,
+          mapCoords: { x: 62, y: 35, floor: 1 },
           order: 4,
         },
         {
@@ -990,6 +1016,7 @@ async function seed() {
           title: 'Il Tondo Doni di Michelangelo',
           directionsFromPrevious: 'Continuate lungo il corridoio fino alla Sala 41. Appena entrate, cercate a destra il quadro tondo con la cornice di legno dorato — è unico nel suo genere!',
           itemId: iTondoDoniEl,
+          mapCoords: { x: 62, y: 52, floor: 1 },
           order: 5,
         },
         {
@@ -998,6 +1025,7 @@ async function seed() {
           title: 'La Madonna del Cardellino',
           directionsFromPrevious: 'Rimanete nella stessa sala. La Madonna del Cardellino di Raffaello è sulla parete laterale sinistra — cercate il quadretto con il piccolo uccellino!',
           itemId: iMadonnaEl,
+          mapCoords: { x: 62, y: 58, floor: 1 },
           order: 6,
         },
         {
@@ -1006,6 +1034,7 @@ async function seed() {
           title: 'La Flora di Tiziano',
           directionsFromPrevious: 'Camminate lungo il corridoio fino alla grande Sala 83 con i dipinti veneziani. La Flora è la prima che vedrete a destra, la donna con i fiori.',
           itemId: iFloraEl,
+          mapCoords: { x: 62, y: 12, floor: 2 },
           order: 7,
         },
         {
@@ -1014,6 +1043,7 @@ async function seed() {
           title: 'La Venere di Urbino',
           directionsFromPrevious: 'Giratevi verso l\'altra parete della sala. La Venere di Urbino è lì di fronte a voi — la signora sdraiata sul letto.',
           itemId: iVenereUrbinoEl,
+          mapCoords: { x: 62, y: 18, floor: 2 },
           order: 8,
         },
         {
@@ -1022,6 +1052,7 @@ async function seed() {
           title: 'La Medusa di Caravaggio',
           directionsFromPrevious: 'Avanzate fino alla Sala 90. La Medusa è esposta su un supporto speciale al centro della sala — guardate, ma attenti a non pietrificarvi!',
           itemId: iMedusaEl,
+          mapCoords: { x: 28, y: 15, floor: 2 },
           order: 9,
         },
         {
@@ -1030,6 +1061,7 @@ async function seed() {
           title: 'Giuditta e Oloferne',
           directionsFromPrevious: 'Percorrete ancora pochi passi fino alla Sala 96. La Giuditta è il grande dipinto sulla parete principale — si vede subito entrando, è molto drammatico!',
           itemId: iGiudittaEl,
+          mapCoords: { x: 28, y: 35, floor: 2 },
           order: 10,
         },
       ],

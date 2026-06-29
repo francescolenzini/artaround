@@ -139,6 +139,7 @@ export interface VisitStep {
   description?: string;
   directionsFromPrevious?: string;
   order: number;
+  mapCoords?: { x: number; y: number; floor?: number };
 }
 
 export interface Visit {

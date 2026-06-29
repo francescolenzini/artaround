@@ -8,6 +8,11 @@ const visitStepSchema = new mongoose.Schema(
     description: { type: String },
     directionsFromPrevious: { type: String },
     itemId: { type: String },
+    mapCoords: {
+      x: { type: Number },
+      y: { type: Number },
+      floor: { type: Number },
+    },
     order: { type: Number, required: true },
   },
   { _id: false }

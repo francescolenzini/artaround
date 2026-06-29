@@ -40,7 +40,7 @@ export interface VisitStep {
   itemId?: string;
   description?: string;
   directionsFromPrevious?: string;
-  mapCoords?: { x: number; y: number };
+  mapCoords?: { x: number; y: number; floor?: number };
   order?: number;
 }
 
