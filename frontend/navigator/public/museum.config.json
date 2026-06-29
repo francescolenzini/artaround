@@ -1,0 +1,14 @@
+{
+  "museumId": "demo-museum",
+  "name": "Museo Demo",
+  "coverImage": "https://images.unsplash.com/photo-1565060299210-ec8d8a85cfbe?w=1200",
+  "mapImage": "https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=1200",
+  "marketplaceUrl": "https://example.com/marketplace",
+  "logistics": {
+    "exit": "L'uscita si trova al piano terra, seguendo le indicazioni verdi.",
+    "toilet": "I bagni sono al primo piano, accanto alla scala principale.",
+    "bar": "Il bar è all'ingresso, sulla sinistra.",
+    "shop": "Lo shop si trova vicino all'uscita principale.",
+    "obstacles": "Attenzione ai gradini nella Sala 3. Ascensore disponibile per accessibilità."
+  }
+}

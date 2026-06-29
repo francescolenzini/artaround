@@ -1,3 +1,4 @@
+const cors = require('cors');
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 
@@ -23,6 +24,7 @@ async function buildApp() {
   const app = express();
 
   app.use(express.json({ limit: '2mb' }));
+  app.use(cors());
   app.use(requestLogger);
 
   app.get('/health', (_req, res) => {
