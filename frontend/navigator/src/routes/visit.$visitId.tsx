@@ -6,7 +6,6 @@ import type { ArtworkItem, Visit } from "../lib/types";
 import { ErrorScreen, LoadingScreen } from "../components/Shell";
 
 export const Route = createFileRoute("/visit/$visitId")({
-  head: () => ({ meta: [{ title: "Visita — ArtAround" }] }),
   component: VisitDetail,
 });
 

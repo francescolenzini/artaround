@@ -6,7 +6,6 @@ import type { ListResponse, VisitSummary } from "../lib/types";
 import { ErrorScreen, LoadingScreen } from "../components/Shell";
 
 export const Route = createFileRoute("/visits")({
-  head: () => ({ meta: [{ title: "Visite — ArtAround" }] }),
   component: VisitsPage,
 });
 

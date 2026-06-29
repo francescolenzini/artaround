@@ -6,7 +6,6 @@ import type { Visit } from "../lib/types";
 import { ErrorScreen, LoadingScreen } from "../components/Shell";
 
 export const Route = createFileRoute("/map/$visitId")({
-  head: () => ({ meta: [{ title: "Mappa — ArtAround" }] }),
   component: MapPage,
 });
 

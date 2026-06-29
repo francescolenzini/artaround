@@ -6,7 +6,6 @@ import type { AuthUser } from "../lib/types";
 import { ErrorScreen, LoadingScreen } from "../components/Shell";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Accedi — ArtAround" }] }),
   component: LoginPage,
 });
 

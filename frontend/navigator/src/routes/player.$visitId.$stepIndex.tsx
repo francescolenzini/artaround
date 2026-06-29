@@ -11,7 +11,6 @@ import { ErrorScreen, LoadingScreen, Modal, Toast } from "../components/Shell";
 import { speak, startRecognition, stopSpeak, type RecognitionHandle } from "../lib/speech";
 
 export const Route = createFileRoute("/player/$visitId/$stepIndex")({
-  head: () => ({ meta: [{ title: "Player — ArtAround" }] }),
   component: PlayerPage,
 });
 
