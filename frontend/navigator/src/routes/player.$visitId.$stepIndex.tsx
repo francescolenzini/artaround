@@ -56,8 +56,8 @@ function PlayerPage() {
       setCurrentItem(null);
       return;
     }
-    apiFetch<ArtworkItem>(apiConfig, token, `/artwork-items/${step.itemId}`)
-      .then(setCurrentItem)
+    apiFetch<ListResponse<ArtworkItem>>(apiConfig, token, `/artwork-items?id=${encodeURIComponent(step.itemId)}`)
+      .then((r) => setCurrentItem(r.data[0] ?? null))
       .catch(() => setToast("Impossibile caricare il contenuto"));
   }, [apiConfig, token, step, setCurrentItem]);
 

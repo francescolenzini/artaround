@@ -2,7 +2,7 @@ import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-ro
 import { useEffect, useState } from "react";
 import { useApp } from "../lib/AppContext";
 import { apiFetch } from "../lib/api";
-import type { ArtworkItem, Visit } from "../lib/types";
+import type { ArtworkItem, ListResponse, Visit } from "../lib/types";
 import { ErrorScreen, LoadingScreen } from "../components/Shell";
 
 export const Route = createFileRoute("/visit/$visitId")({
@@ -29,17 +29,15 @@ function VisitDetail() {
         const ids = Array.from(
           new Set(v.steps.map((s) => s.itemId).filter(Boolean) as string[]),
         );
-        Promise.all(
-          ids.map((id) =>
-            apiFetch<ArtworkItem>(apiConfig, token, `/artwork-items/${id}`)
-              .then((it) => [id, it] as const)
-              .catch(() => null),
-          ),
-        ).then((pairs) => {
+        apiFetch<ListResponse<ArtworkItem>>(
+          apiConfig,
+          token,
+          `/artwork-items?id=${ids.map(encodeURIComponent).join(',')}&pageSize=${ids.length}`,
+        ).then((r) => {
           const map: Record<string, ArtworkItem> = {};
-          for (const p of pairs) if (p) map[p[0]] = p[1];
+          for (const item of r.data) map[item.id] = item;
           setItems(map);
-        });
+        }).catch(() => setItems({}));
       })
       .catch((e) => setErr(e?.message ?? "Errore"));
   }, [apiConfig, token, visitId, reloadKey, setVisit]);
