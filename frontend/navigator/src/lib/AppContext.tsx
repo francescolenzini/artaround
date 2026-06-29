@@ -37,7 +37,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [museum, setMuseum] = useState<MuseumConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem("artaround_token"));
   const [user, setUser] = useState<AuthUser | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
   const [currentItem, setCurrentItem] = useState<ArtworkItem | null>(null);
@@ -78,10 +78,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         token,
         user,
         setAuth: (t, u) => {
+          localStorage.setItem("artaround_token", t);
           setToken(t);
           setUser(u);
         },
         logout: () => {
+          localStorage.removeItem("artaround_token");
           setToken(null);
           setUser(null);
         },

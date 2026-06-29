@@ -28,37 +28,42 @@ export interface VisitSummary {
   id: string;
   title: string;
   subtitle?: string;
-  estimatedDuration?: string | number;
+  estimatedDuration?: string;
+  estimatedDurationMinutes?: number;
   targetAudience?: string;
 }
 
 export interface VisitStep {
+  id: string;
   type: "logistics_intro" | "main_item" | "optional_item" | "transition";
+  title?: string;
   itemId?: string;
-  artworkId?: string;
   description?: string;
   directionsFromPrevious?: string;
   mapCoords?: { x: number; y: number };
+  order?: number;
 }
 
 export interface Visit {
   id: string;
   title: string;
+  subtitle?: string;
   description?: string;
+  estimatedDuration?: string;
+  estimatedDurationMinutes?: number;
+  targetAudience?: string;
   steps: VisitStep[];
 }
 
 export interface ArtworkItem {
   id: string;
   artworkId: string;
-  title?: string;
-  register?: string;
-  artist?: string;
-  style?: string;
   classification?: {
     languageRegister?: string;
+    fruitionLength?: string;
   };
   content: {
+    title?: string;
     screenText?: string;
     ttsText?: string;
   };

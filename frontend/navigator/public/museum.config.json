@@ -1,14 +1,14 @@
 {
-  "museumId": "demo-museum",
-  "name": "Museo Demo",
-  "coverImage": "https://images.unsplash.com/photo-1565060299210-ec8d8a85cfbe?w=1200",
-  "mapImage": "https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=1200",
-  "marketplaceUrl": "https://example.com/marketplace",
+  "museumId": "INCOLLA_QUI_IL_MUSEUM_ID_DAL_OUTPUT_DEL_SEED",
+  "name": "Galleria degli Uffizi",
+  "coverImage": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200",
+  "mapImage": "https://images.unsplash.com/photo-1580537659466-0a9bfa916a54?w=1200",
+  "marketplaceUrl": "http://localhost:5173",
   "logistics": {
-    "exit": "L'uscita si trova al piano terra, seguendo le indicazioni verdi.",
-    "toilet": "I bagni sono al primo piano, accanto alla scala principale.",
-    "bar": "Il bar è all'ingresso, sulla sinistra.",
-    "shop": "Lo shop si trova vicino all'uscita principale.",
-    "obstacles": "Attenzione ai gradini nella Sala 3. Ascensore disponibile per accessibilità."
+    "exit": "L'uscita principale è al piano terra, seguendo le indicazioni verdi verso Piazzale degli Uffizi.",
+    "toilet": "I bagni si trovano al piano terra e al primo piano, segnalati da appositi pannelli.",
+    "bar": "Il bar è situato all'ingresso al piano terra, sulla sinistra dopo i tornelli.",
+    "shop": "Il bookshop si trova vicino all'uscita principale, al piano terra.",
+    "obstacles": "Attenzione ai gradini tra le sale storiche. Ascensori disponibili per l'accessibilità — rivolgersi al personale."
   }
 }
