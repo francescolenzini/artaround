@@ -45,25 +45,25 @@ export function renderSidebar(activeName) {
       const base =
         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition';
       const cls = active
-        ? `${base} bg-brand-50 text-brand-700`
+        ? `${base} bg-brand-light text-brand-dark`
         : disabled
-        ? `${base} text-slate-300 cursor-not-allowed`
-        : `${base} text-slate-600 hover:bg-slate-100 hover:text-slate-900`;
+        ? `${base} text-stone-300 cursor-not-allowed`
+        : `${base} text-mute-600 hover:bg-stone-100 hover:text-graphite`;
       const href = disabled ? 'javascript:void 0' : n.href;
       return `<a href="${href}" class="${cls}" ${disabled ? 'data-disabled="1" title="Seleziona prima un museo"' : ''}>${n.icon}<span>${n.label}</span></a>`;
     })
     .join('');
 
   el.innerHTML = `
-    <div class="flex items-center gap-2.5 border-b border-slate-200 px-5 py-4">
-      <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white">A</div>
+    <div class="flex items-center gap-2.5 border-b border-stone-200 px-5 py-4">
+      <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-lg font-bold text-white">A</div>
       <div>
-        <p class="text-sm font-bold leading-tight text-slate-900">ArtAround</p>
-        <p class="text-xs leading-tight text-slate-400">Marketplace / Editor</p>
+        <p class="font-display text-sm font-bold leading-tight text-graphite">ArtAround</p>
+        <p class="text-xs leading-tight text-mute-400">Marketplace / Editor</p>
       </div>
     </div>
     <nav class="flex-1 space-y-1 p-3">${links}</nav>
-    <div class="border-t border-slate-200 p-4 text-xs text-slate-400">
+    <div class="border-t border-stone-200 p-4 text-xs text-mute-400">
       ${escapeHtml(auth.user ? auth.user.username : '')}
       ${auth.isSuperAdmin() ? '· super admin' : '· curatore'}
     </div>`;

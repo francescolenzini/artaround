@@ -104,7 +104,7 @@ function renderGrid(gridEl, res, reload) {
 
   if (res.pagination) {
     const pager = document.createElement('div');
-    pager.className = 'mt-5 rounded-xl border border-slate-200 bg-white';
+    pager.className = 'mt-5 rounded-xl border border-stone-200 bg-white';
     pager.appendChild(
       paginationBar(res.pagination, (p) => {
         state.page = p;
@@ -120,32 +120,32 @@ function museumCard(m, activeId, reload) {
   const card = document.createElement('div');
   card.className =
     'group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:shadow-md ' +
-    (isActive ? 'border-brand-400 ring-2 ring-brand-200' : 'border-slate-200');
+    (isActive ? 'border-brand ring-2 ring-brand-light' : 'border-stone-200');
 
   const cover = m.coverImage || m.logo;
   card.innerHTML = `
-    <div class="relative h-28 bg-gradient-to-br from-brand-500 to-brand-700">
+    <div class="relative h-28 bg-gradient-to-br from-brand to-brand-dark">
       ${cover ? `<img src="${escapeHtml(cover)}" alt="" class="h-full w-full object-cover" onerror="this.style.display='none'">` : ''}
       <div class="absolute right-3 top-3">${statusBadge(m.status)}</div>
-      ${isActive ? '<div class="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-brand-700">Attivo</div>' : ''}
+      ${isActive ? '<div class="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-brand-dark">Attivo</div>' : ''}
     </div>
     <div class="flex flex-1 flex-col p-4">
-      <h3 class="text-base font-semibold text-slate-900">${escapeHtml(m.name)}</h3>
-      <p class="mt-0.5 text-sm text-slate-500">${escapeHtml([m.city, m.country].filter(Boolean).join(', '))}</p>
-      <p class="mt-2 line-clamp-2 text-sm text-slate-400">${escapeHtml(m.shortDescription || '')}</p>
-      <div class="mt-3 flex gap-4 text-xs text-slate-400">
-        <span><strong class="text-slate-600">${m.itemsCount ?? 0}</strong> item</span>
-        <span><strong class="text-slate-600">${m.visitsCount ?? 0}</strong> visite</span>
-        <span><strong class="text-slate-600">${m.publishedCount ?? 0}</strong> pubblicati</span>
+      <h3 class="text-base font-semibold text-graphite">${escapeHtml(m.name)}</h3>
+      <p class="mt-0.5 text-sm text-mute-400">${escapeHtml([m.city, m.country].filter(Boolean).join(', '))}</p>
+      <p class="mt-2 line-clamp-2 text-sm text-mute-400">${escapeHtml(m.shortDescription || '')}</p>
+      <div class="mt-3 flex gap-4 text-xs text-mute-400">
+        <span><strong class="text-mute-600">${m.itemsCount ?? 0}</strong> item</span>
+        <span><strong class="text-mute-600">${m.visitsCount ?? 0}</strong> visite</span>
+        <span><strong class="text-mute-600">${m.publishedCount ?? 0}</strong> pubblicati</span>
       </div>
     </div>`;
 
   const footer = document.createElement('div');
-  footer.className = 'flex items-center gap-2 border-t border-slate-100 p-3';
+  footer.className = 'flex items-center gap-2 border-t border-stone-100 p-3';
 
   const selectBtn = document.createElement('button');
   selectBtn.className =
-    'flex-1 rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-700';
+    'flex-1 rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark';
   selectBtn.textContent = isActive ? 'Gestisci contenuti' : 'Seleziona';
   selectBtn.addEventListener('click', () => {
     museumContext.set(m);
@@ -159,7 +159,7 @@ function museumCard(m, activeId, reload) {
     const editBtn = document.createElement('button');
     editBtn.title = 'Modifica museo';
     editBtn.className =
-      'rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800';
+      'rounded-lg border border-stone-200 p-2 text-mute-400 transition hover:bg-stone-100 hover:text-graphite';
     editBtn.innerHTML = icons.edit;
     editBtn.addEventListener('click', () => (location.hash = `#/museums/${m.id}`));
     footer.appendChild(editBtn);

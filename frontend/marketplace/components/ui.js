@@ -11,7 +11,7 @@ export function escapeHtml(str) {
 
 const STATUS_COLORS = {
   // generici
-  draft: 'bg-slate-100 text-slate-600',
+  draft: 'bg-stone-100 text-mute-600',
   published: 'bg-emerald-100 text-emerald-700',
   archived: 'bg-amber-100 text-amber-700',
   active: 'bg-emerald-100 text-emerald-700',
@@ -29,29 +29,29 @@ const STATUS_LABELS = {
 };
 
 /** Badge testuale colorato. */
-export function badge(text, colorCls = 'bg-slate-100 text-slate-600') {
+export function badge(text, colorCls = 'bg-stone-100 text-mute-600') {
   return `<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${colorCls}">${escapeHtml(text)}</span>`;
 }
 
 /** Badge per uno stato noto (draft/published/active/...). */
 export function statusBadge(status) {
-  if (!status) return '<span class="text-slate-300">—</span>';
-  return badge(STATUS_LABELS[status] || status, STATUS_COLORS[status] || 'bg-slate-100 text-slate-600');
+  if (!status) return '<span class="text-stone-300">—</span>';
+  return badge(STATUS_LABELS[status] || status, STATUS_COLORS[status] || 'bg-stone-100 text-mute-600');
 }
 
 /** Badge gratuito / a pagamento. */
 export function freeBadge(isFree, price) {
   if (isFree) return badge('Gratuito', 'bg-emerald-100 text-emerald-700');
   const label = price && price.value != null ? `${price.value} ${price.currency || ''}`.trim() : 'A pagamento';
-  return badge(label, 'bg-violet-100 text-violet-700');
+  return badge(label, 'bg-stone-100 text-graphite');
 }
 
 /** Blocco di caricamento centrato. */
 export function spinnerBlock(message = 'Caricamento…') {
   const div = document.createElement('div');
-  div.className = 'flex flex-col items-center justify-center gap-3 py-16 text-slate-400';
+  div.className = 'flex flex-col items-center justify-center gap-3 py-16 text-mute-400';
   div.innerHTML = `
-    <svg class="spinner h-8 w-8 text-brand-500" viewBox="0 0 24 24" fill="none">
+    <svg class="spinner h-8 w-8 text-brand" viewBox="0 0 24 24" fill="none">
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"></path>
     </svg>
@@ -63,13 +63,13 @@ export function spinnerBlock(message = 'Caricamento…') {
 export function emptyState({ icon, title, message, actionNode }) {
   const div = document.createElement('div');
   div.className =
-    'flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center';
+    'flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-stone-300 bg-white px-6 py-16 text-center';
   div.innerHTML = `
-    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-mute-400">
       ${icon || '<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>'}
     </div>
-    <h3 class="text-base font-semibold text-slate-700">${escapeHtml(title || 'Nessun elemento')}</h3>
-    <p class="max-w-sm text-sm text-slate-400">${escapeHtml(message || '')}</p>`;
+    <h3 class="text-base font-semibold text-mute-600">${escapeHtml(title || 'Nessun elemento')}</h3>
+    <p class="max-w-sm text-sm text-mute-400">${escapeHtml(message || '')}</p>`;
   if (actionNode) {
     const wrap = document.createElement('div');
     wrap.className = 'mt-2';
@@ -84,7 +84,7 @@ export function primaryButton(label, onClick, { icon } = {}) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className =
-    'inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700';
+    'inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark';
   b.innerHTML = (icon || '') + `<span>${escapeHtml(label)}</span>`;
   if (onClick) b.addEventListener('click', onClick);
   return b;
@@ -96,8 +96,8 @@ export function iconButton(svg, onClick, { title, danger } = {}) {
   b.type = 'button';
   if (title) b.title = title;
   b.className =
-    'inline-flex items-center justify-center rounded-lg border border-slate-200 p-1.5 text-slate-500 transition hover:bg-slate-50 ' +
-    (danger ? 'hover:border-red-300 hover:text-red-600' : 'hover:text-slate-800');
+    'inline-flex items-center justify-center rounded-lg border border-stone-200 p-1.5 text-mute-400 transition hover:bg-stone-100 ' +
+    (danger ? 'hover:border-red-300 hover:text-red-600' : 'hover:text-graphite');
   b.innerHTML = svg;
   if (onClick) b.addEventListener('click', onClick);
   return b;
@@ -109,8 +109,8 @@ export function pageHeader({ title, subtitle, actions }) {
   wrap.className = 'mb-6 flex flex-wrap items-start justify-between gap-4';
   const left = document.createElement('div');
   left.innerHTML = `
-    <h1 class="text-2xl font-bold tracking-tight text-slate-900">${escapeHtml(title)}</h1>
-    ${subtitle ? `<p class="mt-1 text-sm text-slate-500">${escapeHtml(subtitle)}</p>` : ''}`;
+    <h1 class="font-display text-2xl font-bold tracking-tight text-graphite">${escapeHtml(title)}</h1>
+    ${subtitle ? `<p class="mt-1 text-sm text-mute-400">${escapeHtml(subtitle)}</p>` : ''}`;
   wrap.appendChild(left);
   if (actions) {
     const right = document.createElement('div');
@@ -126,12 +126,12 @@ export function paginationBar(p, onPageChange) {
   const totalPages = p.totalPages || 1;
   const wrap = document.createElement('div');
   wrap.className =
-    'flex flex-col items-center justify-between gap-3 border-t border-slate-200 px-4 py-3 text-sm text-slate-500 sm:flex-row';
+    'flex flex-col items-center justify-between gap-3 border-t border-stone-200 px-4 py-3 text-sm text-mute-400 sm:flex-row';
 
   const from = p.totalItems === 0 ? 0 : (p.page - 1) * p.pageSize + 1;
   const to = Math.min(p.page * p.pageSize, p.totalItems);
   const info = document.createElement('span');
-  info.innerHTML = `<span class="font-medium text-slate-700">${from}–${to}</span> di <span class="font-medium text-slate-700">${p.totalItems}</span>`;
+  info.innerHTML = `<span class="font-medium text-mute-600">${from}–${to}</span> di <span class="font-medium text-mute-600">${p.totalItems}</span>`;
   wrap.appendChild(info);
 
   const nav = document.createElement('div');
@@ -139,7 +139,7 @@ export function paginationBar(p, onPageChange) {
   const btn = (label, disabled, page) => {
     const b = document.createElement('button');
     b.className =
-      'rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40';
+      'rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-mute-600 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-40';
     b.innerHTML = label;
     b.disabled = disabled;
     if (!disabled && onPageChange) b.addEventListener('click', () => onPageChange(page));
@@ -168,12 +168,12 @@ export function debounce(fn, ms = 350) {
 export function searchInput(placeholder, onInput) {
   const wrap = document.createElement('div');
   wrap.className = 'relative';
-  wrap.innerHTML = `<svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>`;
+  wrap.innerHTML = `<svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-mute-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>`;
   const input = document.createElement('input');
   input.type = 'search';
   input.placeholder = placeholder || 'Cerca…';
   input.className =
-    'w-64 rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20';
+    'w-64 rounded-lg border border-stone-300 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20';
   if (onInput) input.addEventListener('input', debounce((e) => onInput(e.target.value), 350));
   wrap.appendChild(input);
   return { node: wrap, input };
@@ -183,7 +183,7 @@ export function searchInput(placeholder, onInput) {
 export function filterSelect(allLabel, options, onChange, value = '') {
   const select = document.createElement('select');
   select.className =
-    'rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20';
+    'rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20';
   const all = document.createElement('option');
   all.value = '';
   all.textContent = allLabel;

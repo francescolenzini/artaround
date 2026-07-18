@@ -81,16 +81,16 @@ export async function init({ params }) {
   bodyEl.appendChild(errBanner);
 
   const footer = document.createElement('div');
-  footer.className = 'mt-6 flex items-center justify-between border-t border-slate-100 pt-5';
+  footer.className = 'mt-6 flex items-center justify-between border-t border-stone-100 pt-5';
 
   const right = document.createElement('div');
   right.className = 'flex gap-3';
   const cancel = document.createElement('button');
-  cancel.className = 'rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50';
+  cancel.className = 'rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-mute-600 hover:bg-stone-100';
   cancel.textContent = 'Annulla';
   cancel.addEventListener('click', () => (location.hash = '#/museums'));
   const save = document.createElement('button');
-  save.className = 'rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60';
+  save.className = 'rounded-lg bg-brand px-5 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60';
   save.textContent = isNew ? 'Crea museo' : 'Salva modifiche';
   right.append(cancel, save);
 

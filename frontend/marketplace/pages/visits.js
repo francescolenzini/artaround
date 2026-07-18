@@ -67,8 +67,8 @@ async function load(tableEl) {
         {
           label: 'Visita',
           render: (v) =>
-            `<div class="font-medium text-slate-900">${escapeHtml(v.title)}</div>` +
-            (v.subtitle ? `<div class="text-xs text-slate-400">${escapeHtml(v.subtitle)}</div>` : ''),
+            `<div class="font-medium text-graphite">${escapeHtml(v.title)}</div>` +
+            (v.subtitle ? `<div class="text-xs text-mute-400">${escapeHtml(v.subtitle)}</div>` : ''),
         },
         { label: 'Pubblico', render: (v) => escapeHtml(v.targetAudience || '') },
         { label: 'Durata', render: (v) => (v.estimatedDurationMinutes ? `${v.estimatedDurationMinutes} min` : '') },

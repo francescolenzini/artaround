@@ -85,22 +85,22 @@ async function load(tableEl) {
         {
           label: 'Utente',
           render: (u) =>
-            `<div class="font-medium text-slate-900">${escapeHtml(u.fullName || u.username)}</div>` +
-            `<div class="text-xs text-slate-400">@${escapeHtml(u.username)}</div>`,
+            `<div class="font-medium text-graphite">${escapeHtml(u.fullName || u.username)}</div>` +
+            `<div class="text-xs text-mute-400">@${escapeHtml(u.username)}</div>`,
         },
         { label: 'Email', render: (u) => escapeHtml(u.email || '') },
         {
           label: 'Ruolo',
           render: (u) =>
             u.role === 'super_admin'
-              ? badge(ROLE_LABELS[u.role], 'bg-brand-100 text-brand-700')
-              : badge(ROLE_LABELS[u.role] || u.role, 'bg-slate-100 text-slate-600'),
+              ? badge(ROLE_LABELS[u.role], 'bg-brand-light text-brand-dark')
+              : badge(ROLE_LABELS[u.role] || u.role, 'bg-stone-100 text-mute-600'),
         },
         {
           label: 'Musei',
           render: (u) =>
             u.role === 'super_admin'
-              ? '<span class="text-xs text-slate-400">tutti</span>'
+              ? '<span class="text-xs text-mute-400">tutti</span>'
               : `${(u.assignedMuseumIds || []).length}`,
         },
         { label: 'Stato', render: (u) => statusBadge(u.status) },

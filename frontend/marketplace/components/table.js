@@ -40,7 +40,7 @@ export function renderTable(container, opts) {
   }
 
   const card = document.createElement('div');
-  card.className = 'overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm';
+  card.className = 'overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm';
 
   const scroll = document.createElement('div');
   scroll.className = 'overflow-x-auto';
@@ -50,7 +50,7 @@ export function renderTable(container, opts) {
 
   // Head
   const thead = document.createElement('thead');
-  thead.className = 'border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500';
+  thead.className = 'border-b border-stone-200 bg-canvas text-xs uppercase tracking-wide text-mute-400';
   const htr = document.createElement('tr');
   if (expand) htr.appendChild(th('', 'w-10'));
   for (const c of columns) htr.appendChild(th(c.label, c.headerClass));
@@ -60,11 +60,11 @@ export function renderTable(container, opts) {
 
   // Body
   const tbody = document.createElement('tbody');
-  tbody.className = 'divide-y divide-slate-100';
+  tbody.className = 'divide-y divide-stone-100';
 
   for (const row of rows) {
     const tr = document.createElement('tr');
-    tr.className = 'transition hover:bg-slate-50';
+    tr.className = 'transition hover:bg-stone-100';
     const clickable = Boolean(onRowClick || expand);
     if (clickable) tr.classList.add('cursor-pointer');
 
@@ -75,7 +75,7 @@ export function renderTable(container, opts) {
       const td = document.createElement('td');
       td.className = 'px-4 py-3 align-top';
       const chevron = document.createElement('span');
-      chevron.className = 'inline-flex text-slate-400 transition-transform';
+      chevron.className = 'inline-flex text-mute-400 transition-transform';
       chevron.innerHTML =
         '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>';
       td.appendChild(chevron);
@@ -85,10 +85,10 @@ export function renderTable(container, opts) {
 
     for (const c of columns) {
       const td = document.createElement('td');
-      td.className = 'px-4 py-3 align-top text-slate-700 ' + (c.class || '');
+      td.className = 'px-4 py-3 align-top text-mute-600 ' + (c.class || '');
       const content = c.render ? c.render(row) : row[c.key];
       if (content instanceof Node) td.appendChild(content);
-      else td.innerHTML = content == null || content === '' ? '<span class="text-slate-300">—</span>' : content;
+      else td.innerHTML = content == null || content === '' ? '<span class="text-stone-300">—</span>' : content;
       tr.appendChild(td);
     }
 
@@ -112,7 +112,7 @@ export function renderTable(container, opts) {
             expandRow = document.createElement('tr');
             const td = document.createElement('td');
             td.colSpan = columns.length + (expand ? 1 : 0) + (rowActions ? 1 : 0);
-            td.className = 'bg-slate-50/70 px-4 py-4';
+            td.className = 'bg-canvas/70 px-4 py-4';
             const node = expand(row);
             if (node) td.appendChild(node);
             expandRow.appendChild(td);

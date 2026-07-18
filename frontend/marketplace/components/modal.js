@@ -33,7 +33,7 @@ export function openModal({
 }) {
   const backdrop = document.createElement('div');
   backdrop.className =
-    'fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 py-10 backdrop-blur-sm';
+    'fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-graphite/40 p-4 py-10 backdrop-blur-sm';
 
   const panel = document.createElement('div');
   panel.className = `modal-panel-enter w-full ${SIZES[size] || SIZES.md} rounded-2xl bg-white shadow-2xl`;
@@ -53,11 +53,11 @@ export function openModal({
   }
 
   const header = document.createElement('div');
-  header.className = 'flex items-center justify-between border-b border-slate-100 px-6 py-4';
-  header.innerHTML = `<h2 class="text-lg font-semibold text-slate-900">${escapeHtml(title || '')}</h2>`;
+  header.className = 'flex items-center justify-between border-b border-stone-100 px-6 py-4';
+  header.innerHTML = `<h2 class="font-display text-lg font-semibold text-graphite">${escapeHtml(title || '')}</h2>`;
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
-  closeBtn.className = 'rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600';
+  closeBtn.className = 'rounded-lg p-1.5 text-mute-400 transition hover:bg-stone-100 hover:text-mute-600';
   closeBtn.innerHTML =
     '<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
   header.appendChild(closeBtn);
@@ -68,12 +68,12 @@ export function openModal({
   let submitBtn;
   if (!hideFooter) {
     const footer = document.createElement('div');
-    footer.className = 'flex justify-end gap-3 border-t border-slate-100 px-6 py-4';
+    footer.className = 'flex justify-end gap-3 border-t border-stone-100 px-6 py-4';
 
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
     cancelBtn.className =
-      'rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50';
+      'rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-mute-600 transition hover:bg-stone-100';
     cancelBtn.textContent = cancelLabel;
     cancelBtn.addEventListener('click', () => close());
 
@@ -81,7 +81,7 @@ export function openModal({
     submitBtn.type = 'button';
     submitBtn.className = danger
       ? 'flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60'
-      : 'flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60';
+      : 'flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:opacity-60';
     submitBtn.textContent = submitLabel;
     submitBtn.addEventListener('click', handleSubmit);
 
@@ -163,7 +163,7 @@ export function confirmDialog({
 }) {
   return new Promise((resolve) => {
     const wrap = document.createElement('div');
-    wrap.className = 'text-sm leading-relaxed text-slate-600';
+    wrap.className = 'text-sm leading-relaxed text-mute-600';
     wrap.innerHTML = message;
     let decided = false;
     const modal = openModal({
@@ -213,13 +213,13 @@ export function buildForm(fields, values = {}) {
     if (f.type === 'checkbox') {
       const label = document.createElement('label');
       label.className =
-        'flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 px-3.5 py-2.5';
+        'flex cursor-pointer items-center gap-2.5 rounded-lg border border-stone-200 px-3.5 py-2.5';
       const input = document.createElement('input');
       input.type = 'checkbox';
-      input.className = 'h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500';
+      input.className = 'h-4 w-4 rounded border-stone-300 text-brand focus:ring-brand';
       input.checked = Boolean(current);
       const span = document.createElement('span');
-      span.className = 'text-sm font-medium text-slate-700';
+      span.className = 'text-sm font-medium text-mute-600';
       span.textContent = f.label;
       label.appendChild(input);
       label.appendChild(span);
@@ -230,13 +230,13 @@ export function buildForm(fields, values = {}) {
     }
 
     const labelEl = document.createElement('label');
-    labelEl.className = 'block text-sm font-medium text-slate-700';
+    labelEl.className = 'block text-sm font-medium text-mute-600';
     labelEl.textContent = f.label + (f.required ? ' *' : '');
     col.appendChild(labelEl);
 
     let input;
     const baseCls =
-      'w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20';
+      'w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20';
 
     if (f.type === 'textarea') {
       input = document.createElement('textarea');
@@ -275,7 +275,7 @@ export function buildForm(fields, values = {}) {
     } else {
       input = document.createElement('input');
       input.type = f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text';
-      input.className = baseCls + (f.readonly ? ' bg-slate-50 text-slate-500' : '');
+      input.className = baseCls + (f.readonly ? ' bg-canvas text-mute-400' : '');
       if (f.readonly) input.readOnly = true;
       if (f.placeholder) input.placeholder = f.placeholder;
       if (f.min != null) input.min = f.min;
@@ -288,7 +288,7 @@ export function buildForm(fields, values = {}) {
 
     if (f.help) {
       const help = document.createElement('p');
-      help.className = 'text-xs text-slate-400';
+      help.className = 'text-xs text-mute-400';
       help.textContent = f.help;
       col.appendChild(help);
     }

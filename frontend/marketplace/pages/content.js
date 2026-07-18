@@ -105,8 +105,8 @@ async function load(tableEl) {
         {
           label: 'Opera',
           render: (a) =>
-            `<div class="font-medium text-slate-900">${escapeHtml(a.title)}</div>` +
-            `<div class="text-xs text-slate-400">${escapeHtml(a.year || '')}</div>`,
+            `<div class="font-medium text-graphite">${escapeHtml(a.title)}</div>` +
+            `<div class="text-xs text-mute-400">${escapeHtml(a.year || '')}</div>`,
         },
         { label: 'Artista', render: (a) => escapeHtml(a.artist || '') },
         { label: 'Stile', render: (a) => escapeHtml(a.style || '') },
@@ -204,7 +204,7 @@ async function loadItemsInto(container, artwork) {
   container.innerHTML = '';
   const head = document.createElement('div');
   head.className = 'mb-3 flex items-center justify-between';
-  head.innerHTML = `<h4 class="text-sm font-semibold text-slate-700">Item di "${escapeHtml(artwork.title)}"</h4>`;
+  head.innerHTML = `<h4 class="text-sm font-semibold text-mute-600">Item di "${escapeHtml(artwork.title)}"</h4>`;
   const addBtn = primaryButton('Aggiungi item', () =>
     openItemForm(artwork, null, onItemsChanged),
     { icon: icons.plus }
@@ -224,7 +224,7 @@ async function loadItemsInto(container, artwork) {
     const rows = res.data || [];
     list.innerHTML = '';
     if (!rows.length) {
-      list.innerHTML = `<p class="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-400">Nessun item${state.isFree !== '' ? ' con questo filtro' : ''}. Aggiungine uno per poter pubblicare l'opera.</p>`;
+      list.innerHTML = `<p class="rounded-lg border border-dashed border-stone-300 bg-white px-4 py-6 text-center text-sm text-mute-400">Nessun item${state.isFree !== '' ? ' con questo filtro' : ''}. Aggiungine uno per poter pubblicare l'opera.</p>`;
       return;
     }
     const grid = document.createElement('div');
@@ -241,16 +241,16 @@ async function loadItemsInto(container, artwork) {
 function itemRow(it, artwork, reloadItems) {
   const row = document.createElement('div');
   row.className =
-    'flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-2.5';
+    'flex items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-4 py-2.5';
   const title = (it.content && it.content.title) || '(senza titolo)';
   row.innerHTML = `
     <div class="min-w-0 flex-1">
       <div class="flex items-center gap-2">
-        <span class="truncate text-sm font-medium text-slate-800">${escapeHtml(title)}</span>
+        <span class="truncate text-sm font-medium text-graphite">${escapeHtml(title)}</span>
         ${statusBadge(it.status)}
         ${freeBadge(it.isFree, it.price)}
       </div>
-      <div class="mt-0.5 flex flex-wrap gap-2 text-xs text-slate-400">
+      <div class="mt-0.5 flex flex-wrap gap-2 text-xs text-mute-400">
         <span>Registro: ${escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '—')}</span>
         <span>· Durata: ${escapeHtml(LENGTH_LABELS[it.classification?.fruitionLength] || '—')}</span>
         ${it.classification?.languageCode ? `<span>· Lingua: ${escapeHtml(it.classification.languageCode)}</span>` : ''}

@@ -83,7 +83,7 @@ function renderTools(toolsEl, rerender) {
 function smallBtn(label, onClick) {
   const b = document.createElement('button');
   b.className =
-    'rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50';
+    'rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-mute-600 transition hover:bg-stone-100';
   b.textContent = label;
   b.addEventListener('click', onClick);
   return b;
@@ -105,25 +105,25 @@ function renderCatalog(catalogEl, artList, itemList, rerender) {
   const withItems = artList.filter((a) => (byArtwork[a.id] || []).length);
   if (!withItems.length) {
     catalogEl.innerHTML =
-      '<p class="px-2 py-8 text-center text-sm text-slate-400">Nessun item disponibile in questo museo. Crea prima opere e item dalla sezione Contenuti.</p>';
+      '<p class="px-2 py-8 text-center text-sm text-mute-400">Nessun item disponibile in questo museo. Crea prima opere e item dalla sezione Contenuti.</p>';
     return;
   }
 
   for (const a of withItems) {
     const group = document.createElement('div');
     group.className = 'mb-3';
-    group.innerHTML = `<p class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-slate-400">${escapeHtml(a.title)}</p>`;
+    group.innerHTML = `<p class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-mute-400">${escapeHtml(a.title)}</p>`;
     for (const it of byArtwork[a.id]) {
       const btn = document.createElement('button');
       btn.className =
-        'mb-1 flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2 text-left text-sm transition hover:border-brand-300 hover:bg-brand-50';
+        'mb-1 flex w-full items-center justify-between gap-2 rounded-lg border border-stone-200 px-3 py-2 text-left text-sm transition hover:border-brand hover:bg-brand-light';
       const title = (it.content && it.content.title) || a.title;
       btn.innerHTML = `
         <span class="min-w-0">
-          <span class="block truncate font-medium text-slate-700">${escapeHtml(title)}</span>
-          <span class="block text-xs text-slate-400">${escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '')}</span>
+          <span class="block truncate font-medium text-mute-600">${escapeHtml(title)}</span>
+          <span class="block text-xs text-mute-400">${escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '')}</span>
         </span>
-        <span class="shrink-0 text-brand-500">${icons.plus}</span>`;
+        <span class="shrink-0 text-brand">${icons.plus}</span>`;
       btn.addEventListener('click', () => {
         steps.push(newStep('main_item', title, it.id));
         rerender();
@@ -141,13 +141,13 @@ function renderSteps(stepsEl) {
   stepsEl.innerHTML = '';
   if (!steps.length) {
     stepsEl.innerHTML =
-      '<div class="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center text-sm text-slate-400">Nessuna tappa. Aggiungi item dal catalogo a sinistra o usa i pulsanti sopra per tappe logistiche.</div>';
+      '<div class="rounded-xl border border-dashed border-stone-300 bg-white px-6 py-14 text-center text-sm text-mute-400">Nessuna tappa. Aggiungi item dal catalogo a sinistra o usa i pulsanti sopra per tappe logistiche.</div>';
     return;
   }
 
   steps.forEach((step, idx) => {
     const card = document.createElement('div');
-    card.className = 'rounded-xl border border-slate-200 bg-white p-4 shadow-sm';
+    card.className = 'rounded-xl border border-stone-200 bg-white p-4 shadow-sm';
 
     const top = document.createElement('div');
     top.className = 'flex items-start gap-3';
@@ -155,7 +155,7 @@ function renderSteps(stepsEl) {
     // Numero + frecce
     const ctrl = document.createElement('div');
     ctrl.className = 'flex flex-col items-center gap-1';
-    ctrl.innerHTML = `<span class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">${idx + 1}</span>`;
+    ctrl.innerHTML = `<span class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand-dark">${idx + 1}</span>`;
     const up = iconButton(icons.arrowUp, () => move(idx, -1, stepsEl), { title: 'Sposta su' });
     const down = iconButton(icons.arrowDown, () => move(idx, 1, stepsEl), { title: 'Sposta giù' });
     up.disabled = idx === 0;
@@ -174,7 +174,7 @@ function renderSteps(stepsEl) {
 
     const typeSel = document.createElement('select');
     typeSel.className =
-      'rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium outline-none focus:border-brand-500';
+      'rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-medium outline-none focus:border-brand';
     for (const t of STEP_TYPE) {
       const o = document.createElement('option');
       o.value = t.value;
@@ -195,7 +195,7 @@ function renderSteps(stepsEl) {
 
     if (step.itemId) {
       const ref = document.createElement('span');
-      ref.className = 'rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-500';
+      ref.className = 'rounded-md bg-stone-100 px-2 py-1 text-xs text-mute-400';
       const it = itemsById[step.itemId];
       ref.textContent = it ? `Item: ${(it.content && it.content.title) || step.itemId}` : `Item: ${step.itemId}`;
       rowTop.appendChild(ref);
@@ -207,7 +207,7 @@ function renderSteps(stepsEl) {
     titleInput.value = step.title || '';
     titleInput.placeholder = 'Titolo della tappa';
     titleInput.className =
-      'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20';
+      'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium outline-none focus:border-brand focus:ring-2 focus:ring-brand/20';
     titleInput.addEventListener('input', (e) => (step.title = e.target.value));
     body.appendChild(titleInput);
 
@@ -216,7 +216,7 @@ function renderSteps(stepsEl) {
     dir.value = step.directionsFromPrevious || '';
     dir.placeholder = 'Indicazioni dalla tappa precedente (es. “gira a destra, sala 3”)…';
     dir.className =
-      'w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20';
+      'w-full resize-y rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20';
     dir.addEventListener('input', (e) => (step.directionsFromPrevious = e.target.value));
     body.appendChild(dir);
 

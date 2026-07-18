@@ -12,20 +12,27 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'system-ui', 'sans-serif'],
+              sans: ['Instrument Sans', 'system-ui', 'sans-serif'],
+              display: ['Figtree', 'system-ui', 'sans-serif'],
             },
             colors: {
+              // Palette "Galleria Bianca rivisitata", condivisa col Navigator
+              // (frontend/navigator/src/styles.css)
               brand: {
-                50: '#f5f3ff',
-                100: '#ede9fe',
-                200: '#ddd6fe',
-                300: '#c4b5fd',
-                400: '#a78bfa',
-                500: '#8b5cf6',
-                600: '#7c3aed',
-                700: '#6d28d9',
-                800: '#5b21b6',
-                900: '#4c1d95',
+                light: '#F8E5E0', // Vermiglio tenue (sfondi/badge)
+                DEFAULT: '#D2452B', // Vermiglio
+                dark: '#B03A24', // Vermiglio scuro (hover)
+              },
+              canvas: '#FBFBF9', // Fondo
+              stone: {
+                100: '#F4F2ED', // Pietra chiara (hover)
+                200: '#ECEAE4', // Pietra (bordi, divisori)
+                300: '#DDD9CF', // Pietra scura (bordi marcati)
+              },
+              graphite: '#1A1A18', // Grafite (testo primario)
+              mute: {
+                400: '#9C9C95', // Muto chiaro (icone, placeholder)
+                600: '#6E6E68', // Muto (testo secondario)
               },
             },
           },
@@ -37,13 +44,13 @@
       href="https://fonts.googleapis.com"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;700&family=Instrument+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles/main.css" />
   </head>
 
-  <body class="h-full bg-slate-50 text-slate-800 font-sans antialiased">
+  <body class="h-full bg-canvas text-graphite font-sans antialiased">
     <!-- ============================ LOGIN ============================ -->
     <div
       id="login-view"
@@ -52,20 +59,20 @@
       <div class="w-full max-w-md">
         <div class="mb-8 text-center">
           <div
-            class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-2xl font-bold text-white shadow-lg shadow-brand-600/30"
+            class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-2xl font-bold text-white shadow-lg shadow-brand/30"
           >
             A
           </div>
-          <h1 class="text-2xl font-bold text-slate-900">ArtAround</h1>
-          <p class="mt-1 text-sm text-slate-500">Marketplace / Editor dei contenuti</p>
+          <h1 class="font-display text-2xl font-bold text-graphite">ArtAround</h1>
+          <p class="mt-1 text-sm text-mute-400">Marketplace / Editor dei contenuti</p>
         </div>
 
         <form
           id="login-form"
-          class="space-y-5 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
+          class="space-y-5 rounded-2xl border border-stone-200 bg-white p-8 shadow-sm"
         >
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-700" for="login-username"
+            <label class="mb-1.5 block text-sm font-medium text-mute-600" for="login-username"
               >Username</label
             >
             <input
@@ -74,12 +81,12 @@
               type="text"
               autocomplete="username"
               required
-              class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              class="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
               placeholder="es. admin"
             />
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-700" for="login-password"
+            <label class="mb-1.5 block text-sm font-medium text-mute-600" for="login-password"
               >Password</label
             >
             <input
@@ -88,7 +95,7 @@
               type="password"
               autocomplete="current-password"
               required
-              class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              class="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
               placeholder="••••••••"
             />
           </div>
@@ -98,13 +105,13 @@
           <button
             id="login-submit"
             type="submit"
-            class="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:ring-2 focus:ring-brand-500/40 disabled:opacity-60"
+            class="flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark focus:ring-2 focus:ring-brand/40 disabled:opacity-60"
           >
             Accedi
           </button>
         </form>
 
-        <p class="mt-6 text-center text-xs text-slate-400">
+        <p class="mt-6 text-center text-xs text-mute-400">
           Tecnologie Web · UniBO — backend Node/Express/MongoDB
         </p>
       </div>
@@ -115,12 +122,12 @@
       <div class="flex h-full">
         <aside
           id="sidebar"
-          class="flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white"
+          class="flex w-64 shrink-0 flex-col border-r border-stone-200 bg-white"
         ></aside>
 
         <div class="flex min-w-0 flex-1 flex-col">
-          <header id="topbar" class="shrink-0 border-b border-slate-200 bg-white"></header>
-          <main id="view" class="flex-1 overflow-y-auto bg-slate-50 p-6"></main>
+          <header id="topbar" class="shrink-0 border-b border-stone-200 bg-white"></header>
+          <main id="view" class="flex-1 overflow-y-auto bg-canvas p-6"></main>
         </div>
       </div>
     </div>

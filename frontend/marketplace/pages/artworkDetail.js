@@ -63,13 +63,13 @@ function renderMeta(metaEl, a) {
     ['ID universale', a.universalObjectId],
   ].filter(([, v]) => v);
   metaEl.innerHTML = `
-    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      ${a.description ? `<p class="mb-4 text-sm leading-relaxed text-slate-600">${escapeHtml(a.description)}</p>` : ''}
+    <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+      ${a.description ? `<p class="mb-4 text-sm leading-relaxed text-mute-600">${escapeHtml(a.description)}</p>` : ''}
       <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
         ${rows
           .map(
             ([k, v]) =>
-              `<div><dt class="text-xs uppercase tracking-wide text-slate-400">${k}</dt><dd class="text-slate-700">${escapeHtml(v)}</dd></div>`
+              `<div><dt class="text-xs uppercase tracking-wide text-mute-400">${k}</dt><dd class="text-mute-600">${escapeHtml(v)}</dd></div>`
           )
           .join('')}
       </dl>
@@ -80,7 +80,7 @@ async function renderItems(itemsEl, artwork) {
   itemsEl.innerHTML = '';
   const head = document.createElement('div');
   head.className = 'mb-3 flex items-center justify-between';
-  head.innerHTML = '<h3 class="text-base font-semibold text-slate-800">Item</h3>';
+  head.innerHTML = '<h3 class="text-base font-semibold text-graphite">Item</h3>';
   head.appendChild(
     primaryButton('Aggiungi item', () => openItemForm(artwork, null, () => renderItems(itemsEl, artwork)), {
       icon: icons.plus,
@@ -98,7 +98,7 @@ async function renderItems(itemsEl, artwork) {
     list.innerHTML = '';
     if (!rows.length) {
       list.innerHTML =
-        '<p class="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-10 text-center text-sm text-slate-400">Nessun item. Aggiungine uno per poter pubblicare l\'opera.</p>';
+        '<p class="rounded-xl border border-dashed border-stone-300 bg-white px-4 py-10 text-center text-sm text-mute-400">Nessun item. Aggiungine uno per poter pubblicare l\'opera.</p>';
       return;
     }
     const grid = document.createElement('div');
@@ -112,20 +112,20 @@ async function renderItems(itemsEl, artwork) {
 
 function itemCard(it, artwork, reload) {
   const card = document.createElement('div');
-  card.className = 'flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4';
+  card.className = 'flex items-start justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4';
   const title = (it.content && it.content.title) || '(senza titolo)';
   card.innerHTML = `
     <div class="min-w-0 flex-1">
       <div class="flex flex-wrap items-center gap-2">
-        <span class="font-medium text-slate-800">${escapeHtml(title)}</span>
+        <span class="font-medium text-graphite">${escapeHtml(title)}</span>
         ${statusBadge(it.status)}
         ${freeBadge(it.isFree, it.price)}
       </div>
-      <div class="mt-1 flex flex-wrap gap-2 text-xs text-slate-400">
+      <div class="mt-1 flex flex-wrap gap-2 text-xs text-mute-400">
         <span>Registro: ${escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '—')}</span>
         <span>· Durata: ${escapeHtml(LENGTH_LABELS[it.classification?.fruitionLength] || '—')}</span>
       </div>
-      ${it.content?.screenText ? `<p class="mt-2 line-clamp-2 text-sm text-slate-500">${escapeHtml(it.content.screenText)}</p>` : ''}
+      ${it.content?.screenText ? `<p class="mt-2 line-clamp-2 text-sm text-mute-400">${escapeHtml(it.content.screenText)}</p>` : ''}
     </div>`;
   const actions = document.createElement('div');
   actions.className = 'flex shrink-0 gap-1.5';

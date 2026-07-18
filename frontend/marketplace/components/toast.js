@@ -12,7 +12,7 @@ const ICONS = {
 const STYLES = {
   success: 'bg-white border-emerald-200 text-emerald-700',
   error: 'bg-white border-red-200 text-red-700',
-  info: 'bg-white border-slate-200 text-slate-700',
+  info: 'bg-white border-stone-200 text-mute-600',
 };
 
 function show(message, type = 'info', timeout = 3500) {
