@@ -10,6 +10,26 @@ const loginView = document.getElementById('login-view');
 const appShell = document.getElementById('app-shell');
 const viewEl = document.getElementById('view');
 
+function loginErrorMessage(err) {
+  const backendMessage = err?.body?.error?.message || err?.message || '';
+
+  if (err?.status === 0) {
+    return backendMessage || 'Backend non raggiungibile. Verifica che sia in esecuzione.';
+  }
+
+  if (err?.status === 401) {
+    if (backendMessage === 'Invalid credentials') {
+      return 'Username o password non validi.';
+    }
+    if (backendMessage === 'Missing API key' || backendMessage === 'Invalid API key') {
+      return 'Configurazione del Marketplace non valida: API key mancante o non attiva. Esegui il seed, aggiorna serve.config.json e riavvia il dev server.';
+    }
+    return `Accesso non autorizzato: ${backendMessage || 'verifica la configurazione del backend.'}`;
+  }
+
+  return backendMessage || 'Accesso non riuscito.';
+}
+
 // Tabella delle rotte. `pattern` con segmenti :param.
 const ROUTES = [
   { name: 'museums', pattern: 'museums', html: 'pages/museums.html', mod: './pages/museums.js' },
@@ -83,8 +103,7 @@ function showLogin() {
       location.hash = '#/museums';
       showApp();
     } catch (err) {
-      errorEl.textContent =
-        err.status === 401 ? 'Credenziali non valide.' : err.message || 'Accesso non riuscito.';
+      errorEl.textContent = loginErrorMessage(err);
       errorEl.classList.remove('hidden');
     } finally {
       submit.disabled = false;

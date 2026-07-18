@@ -22,7 +22,8 @@ visita. Consuma il backend Node/Express/MongoDB su `http://localhost:3002`.
    Apri `http://localhost:5174`.
 
    > `serve.config.json` contiene la API key e **non è versionato** (`.gitignore`): parti dal file
-   > `serve.config.example.json`. Se rilanci `npm run seed` la chiave cambia: aggiorna `apiKey`.
+   > `serve.config.example.json`. Dopo aver cambiato `apiKey`, riavvia `node serve.js`: il proxy legge
+   > la configurazione solo all'avvio.
    > Se avvii senza `serve.config.json`, `serve.js` usa l'example (key segnaposto → il login fallirà
    > finché non imposti quella reale).
 
@@ -38,8 +39,21 @@ il frontend gestisce solo il JWT (`Authorization: Bearer …`).
 
 ## Account demo
 
-`admin` (super_admin), `autore1`/`autore2`/`visitatore1`/`visitatore2` (museum_curator) —
-password `12345678` per tutti.
+`admin` (`super_admin`), `autore1`/`autore2` (`author`) e `visitatore1`/`visitatore2`
+(`visitor`) — password `12345678` per tutti. I visitatori non possono accedere al Marketplace:
+usano il Navigator durante la visita.
+
+## Smoke test del login
+
+Con backend e Marketplace gia' avviati, esegui dalla cartella `frontend/marketplace`:
+
+```bash
+node smoke-test.js
+```
+
+Il controllo invia il login seed al proxy locale (`:5174`) e verifica token, utente `admin` e ruolo
+`super_admin`. Se segnala `Invalid API key`, esegui `npm run seed` in `backend`, aggiorna
+`serve.config.json` con la chiave stampata e riavvia `node serve.js`.
 
 ## Struttura
 
