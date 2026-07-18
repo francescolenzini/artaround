@@ -1,8 +1,17 @@
+export interface FloorConfig {
+  floor: number;
+  label: string;
+  image: string;
+}
+
 export interface MuseumConfig {
-  museumId: string;
+  museumSlug: string;
+  museumId?: string;
   name: string;
   coverImage: string;
   mapImage: string;
+  /** Piani con mappa dedicata. Se assente/vuoto il Navigator usa mapImage come mappa unica. */
+  floors?: FloorConfig[];
   marketplaceUrl: string;
   logistics: {
     exit: string;
@@ -53,6 +62,16 @@ export interface Visit {
   estimatedDurationMinutes?: number;
   targetAudience?: string;
   steps: VisitStep[];
+}
+
+export interface Artwork {
+  id: string;
+  title?: string;
+  artist?: string;
+  year?: string | number;
+  category?: string;
+  style?: string;
+  description?: string;
 }
 
 export interface ArtworkItem {

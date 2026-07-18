@@ -130,9 +130,15 @@ function requireRole(...roles) {
   };
 }
 
+// Ruoli abilitati a creare/modificare contenuti. Unico punto di verità: il
+// `visitor` è di sola lettura (fruisce col Navigator), quindi è escluso dalle
+// scritture su musei/opere/item/visite.
+const requireContentEditor = requireRole('super_admin', 'author');
+
 module.exports = {
   requireApiKey,
   requireJwt,
   requireApiKeyAndJwt,
   requireRole,
+  requireContentEditor,
 };

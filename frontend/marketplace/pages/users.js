@@ -174,7 +174,7 @@ function openUserForm(user, reload) {
       colSpan: 1,
       help: isNew ? 'minimo 8 caratteri' : 'lascia vuoto per non cambiarla',
     },
-    { name: 'role', label: 'Ruolo', type: 'select', required: true, options: USER_ROLES, value: user?.role || 'museum_curator', colSpan: 1 },
+    { name: 'role', label: 'Ruolo', type: 'select', required: true, options: USER_ROLES, value: user?.role || 'author', colSpan: 1 },
     { name: 'status', label: 'Stato', type: 'select', required: true, options: USER_STATUS, value: user?.status || 'active', colSpan: 1 },
     { name: 'avatar', label: 'URL avatar', colSpan: 1, value: user?.avatar },
     {

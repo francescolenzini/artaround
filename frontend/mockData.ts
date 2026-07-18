@@ -145,23 +145,23 @@ export const users: BackendUser[] = [
   },
   {
     id: 'usr-2', fullName: 'Maria Bianchi', email: 'm.bianchi@museocivico.it', username: 'mbianchi',
-    role: 'museum_curator', status: 'active', assignedMuseumIds: ['mus-1'],
+    role: 'author', status: 'active', assignedMuseumIds: ['mus-1'],
     lastLogin: '2026-04-03T15:20:00Z', createdAt: '2025-06-20T10:00:00Z', updatedAt: '2026-04-03T15:20:00Z',
   },
   {
     id: 'usr-3', fullName: 'Luca Verdi', email: 'l.verdi@artaround.com', username: 'lverdi',
-    role: 'museum_curator', status: 'active', assignedMuseumIds: ['mus-1', 'mus-2'],
+    role: 'author', status: 'active', assignedMuseumIds: ['mus-1', 'mus-2'],
     lastLogin: '2026-04-02T11:45:00Z', createdAt: '2025-07-15T10:00:00Z', updatedAt: '2026-04-02T11:45:00Z',
     notes: 'Senior curator, manages both archaeological and fine arts collections.',
   },
   {
     id: 'usr-4', fullName: 'Francesca Neri', email: 'f.neri@mambo.bo.it', username: 'fneri',
-    role: 'museum_curator', status: 'active', assignedMuseumIds: ['mus-3'],
+    role: 'author', status: 'active', assignedMuseumIds: ['mus-3'],
     lastLogin: '2026-03-28T09:00:00Z', createdAt: '2026-01-15T10:00:00Z', updatedAt: '2026-03-28T09:00:00Z',
   },
   {
     id: 'usr-5', fullName: 'Giorgio Colombo', email: 'g.colombo@artaround.com', username: 'gcolombo',
-    role: 'museum_curator', status: 'suspended', assignedMuseumIds: ['mus-1'],
+    role: 'author', status: 'suspended', assignedMuseumIds: ['mus-1'],
     lastLogin: '2026-02-10T14:00:00Z', createdAt: '2025-09-01T10:00:00Z', updatedAt: '2026-03-01T10:00:00Z',
     notes: 'Suspended due to contract review.',
   },

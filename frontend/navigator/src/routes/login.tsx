@@ -42,30 +42,40 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-10">
       <div className="w-full max-w-sm">
-        <h1 className="mb-2 text-3xl font-bold text-primary text-center">
-          ArtAround
-        </h1>
-        <p className="mb-8 text-center text-lg text-muted-foreground">
-          {museum?.name ?? "Museum companion"}
+        {museum?.name && (
+          <p className="mb-8 text-center text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+            {museum.name}
+          </p>
+        )}
+        <div className="flex items-center justify-center" aria-hidden>
+          <span className="font-display text-4xl font-bold">ArtAround</span>
+        </div>
+        <h1 className="sr-only">ArtAround</h1>
+        <p className="mt-3 mb-10 text-center text-base text-muted-foreground">
+          La tua guida in ascolto, sala dopo sala.
         </p>
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <label className="flex flex-col gap-2 text-base">
-            Username
+        <form onSubmit={onSubmit} className="flex flex-col gap-5">
+          <label className="flex flex-col gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Username
+            </span>
             <input
-              className="min-h-[48px] rounded-lg border border-border bg-input px-4 text-lg text-foreground"
+              className="min-h-[48px] rounded-lg border border-border bg-secondary px-4 text-base text-foreground outline-none focus-visible:border-ring"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               autoComplete="username"
               required
             />
           </label>
-          <label className="flex flex-col gap-2 text-base">
-            Password
+          <label className="flex flex-col gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Password
+            </span>
             <input
               type="password"
-              className="min-h-[48px] rounded-lg border border-border bg-input px-4 text-lg text-foreground"
+              className="min-h-[48px] rounded-lg border border-border bg-secondary px-4 text-base text-foreground outline-none focus-visible:border-ring"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
@@ -73,16 +83,16 @@ function LoginPage() {
             />
           </label>
           {err && (
-            <div className="rounded-lg bg-destructive/20 p-3 text-sm text-destructive-foreground">
+            <div className="rounded-lg border border-destructive/40 bg-card p-3 text-sm text-destructive">
               {err}
             </div>
           )}
           <button
             type="submit"
             disabled={submitting}
-            className="min-h-[52px] rounded-lg bg-primary text-lg font-semibold text-primary-foreground disabled:opacity-50"
+            className="mt-1 min-h-[52px] rounded-xl bg-primary text-base font-semibold text-primary-foreground disabled:opacity-50"
           >
-            {submitting ? "Accesso…" : "Accedi"}
+            {submitting ? "Accesso…" : "Entra ›"}
           </button>
         </form>
       </div>

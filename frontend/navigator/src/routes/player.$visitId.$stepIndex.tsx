@@ -1,18 +1,22 @@
-import {
-  createFileRoute,
-  Navigate,
-  useNavigate,
-} from "@tanstack/react-router";
+import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "../lib/AppContext";
 import { apiFetch } from "../lib/api";
-import type { ArtworkItem, ListResponse, Visit } from "../lib/types";
+import type { Artwork, ArtworkItem, ListResponse, Visit } from "../lib/types";
 import { ErrorScreen, LoadingScreen, Modal, Toast } from "../components/Shell";
 import { speak, startRecognition, stopSpeak, type RecognitionHandle } from "../lib/speech";
 
 export const Route = createFileRoute("/player/$visitId/$stepIndex")({
   component: PlayerPage,
 });
+
+// Coppie semantiche dei comandi vocali (specifiche docente): una coppia per
+// "pagina" della strip; le frecce avanzano di una coppia alla volta.
+const VOICE_PAIRS: [string, string][] = [
+  ["Dimmi di meno", "Dimmi di più"],
+  ["Troppo semplice", "Non capisco"],
+  ["Chi è l'autore", "Qual è lo stile"],
+];
 
 function PlayerPage() {
   const { visitId, stepIndex } = Route.useParams();
@@ -28,12 +32,32 @@ function PlayerPage() {
     setCurrentItem,
   } = useApp();
 
-  const [visit, setLocalVisit] = useState<Visit | null>(ctxVisit && ctxVisit.id === visitId ? ctxVisit : null);
+  const [visit, setLocalVisit] = useState<Visit | null>(
+    ctxVisit && ctxVisit.id === visitId ? ctxVisit : null,
+  );
   const [err, setErr] = useState<string | null>(null);
   const [modal, setModal] = useState<{ title: string; body: string } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const recRef = useRef<RecognitionHandle | null>(null);
+  const [playing, setPlaying] = useState(false);
+  // cancel() fa scattare l'onend dell'utterance precedente in modo asincrono:
+  // il contatore ignora i callback di utterance ormai superate
+  const playSeq = useRef(0);
+
+  const playTts = useCallback((text: string) => {
+    const id = ++playSeq.current;
+    speak(text, () => {
+      if (playSeq.current === id) setPlaying(false);
+    });
+    setPlaying(true);
+  }, []);
+
+  const stopTts = useCallback(() => {
+    playSeq.current++;
+    stopSpeak();
+    setPlaying(false);
+  }, []);
 
   // Load visit if missing
   useEffect(() => {
@@ -56,7 +80,11 @@ function PlayerPage() {
       setCurrentItem(null);
       return;
     }
-    apiFetch<ListResponse<ArtworkItem>>(apiConfig, token, `/artwork-items?id=${encodeURIComponent(step.itemId)}`)
+    apiFetch<ListResponse<ArtworkItem>>(
+      apiConfig,
+      token,
+      `/artwork-items?id=${encodeURIComponent(step.itemId)}`,
+    )
       .then((r) => setCurrentItem(r.data[0] ?? null))
       .catch(() => setToast("Impossibile caricare il contenuto"));
   }, [apiConfig, token, step, setCurrentItem]);
@@ -73,13 +101,13 @@ function PlayerPage() {
     (i: number) => {
       if (!visit) return;
       if (i < 0 || i >= visit.steps.length) return;
-      stopSpeak();
+      stopTts();
       navigate({
         to: "/player/$visitId/$stepIndex",
         params: { visitId, stepIndex: String(i) },
       });
     },
-    [navigate, visit, visitId],
+    [navigate, visit, visitId, stopTts],
   );
 
   const fetchRegister = useCallback(
@@ -99,34 +127,65 @@ function PlayerPage() {
           token,
           `/artwork-items?artworkId=${encodeURIComponent(artworkId)}&pageSize=20`,
         );
-        const match = r.data.find(
-          (it) => it.classification?.languageRegister === register,
-        );
+        const match = r.data.find((it) => it.classification?.languageRegister === register);
         if (!match || !match.content?.ttsText) {
           setToast("Contenuto non disponibile");
           return;
         }
-        speak(match.content.ttsText);
+        playTts(match.content.ttsText);
       } catch {
         setToast("Contenuto non disponibile");
       }
     },
-    [apiConfig, token, currentItem],
+    [apiConfig, token, currentItem, playTts],
   );
 
-  const showAuthor = useCallback(() => {
-    setModal({ title: "Autore", body: "Autore non disponibile" });
-  }, []);
-  const showStyle = useCallback(() => {
-    setModal({ title: "Stile", body: "Stile non disponibile" });
-  }, []);
+  // Cache delle opere già caricate (l'endpoint item non include autore/stile,
+  // che vivono sull'Artwork padre): evita richieste ripetute nella stessa visita.
+  const artworkCache = useRef<Record<string, Artwork>>({});
+
+  const getArtwork = useCallback(async (): Promise<Artwork | null> => {
+    const artworkId = currentItem?.artworkId;
+    if (!apiConfig || !token || !artworkId) return null;
+    if (artworkCache.current[artworkId]) return artworkCache.current[artworkId];
+    try {
+      const a = await apiFetch<Artwork>(
+        apiConfig,
+        token,
+        `/artworks/${encodeURIComponent(artworkId)}`,
+      );
+      artworkCache.current[artworkId] = a;
+      return a;
+    } catch {
+      return null;
+    }
+  }, [apiConfig, token, currentItem]);
+
+  const showAuthor = useCallback(async () => {
+    const a = await getArtwork();
+    if (a?.artist) {
+      setModal({ title: "Autore", body: a.year ? `${a.artist} (${a.year})` : a.artist });
+    } else {
+      setToast("Autore non disponibile");
+    }
+  }, [getArtwork]);
+
+  const showStyle = useCallback(async () => {
+    const a = await getArtwork();
+    const parts = [a?.style, a?.category].filter(Boolean);
+    if (parts.length) {
+      setModal({ title: "Stile", body: parts.join(" · ") });
+    } else {
+      setToast("Stile non disponibile");
+    }
+  }, [getArtwork]);
 
   const handleExit = useCallback(() => {
     if (window.confirm("Vuoi uscire dalla visita?")) {
-      stopSpeak();
+      stopTts();
       navigate({ to: "/visits" });
     }
-  }, [navigate]);
+  }, [navigate, stopTts]);
 
   const showLogistics = useCallback(
     (key: keyof NonNullable<typeof museum>["logistics"]) => {
@@ -144,12 +203,10 @@ function PlayerPage() {
       if (has("prossimo", "avanti")) return goTo(idx + 1);
       if (has("precedente", "indietro")) return goTo(idx - 1);
       if (has("cos'è questo", "cos è questo", "descrivi"))
-        return currentItem?.content?.ttsText && speak(currentItem.content.ttsText);
-      if (has("di più", "di piu", "dimmi di più", "dimmi di piu"))
+        return currentItem?.content?.ttsText && playTts(currentItem.content.ttsText);
+      if (has("di più", "di piu", "dimmi di più", "dimmi di piu", "troppo semplice"))
         return fetchRegister("avanzato");
-      if (has("di meno", "dimmi di meno")) return fetchRegister("elementare");
-      if (has("non capisco", "troppo semplice"))
-        return setToast("Registro alternativo non disponibile");
+      if (has("di meno", "dimmi di meno", "non capisco")) return fetchRegister("elementare");
       if (has("autore")) return showAuthor();
       if (has("stile")) return showStyle();
       if (has("uscita")) return showLogistics("exit");
@@ -159,7 +216,7 @@ function PlayerPage() {
       if (has("ostacoli")) return showLogistics("obstacles");
       setToast(`Comando non riconosciuto: "${text}"`);
     },
-    [idx, goTo, currentItem, fetchRegister, showAuthor, showStyle, showLogistics], // eslint-disable-line react-hooks/exhaustive-deps
+    [idx, goTo, currentItem, playTts, fetchRegister, showAuthor, showStyle, showLogistics],
   );
 
   const toggleMic = useCallback(() => {
@@ -190,6 +247,41 @@ function PlayerPage() {
     return step.description ?? "";
   }, [step, currentItem]);
 
+  // Strip orizzontale "Chiedi all'audioguida": pagine e posizione corrente
+  const stripRef = useRef<HTMLDivElement | null>(null);
+  const [stripPages, setStripPages] = useState(1);
+  const [stripPage, setStripPage] = useState(0);
+
+  const updateStrip = useCallback(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const pages = VOICE_PAIRS.length;
+    setStripPages(pages);
+    setStripPage(Math.min(pages - 1, Math.round(el.scrollLeft / el.clientWidth)));
+  }, []);
+
+  useEffect(() => {
+    updateStrip();
+    window.addEventListener("resize", updateStrip);
+    return () => window.removeEventListener("resize", updateStrip);
+  }, [updateStrip]);
+
+  const scrollStrip = useCallback((dir: 1 | -1) => {
+    const el = stripRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * el.clientWidth, behavior: "smooth" });
+  }, []);
+
+  // Handler per etichetta: le pill riusano gli stessi handler dei comandi vocali
+  const voiceActions: Record<string, () => void> = {
+    "Dimmi di meno": () => fetchRegister("elementare"),
+    "Dimmi di più": () => fetchRegister("avanzato"),
+    "Troppo semplice": () => fetchRegister("avanzato"),
+    "Non capisco": () => fetchRegister("elementare"),
+    "Chi è l'autore": showAuthor,
+    "Qual è lo stile": showStyle,
+  };
+
   if (!token) return <Navigate to="/login" />;
   if (err) return <ErrorScreen message={err} />;
   if (!visit || !step) return <LoadingScreen />;
@@ -199,87 +291,99 @@ function PlayerPage() {
   const isLast = idx >= total - 1;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background text-foreground">
       {/* Header */}
-      <header className="border-b border-border bg-card/40 px-4 pt-4 pb-3">
-        <div className="flex items-center justify-between gap-2">
-          <button
-            onClick={handleExit}
-            className="min-h-[40px] rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold"
-          >
-            ✕ Esci
-          </button>
-          <span className="text-sm font-semibold uppercase tracking-wider text-primary">
-            Tappa {idx + 1} di {total}
-          </span>
-          <button
-            onClick={() =>
-              navigate({ to: "/map/$visitId", params: { visitId } })
-            }
-            className="min-h-[40px] rounded-full border border-primary px-4 py-2 text-sm font-semibold text-primary"
-          >
-            🗺 Mappa
-          </button>
+      <header className="flex items-center justify-between gap-2 px-5 pt-4 pb-3">
+        <button
+          onClick={handleExit}
+          aria-label="Esci dalla visita"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-xl"
+        >
+          ‹
+        </button>
+        <div className="min-w-0 text-center">
+          <span className="font-display text-base font-bold">
+            Tappa {String(idx + 1).padStart(2, "0")}
+          </span>{" "}
+          <span className="text-sm text-muted-foreground">/ {total}</span>
+          <h1 className="truncate text-xs text-muted-foreground">{visit.title}</h1>
         </div>
-        <h1 className="mt-1 text-xl font-bold">{visit.title}</h1>
+        <button
+          onClick={() => navigate({ to: "/map/$visitId", params: { visitId } })}
+          className="flex min-h-[44px] shrink-0 items-center rounded-full border border-border bg-card px-4 text-[11px] font-semibold uppercase tracking-[0.15em]"
+        >
+          Mappa
+        </button>
       </header>
 
       {/* Content */}
-      <main className="flex-1 overflow-y-auto px-5 py-6">
+      <main className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
         {(currentItem?.content?.title ?? step.title) && (
-          <h2 className="mb-2 text-2xl font-bold text-primary">
-            {currentItem?.content?.title ?? step.title}
-          </h2>
-        )}
-        {step.directionsFromPrevious && (
-          <div className="mb-4 rounded-xl border-l-4 border-primary bg-card p-4 text-base text-muted-foreground">
-            🧭 {step.directionsFromPrevious}
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 shrink-0 rounded-lg bg-secondary" aria-hidden />
+              <h2 className="font-display text-lg font-bold leading-snug">
+                {currentItem?.content?.title ?? step.title}
+              </h2>
+            </div>
+            <div className="mt-4 flex w-full gap-2">
+              <button
+                onClick={() => {
+                  if (playing) return;
+                  const t = currentItem?.content?.ttsText ?? content;
+                  if (t) playTts(t);
+                }}
+                className={`flex min-h-[44px] items-center justify-center whitespace-nowrap rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition-all duration-300 ease-in-out ${
+                  playing ? "w-auto cursor-default opacity-60" : "flex-1"
+                }`}
+              >
+                {playing ? "⏸ In riproduzione" : "▶ Ascolta"}
+              </button>
+              <button
+                onClick={stopTts}
+                className={`flex min-h-[44px] items-center justify-center whitespace-nowrap rounded-full border border-border bg-background px-4 text-sm font-semibold transition-all duration-300 ease-in-out ${
+                  playing ? "flex-1" : "w-auto pointer-events-none opacity-40"
+                }`}
+              >
+                Stop
+              </button>
+            </div>
           </div>
         )}
-        <p className="whitespace-pre-wrap text-lg leading-relaxed">
-          {content || "—"}
-        </p>
-
-        <div className="mt-6 flex gap-3">
-          <button
-            onClick={() => {
-              const t = currentItem?.content?.ttsText ?? content;
-              if (t) speak(t);
-            }}
-            className="min-h-[44px] flex-1 rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground"
-          >
-            🔊 Leggi
-          </button>
-          <button
-            onClick={() => stopSpeak()}
-            className="min-h-[44px] rounded-lg border border-border bg-card px-4 py-3 font-semibold"
-          >
-            ⏹ Stop
-          </button>
-        </div>
+        {step.directionsFromPrevious && (
+          <div className="mt-4 rounded-xl border border-border border-l-2 border-l-primary bg-card p-4 text-sm leading-relaxed text-muted-foreground">
+            {step.directionsFromPrevious}
+          </div>
+        )}
+        <p className="mt-5 whitespace-pre-wrap text-[17px] leading-relaxed">{content || "—"}</p>
       </main>
 
       {/* Bottom panel */}
-      <footer className="border-t border-border bg-card/60 p-3">
-        {/* Row 1 nav */}
+      <footer className="border-t border-border bg-background px-5 pb-5 pt-3">
+        {/* Nav tappe */}
         <div className="flex gap-2">
           <button
             disabled={isFirst}
             onClick={() => goTo(idx - 1)}
-            className="min-h-[48px] flex-1 rounded-lg bg-secondary px-3 py-2 text-base font-semibold disabled:opacity-40"
+            className="min-h-[48px] flex-1 rounded-xl border border-border bg-transparent px-3 text-base font-semibold text-foreground hover:bg-secondary active:bg-secondary disabled:opacity-40"
           >
-            ◀ Precedente
+            ‹ Precedente
           </button>
           <button
             onClick={toggleMic}
             aria-label="Microfono"
-            className={`min-h-[48px] min-w-[56px] rounded-lg border px-3 py-2 text-xl ${
+            className={`flex min-h-[48px] min-w-[52px] flex-col items-center justify-center rounded-xl border border-border bg-card px-3 ${
               listening
-                ? "border-primary bg-primary text-primary-foreground animate-pulse"
-                : "border-border bg-secondary"
+                ? "outline-2 outline-offset-[3px] outline-primary [animation:pulse-outline_1s_ease-in-out_infinite]"
+                : ""
             }`}
           >
-            🎤
+            <span className="text-xl leading-none" aria-hidden>
+              🎤
+            </span>
+            <span className="text-[10px] uppercase tracking-[0.05em] text-muted-foreground">
+              Voce
+            </span>
           </button>
           <button
             onClick={() =>
@@ -287,47 +391,62 @@ function PlayerPage() {
                 ? navigate({ to: "/visit-complete/$visitId", params: { visitId } })
                 : goTo(idx + 1)
             }
-            className="min-h-[48px] flex-1 rounded-lg bg-primary px-3 py-2 text-base font-semibold text-primary-foreground"
+            className="min-h-[48px] flex-1 rounded-xl border-2 border-foreground bg-foreground px-3 text-base font-semibold text-background hover:opacity-90"
           >
-            {isLast ? "Fine ✓" : "Avanti ▶"}
+            {isLast ? "Fine ✓" : "Prossimo ›"}
           </button>
         </div>
 
-        {/* Row 2 content */}
-        <div className="mt-2 grid grid-cols-5 gap-2">
-          <SmallBtn
-            label="Cos'è"
-            onClick={() =>
-              currentItem?.content?.ttsText
-                ? speak(currentItem.content.ttsText)
-                : setToast("Nessun contenuto")
-            }
-          />
-          <SmallBtn label="Di più" onClick={() => fetchRegister("avanzato")} />
-          <SmallBtn label="Di meno" onClick={() => fetchRegister("elementare")} />
-          <SmallBtn label="Autore" onClick={showAuthor} />
-          <SmallBtn label="Stile" onClick={showStyle} />
+        {/* Strip "Chiedi all'audioguida" */}
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Comandi
+        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            onClick={() => scrollStrip(-1)}
+            aria-label="Scorri i comandi indietro"
+            className="flex h-11 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-lg"
+          >
+            ‹
+          </button>
+          <div
+            ref={stripRef}
+            onScroll={updateStrip}
+            className="flex flex-1 snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {VOICE_PAIRS.map(([left, right]) => (
+              <div key={left} className="flex w-full shrink-0 snap-start gap-2">
+                <Chip label={left} onClick={voiceActions[left]} grow />
+                <Chip label={right} onClick={voiceActions[right]} grow />
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => scrollStrip(1)}
+            aria-label="Scorri i comandi avanti"
+            className="flex h-11 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-lg"
+          >
+            ›
+          </button>
+        </div>
+        <div className="mt-2 flex justify-center gap-1.5" aria-hidden>
+          {Array.from({ length: stripPages }, (_, i) => (
+            <span
+              key={i}
+              className={`h-1.5 rounded-full transition-all ${
+                i === stripPage ? "w-4 bg-primary" : "w-1.5 bg-border"
+              }`}
+            />
+          ))}
         </div>
 
-        {/* Row 2b registro */}
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <SmallBtn
-            label="Non capisco"
-            onClick={() => setToast("Registro alternativo non disponibile")}
-          />
-          <SmallBtn
-            label="Troppo semplice"
-            onClick={() => setToast("Registro alternativo non disponibile")}
-          />
-        </div>
-
-        {/* Row 3 logistics */}
-        <div className="mt-2 grid grid-cols-5 gap-2">
-          <SmallBtn label="Uscita" onClick={() => showLogistics("exit")} />
-          <SmallBtn label="Toilette" onClick={() => showLogistics("toilet")} />
-          <SmallBtn label="Bar" onClick={() => showLogistics("bar")} />
-          <SmallBtn label="Shop" onClick={() => showLogistics("shop")} />
-          <SmallBtn label="Ostacoli" onClick={() => showLogistics("obstacles")} />
+        {/* Servizi */}
+        <div className="mt-3 flex flex-nowrap gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <Chip muted label="Uscita" onClick={() => showLogistics("exit")} />
+          <Chip muted label="Toilette" onClick={() => showLogistics("toilet")} />
+          <Chip muted label="Bar" onClick={() => showLogistics("bar")} />
+          <Chip muted label="Shop" onClick={() => showLogistics("shop")} />
+          <Chip muted label="Ostacoli" onClick={() => showLogistics("obstacles")} />
         </div>
       </footer>
 
@@ -341,11 +460,26 @@ function PlayerPage() {
   );
 }
 
-function SmallBtn({ label, onClick }: { label: string; onClick: () => void }) {
+function Chip({
+  label,
+  onClick,
+  muted,
+  grow,
+}: {
+  label: string;
+  onClick: () => void;
+  muted?: boolean;
+  grow?: boolean;
+}) {
+  const style = muted
+    ? "bg-secondary text-foreground"
+    : "border border-border bg-card text-foreground";
   return (
     <button
       onClick={onClick}
-      className="min-h-[44px] rounded-lg border border-border bg-background px-1 py-2 text-xs font-medium text-foreground active:scale-95"
+      className={`min-h-[44px] rounded-full px-4 text-sm font-medium active:scale-95 ${
+        grow ? "flex-1" : "shrink-0 whitespace-nowrap"
+      } ${style}`}
     >
       {label}
     </button>
@@ -354,12 +488,14 @@ function SmallBtn({ label, onClick }: { label: string; onClick: () => void }) {
 
 function labelLogistics(k: string) {
   return (
-    {
-      exit: "Uscita",
-      toilet: "Toilette",
-      bar: "Bar",
-      shop: "Shop",
-      obstacles: "Ostacoli",
-    } as Record<string, string>
-  )[k] ?? k;
+    (
+      {
+        exit: "Uscita",
+        toilet: "Toilette",
+        bar: "Bar",
+        shop: "Shop",
+        obstacles: "Ostacoli",
+      } as Record<string, string>
+    )[k] ?? k
+  );
 }

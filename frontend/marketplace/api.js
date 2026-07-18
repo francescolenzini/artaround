@@ -48,6 +48,14 @@ export const auth = {
       body: { username, password },
       skipAuthRedirect: true,
     });
+    // Il Marketplace/Editor è per admin e autori. I visitatori fruiscono i
+    // contenuti dall'app Navigator: qui non avrebbero nulla da editare.
+    if (res.user && res.user.role === 'visitor') {
+      throw new ApiError(
+        403,
+        'I visitatori usano l\'app Navigator durante la visita, non il Marketplace.'
+      );
+    }
     this.setSession(res.token, res.user);
     return res.user;
   },

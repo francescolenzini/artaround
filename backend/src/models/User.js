@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema(
     username: { type: String, required: true, unique: true, index: true },
     avatar: { type: String },
     passwordHash: { type: String, required: true },
-    role: { type: String, enum: ['super_admin', 'museum_curator'], required: true, index: true },
+    role: { type: String, enum: ['super_admin', 'author', 'visitor'], required: true, index: true },
     status: { type: String, enum: ['active', 'invited', 'suspended', 'archived'], default: 'active', index: true },
     assignedMuseumIds: { type: [String], required: true, default: [] },
     lastLogin: { type: Date },

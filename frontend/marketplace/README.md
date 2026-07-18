@@ -2,7 +2,7 @@
 
 Web app per PC (vanilla JS + HTML + CSS, **senza framework SPA**, Tailwind via CDN) con cui
 autori e amministratori creano e curano i contenuti (musei, opere, item, visite) prima della
-visita. Consuma il backend Node/Express/MongoDB su `http://localhost:3001`.
+visita. Consuma il backend Node/Express/MongoDB su `http://localhost:3002`.
 
 ## Avvio
 
@@ -10,7 +10,7 @@ visita. Consuma il backend Node/Express/MongoDB su `http://localhost:3001`.
    ```bash
    npm install
    npm run seed     # popola il DB e stampa la API key di bootstrap
-   npm run dev      # avvia su :3001 con nodemon
+   npm run dev      # avvia su :3002 con nodemon (PORT=3002)
    ```
    Copia la **API key** stampata dal seed.
 
@@ -19,7 +19,7 @@ visita. Consuma il backend Node/Express/MongoDB su `http://localhost:3001`.
    cp serve.config.example.json serve.config.json   # poi incolla la apiKey
    node serve.js
    ```
-   Apri `http://localhost:5173`.
+   Apri `http://localhost:5174`.
 
    > `serve.config.json` contiene la API key e **non è versionato** (`.gitignore`): parti dal file
    > `serve.config.example.json`. Se rilanci `npm run seed` la chiave cambia: aggiorna `apiKey`.
@@ -31,7 +31,7 @@ visita. Consuma il backend Node/Express/MongoDB su `http://localhost:3001`.
 Il backend non abilita CORS e non va modificato. `serve.js` (Node puro, zero dipendenze):
 
 - serve i file statici dell'app;
-- fa da **reverse-proxy** verso `:3001` per i path API, **iniettando l'header `x-api-key`**.
+- fa da **reverse-proxy** verso `:3002` per i path API, **iniettando l'header `x-api-key`**.
 
 Così il browser vede una sola origine (niente CORS) e la API key non finisce nel codice client:
 il frontend gestisce solo il JWT (`Authorization: Bearer …`).

@@ -52,7 +52,7 @@ const openapi = {
           email: { type: 'string' },
           username: { type: 'string' },
           avatar: { type: 'string' },
-          role: { type: 'string', enum: ['super_admin', 'museum_curator'] },
+          role: { type: 'string', enum: ['super_admin', 'author', 'visitor'] },
           status: { type: 'string', enum: ['active', 'invited', 'suspended', 'archived'] },
           assignedMuseumIds: { type: 'array', items: { type: 'string' } },
           lastLogin: { type: 'string', format: 'date-time' },

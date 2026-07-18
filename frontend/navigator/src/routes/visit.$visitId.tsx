@@ -49,42 +49,59 @@ function VisitDetail() {
     );
   if (!visit) return <LoadingScreen />;
 
+  const artworkCount = visit.steps.filter((s) => s.itemId).length;
+  const meta = [
+    artworkCount > 0 ? `${artworkCount} opere` : null,
+    visit.estimatedDuration,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <div className="min-h-screen bg-background pb-28 text-foreground">
-      <div className="sticky top-0 z-10 bg-background/95 px-4 py-3 backdrop-blur border-b border-border">
-        <Link to="/visits" className="text-sm text-muted-foreground">
-          ← Visite
+    <div className="mx-auto min-h-screen max-w-md bg-background pb-32 text-foreground">
+      <div className="sticky top-0 z-10 bg-background/95 px-5 backdrop-blur">
+        <Link
+          to="/visits"
+          className="flex min-h-[44px] items-center text-sm text-muted-foreground"
+        >
+          ‹ Visite
         </Link>
       </div>
-      <div className="px-4 pt-4">
-        <h1 className="text-3xl font-bold text-primary">{visit.title}</h1>
+      <div className="px-5 pt-1">
+        <div className="h-36 w-full rounded-2xl bg-secondary" aria-hidden />
+        <h1 className="mt-5 text-3xl font-bold leading-tight">{visit.title}</h1>
+        {meta && (
+          <p className="mt-2 text-sm text-muted-foreground">{meta}</p>
+        )}
         {visit.description && (
-          <p className="mt-3 text-lg text-muted-foreground leading-relaxed">
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
             {visit.description}
           </p>
         )}
       </div>
 
-      <h2 className="px-4 pt-6 pb-3 text-xl font-semibold">Tappe</h2>
-      <ol className="flex flex-col gap-2 px-4">
+      <h2 className="px-5 pt-8 pb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        Tappe
+      </h2>
+      <ol className="px-5">
         {visit.steps.map((s, i) => {
           const it = s.itemId ? items[s.itemId] : undefined;
           return (
             <li
               key={i}
-              className="flex items-start gap-3 rounded-xl border border-border bg-card p-4"
+              className="flex items-baseline gap-4 border-b border-border py-4 last:border-b-0"
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                {i + 1}
-              </div>
+              <span className="w-8 shrink-0 font-display text-lg font-bold tabular-nums">
+                {String(i + 1).padStart(2, "0")}
+              </span>
               <div className="flex-1">
                 <div className="text-base font-semibold">
                   {it?.content?.title ?? s.title ?? labelForType(s.type)}
                 </div>
-                <div className="mt-1 text-sm text-muted-foreground">
+                <div className="mt-0.5 text-sm text-muted-foreground">
                   {it?.classification?.languageRegister
                     ? `Registro: ${it.classification.languageRegister}`
-                    : s.type}
+                    : labelForType(s.type)}
                 </div>
               </div>
             </li>
@@ -100,9 +117,9 @@ function VisitDetail() {
               params: { visitId, stepIndex: "0" },
             })
           }
-          className="min-h-[52px] w-full rounded-lg bg-primary text-lg font-semibold text-primary-foreground"
+          className="mx-auto block min-h-[52px] w-full max-w-md rounded-xl bg-primary text-base font-semibold text-primary-foreground"
         >
-          Inizia visita ▶
+          Inizia visita ›
         </button>
       </div>
     </div>

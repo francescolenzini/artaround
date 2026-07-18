@@ -1,7 +1,7 @@
 const express = require('express');
 
 const Museum = require('../models/Museum');
-const { requireApiKeyAndJwt } = require('../middleware/auth');
+const { requireApiKeyAndJwt, requireContentEditor } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/asyncHandler');
 const { canAccessMuseum, scopedMuseumFilter } = require('../services/tenant');
 const { generateEntityId } = require('../services/ids');
@@ -48,12 +48,13 @@ router.get(
 
 router.post(
   '/',
+  requireContentEditor,
   asyncHandler(async (req, res) => {
     const payload = req.body || {};
     const museumId = payload.id || generateEntityId('mus');
 
-    if (req.user.role === 'museum_curator' && !canAccessMuseum(req.user, museumId)) {
-      return res.status(403).json({ error: { message: 'Curator cannot create outside allowed museums', status: 403 } });
+    if (req.user.role !== 'super_admin' && !canAccessMuseum(req.user, museumId)) {
+      return res.status(403).json({ error: { message: 'Author cannot create outside allowed museums', status: 403 } });
     }
 
     const museum = await Museum.create({
@@ -68,6 +69,7 @@ router.post(
 
 router.put(
   '/:id',
+  requireContentEditor,
   asyncHandler(async (req, res) => {
     const museum = await Museum.findOne({ id: req.params.id });
 
@@ -88,6 +90,7 @@ router.put(
 
 router.delete(
   '/:id',
+  requireContentEditor,
   asyncHandler(async (req, res) => {
     const museum = await Museum.findOne({ id: req.params.id });
 

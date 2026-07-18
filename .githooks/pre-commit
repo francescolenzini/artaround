@@ -1,0 +1,25 @@
+#!/bin/sh
+# Pre-commit di sicurezza per ArtAround.
+#
+# Non gira i test (per non scoraggiare i commit frequenti): blocca solo l'errore
+# davvero costoso — committare un segreto o un file di staging rigenerabile, anche
+# se aggiunto con `git add -f` scavalcando .gitignore.
+#
+# Attivazione (una volta per clone):  git config core.hooksPath .githooks
+
+# Pattern di file che NON devono mai finire in un commit.
+blocked='(^|/)\.env$|serve\.config\.json$|api\.config\.json$|^museum\.json$|^steps\.json$|^docs/_design_pdf_pages/'
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+offenders=$(printf '%s\n' "$staged" | grep -E "$blocked")
+
+if [ -n "$offenders" ]; then
+  echo "✋ Commit bloccato: stai versionando file con segreti o di staging:" >&2
+  printf '   - %s\n' $offenders >&2
+  echo "" >&2
+  echo "Se è voluto, rimuovili dallo stage (git restore --staged <file>) o aggiorna" >&2
+  echo "il pattern in .githooks/pre-commit. Per saltare una tantum: git commit --no-verify" >&2
+  exit 1
+fi
+
+exit 0

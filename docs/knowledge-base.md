@@ -1,30 +1,21 @@
-# ArtAround — Knowledge Base
+# ArtAround — Knowledge Base del Progetto
 
-> Documento pensato per essere caricato nella **knowledge base di un Claude Project** (claude.ai), per poter fare domande di implementazione senza dover riaprire Claude Code o ricaricare il PDF delle specifiche ogni volta. Va caricato insieme a [`ARCHITECTURE.md`](ARCHITECTURE.md) (dettaglio tecnico del backend) e, idealmente, a `architecture.puml`.
->
-> Fonti: `docs/25 Progetto 2526.pdf` (slide del docente, A.A. 2025/26), `docs/faqmd.md` (FAQ del docente), `docs/ReadmeTemplate2526-18-33.txt` (template di consegna), esplorazione del codice in `backend/` e `frontend/`.
+> Riassunto delle specifiche del docente, stato di avanzamento e gap aperti.
+> Per l'architettura tecnica (as-built) vedi `ARCHITECTURE.md`.
+> Aggiornato il 2026-07-04: redesign UI Navigator completato e verificato (5 schermate, token system "Galleria Bianca rivisitata"). Bug aperto: overlap pin mappa a 390px.
 
 ---
 
 ## 1. Cos'è ArtAround
 
-Progetto del corso di **Tecnologie Web** (CdS Informatica, UniBO, A.A. 2025/26, docenti Fabio Vitali, Andrea Schimmenti, Gianmarco Spinaci, Remo Grillo). Idea: *"visitare musei in maniera personalizzata e divertente"*.
+ArtAround è una suite generica di applicazioni per la visita personalizzata a musei, gallerie d'arte ed esposizioni, sviluppata per il corso di Tecnologie Web (UniBO, A.A. 2025/26). Durante la visita l'utente usa lo smartphone per muoversi negli spazi espositivi e ascolta in auricolari spiegazioni testuali degli oggetti esposti — sempre in presenza fisica, mai da remoto.
 
-Principio guida esplicito del docente: **Goal-Oriented Design** — un'unica applicazione generica (non legata a un museo specifico) che si adatta all'utente lungo quattro dimensioni, senza creare contenuti o applicazioni diverse, solo **modi diversi di presentare gli stessi contenuti**:
+Due tipi di servizio:
+- **Prima della visita** (Editor + Marketplace): preparare contenuti, venderli, trovarne, selezionare una sequenza per una visita specifica.
+- **Durante la visita** (Navigator): essere guidati da un oggetto all'altro, ascoltare descrizioni di linguaggio variabile, fare domande sull'oggetto e argomenti correlati.
 
-1. **Interessi specifici** (storia, abbigliamento/architettura raffigurati, colori/layout, materiali/pigmenti, eventi storici...)
-2. **Competenze di background** (visitatore casuale, appassionato, esperto del contesto culturale)
-3. **Contesto della visita** (prima volta o ricorrente, vuole vedere tutto o solo highlights, tempo disponibile)
-4. **Età e maturità** (scolaresca, universitari per tesi/ricerca, pensionati, lavoratori con poche ore)
-
-### Scenario d'uso
-L'utente usa lo smartphone per muoversi fisicamente nello spazio espositivo (la visita è **sempre in presenza**) e ascolta in cuffia spiegazioni testuali rese in TTS; le eventuali immagini servono solo a riconoscere l'oggetto descritto, non a sostituire la visita fisica.
-
-### Due fasi/applicazioni
-- **Prima della visita** → *editor + marketplace*: preparare, vendere, trovare e selezionare contenuti, comporre una sequenza per una visita specifica.
-- **Durante la visita** → *navigator*: essere guidati da un oggetto all'altro, ascoltare descrizioni di linguaggio variabile, fare domande sull'oggetto e su argomenti correlati (stile, epoca, biografia dell'artista...).
-
-**Criterio di successo UX**: capacità del navigator di parlare a ogni utente secondo le sue esigenze. **Criterio di successo di mercato**: la stessa applicazione deve adattarsi a musei diversi cambiando solo immagini e file di configurazione.
+**Criterio di successo UX**: capacità del Navigator di parlare a tutti gli utenti secondo le loro esigenze e competenze individuali.
+**Criterio di successo di mercato**: la stessa applicazione deve adattarsi a musei diversi cambiando solo immagini e file di configurazione.
 
 ---
 
@@ -43,9 +34,10 @@ Le specifiche del docente fissano un modello a due strutture dati, **prima** di 
 | Oggetto descritto dall'item | `Artwork` | Item e oggetto sono separati in due collezioni (`ArtworkItem.artworkId → Artwork.id`), coerente con "item multipli per lo stesso oggetto" |
 | Visit | `Visit` | `steps[]` = sequenza di item + logistica |
 | Indicazioni logistiche tra item | `VisitStep.directionsFromPrevious` | Step di tipo `transition`/`logistics_intro` per le indicazioni non legate a un item specifico |
-| Item su contenuti associati (stili, artisti, eventi) | **Non modellato** | `Artwork` rappresenta solo oggetti fisici del museo; non c'è un'entità per "contenuto associato" non legato a un oggetto specifico — **gap aperto** |
+| Posizione fisica dell'item nella visita | `VisitStep.mapCoords` | `{ x, y, floor }` — percentuali sull'immagine della mappa di piano (aggiunto 2026-06-30) |
+| Item su contenuti associati (stili, artisti, eventi) | **Non modellato** | `Artwork` rappresenta solo oggetti fisici del museo; non c'è un'entità per "contenuto associato" non legato a un oggetto specifico — **gap aperto, non bloccante per 18-24** |
 
-In sintesi: il cuore del modello dati è già coerente con le specifiche. Il gap principale è che il modello attuale assume sempre un `Artwork` come ancora di un item, mentre le specifiche permettono item "liberi" su argomenti correlati.
+In sintesi: il cuore del modello dati è coerente con le specifiche. Il gap sui "contenuti associati liberi" non è bloccante per il livello 18-24.
 
 ---
 
@@ -70,7 +62,10 @@ Questi vincoli sono scritti **in verde** nelle slide originali (vincoli specific
 
 Il voto del progetto va da 18 a 24/27/33 in trentesimi (poi mediato 50/50 con lo scritto). Il gruppo sceglie il livello a cui puntare.
 
+**Livello scelto per questo progetto: 18-24, lavoro individuale.**
+
 ### Base (18-24) — tutto ciò che è "nero" nelle slide, sempre obbligatorio
+
 Struttura base del Navigator:
 - Accesso al marketplace
 - Selezione ed esecuzione di una visita
@@ -84,52 +79,108 @@ Marketplace/Editor base: selezione museo da pannello, visualizzazione contenuti 
 **Vincoli**: 18-24 è individuale o gruppi di 2 persone.
 
 ### Estensione 18-27 — "arancione", visite sincronizzate (insegnante/guida)
-Pensata per una docente che trasmette contenuti sincronizzati a tutti gli studenti contemporaneamente e ne controlla l'attenzione:
-- La docente prepara sul marketplace una visita personalizzata/sincronizzata, anche con contenuti privati non pubblici, e le assegna un **nome mnemonico** (es. "Fenice rossa"); può preparare domande a risposta multipla.
-- All'inizio, la docente attiva la visita; gli studenti la raggiungono digitando il nome; la docente vede chi si è collegato.
-- Davanti a ogni opera la docente avvia la descrizione corretta; lo studente può chiedere approfondimenti/registro diverso ma **non può andare avanti/indietro autonomamente**.
-- La docente monitora in tempo reale chi ha chiesto cosa.
-- A fine visita può avviare un quiz e assegnare un voto.
-- **Requisito di consegna per questa estensione**: almeno una visita creata per fruizione sincronizzata, con un test sensato di competenza a fine visita.
-- **Vincoli**: gruppi di 1-2-3 persone.
+
+Non in scope per questo progetto. Pensata per una docente che trasmette contenuti sincronizzati a tutti gli studenti contemporaneamente e ne controlla l'attenzione (nome mnemonico della visita, controllo avanzamento centralizzato, quiz finale). **Vincoli**: gruppi di 1-2-3 persone.
 
 ### Estensione 18-33 — "arancione", geolocalizzazione + LLM generativa
-**Localizzazione**, con due scopi: capire qual è l'oggetto "prossimo" e preparare i contenuti relativi; generare/caricare le indicazioni logistiche (percorso, ostacoli, luoghi rilevanti).
-- *Versione base*: QR code accanto a ogni opera, scansionato dal Navigator.
-- *Versione avanzata*: geolocalizzazione + orientamento del device; se incerta, mostra immagini a bassa risoluzione tra cui l'utente sceglie.
 
-**Integrazione LLM**, con **quattro** scopi precisi e *solo* questi:
-1. Creare item per oggetti non descritti, o con livello/linguaggio mancante, o item alternativi.
-2. Accettare comandi vocali **in linguaggio naturale libero**, oltre al vocabolario controllato, mappandoli sui comandi disponibili (es. "e adesso?" → "prossimo").
-3. **Traduzione in tempo reale** di contenuti e comandi vocali nella lingua scelta dall'utente (stessi contenuti, lingue diverse).
-4. **Generazione di visite su misura** dai vincoli dell'utente in linguaggio naturale (es. "ho solo mezz'ora", "stupiscici con dettagli insoliti", "due bambini di 5 e 8 anni", "tesi sul Parmigianino e Bedoli").
-
-Vincolo esplicito e importante: **l'utente non deve mai accorgersi di interagire con un LLM** — nessuna UI a prompt, solo form e interazione diretta; non deve essere possibile distinguere contenuti umani da contenuti AI se non analizzando i metadati.
-
-**Requisiti di consegna per questa estensione**: QR code stampabili su carta per simulare la presenza fisica vicino a un oggetto; un modulo di "teletrasporto" che porta a una posizione prestabilita vicino a ciascun oggetto della visita (utile per demo/test senza muoversi fisicamente).
-
-**Vincoli**: gruppi di 2-3 persone, presentazione **di persona su appuntamento** (non in pre-valutazione come 18-24/18-27).
+Non in scope per questo progetto. Prevede QR code o geolocalizzazione per la localizzazione, e integrazione LLM per 4 scopi precisi: creazione item mancanti, comandi vocali in linguaggio naturale libero (l'LLM fa da router verso il vocabolario controllato, non risponde liberamente), traduzione in tempo reale, generazione di visite su misura. Vincolo esplicito: l'utente non deve mai accorgersi di interagire con un LLM. **Requisiti di consegna**: QR code stampabili + modulo di "teletrasporto" per demo. **Vincoli**: gruppi di 2-3 persone, presentazione di persona su appuntamento.
 
 ---
 
 ## 5. Stato di avanzamento del repository e gap aperti
 
-> Verificato esplorando `backend/src/**`, `backend/tests/**`, `frontend/*.ts` il 2026-06-21. Va riconfermato a ogni ripresa del lavoro, perché questo file non si aggiorna da solo.
+> Aggiornato il 2026-06-30 dopo la sessione di completamento Navigator (migrazione SPA, fix 404 artwork-items, mappa multi-piano, seed idempotente via slug). Va riconfermato a ogni ripresa del lavoro.
 
 ### Cosa esiste ed è solido
-- Backend Express/Mongoose completo: 6 entità di dominio + 2 infrastrutturali, auth dual-layer (API key + JWT), RBAC `super_admin`/`museum_curator`, multi-tenancy single-DB, paginazione server-side centralizzata, logging richieste con masking, Swagger protetto da Basic Auth, suite di test (unit + integration) con mongodb-memory-server, script seed e CLI api-key.
-- Il modello dati centrale (Visit/Artwork/ArtworkItem) è già coerente con il modello "Visit + Item" richiesto (vedi sezione 2).
 
-### Gap rispetto alle specifiche — da affrontare prima della consegna
+- **Backend** Express/Mongoose completo: 6 entità di dominio + 2 infrastrutturali, auth dual-layer (API key + JWT), RBAC a tre ruoli `super_admin`/`author`/`visitor` (il `visitor` è di sola lettura — le scritture su musei/opere/item/visite passano dalla guardia unica `requireContentEditor` in `backend/src/middleware/auth.js`), multi-tenancy single-DB, paginazione server-side centralizzata, logging richieste con masking, Swagger protetto da Basic Auth, suite di test (unit + integration) con mongodb-memory-server, script seed e CLI api-key.
+- **Seed conforme ai requisiti di consegna E idempotente** (`backend/src/scripts/seed.js`): museo reale Galleria degli Uffizi, 12 opere, 24 item (2 per opera: `elementare` 1min + `avanzato` 4min), 3 visite con 10-13 step ciascuna (tutte con `mapCoords` sugli step `main_item`), 5 utenti con credenziali corrette. Reso idempotente il 2026-06-30: il museo viene cercato per `slug: "galleria-degli-uffizi"` e riusato se esiste (upsert), così `npm run seed` può essere rieseguito quante volte serve senza generare un nuovo `museumId` casuale e senza duplicare entità a cascata (utenti, opere, item, visite).
+- **Bug requestLogger fixato** (`backend/src/middleware/requestLogger.js`): `sanitizeOutput()` ora è avvolta in `safeSanitize()` con try/catch — un errore di logging non propaga più HTTP 500 sulle scritture.
+- **CORS abilitato** (`app.use(cors())` in `backend/src/app.js`) per consentire le chiamate dal Navigator/Marketplace in sviluppo locale (porte diverse = origin diverse per il browser).
+- **Marketplace/Editor completato** (`frontend/marketplace/`, vanilla JS + HTML + Tailwind CDN, zero framework SPA): dev server proxy Node (`serve.js`) su porta **5174**, client HTTP (`api.js`), router hash-based, CRUD completo su musei/opere/item/visite/utenti, visit builder a due colonne, guard per ruolo e museo. 43/43 check di integrazione passati.
+- **Navigator completato e funzionante end-to-end** (`frontend/navigator/`): vedi dettaglio sezione 5b.
 
-1. **Nessuna delle due app frontend è stata avviata.** `frontend/` contiene solo `index.ts` (tipi) e `mockData.ts` (dataset mock); mancano sia il Navigator (framework JS/TS) sia il Marketplace/Editor (vanilla JS/TS). Questo è il gap più grande e l'elemento valutato esplicitamente su usabilità/sofisticazione grafica.
-2. **Dati di seed molto sotto i minimi di consegna.** Le specifiche richiedono: un museo reale popolato con contenuti, **3 visite di almeno 10 opere ciascuna sullo stesso museo**, differenziate per contenuti/livello; account marketplace `autore1`, `autore2`, `visitatore1`, `visitatore2` con password `12345678` (altri account a piacere, stessa password). Il `seed.js` attuale crea 2 musei, 3 utenti (`arossi`/`mbianchi`/`lverdi`, password `ChangeMe123!`), 2 artwork, 2 item, **1 visita con 1 solo step**. `frontend/mockData.ts` ha un dataset più ricco (4 musei, 7 opere, 12 item, 5 visite) ma comunque non allineato ai requisiti esatti di naming/quantità della consegna, e comunque non è quello realmente caricato a DB.
-3. **Ruoli utente non coprono i ruoli "marketplace".** Il modello `User` ha solo `super_admin`/`museum_curator` (pensati per la gestione amministrativa multi-museo); le specifiche parlano di account "autore" (crea/pubblica contenuti) e "visitatore" (acquista/fruisce contenuti) — concetti di ruolo diversi, non ancora rappresentati nello schema né nelle rotte.
-4. **Estensione 18-27 non iniziata**: nessuna nozione di visita "sincronizzata", nome mnemonico, attivazione guidata, monitoraggio in tempo reale, quiz finale.
-5. **Estensione 18-33 non iniziata**: nessuna geolocalizzazione/QR, nessuna integrazione LLM (generazione item, routing comandi naturali, traduzione, generazione visite custom), nessun modulo di teletrasporto.
-6. **`README.txt` di consegna non ancora creato.** È un file **diverso** dal `README.md` del repo: deve seguire il template in `docs/ReadmeTemplate2526-18-33.txt`, contiene le "promesse non ritrattabili" del progetto, va scritto al momento della sottomissione su Virtuale e **non può più essere modificato** dopo. Non è in scope per il task di documentazione corrente — va pianificato come attività separata vicino alla consegna.
-7. **Deploy sui container del dipartimento non ancora impostato.** Esiste solo `backend/docker/docker-compose.yml` per sviluppo locale; il deploy finale richiesto (2 container del dipartimento, sia codice sia dati) è un passo separato, da pianificare con anticipo (vedi FAQ: serve usare le immagini Docker fornite dai tecnici, non immagini custom).
-8. **Funzionalità "extra" rispetto alle specifiche**: API-key auth, RBAC `super_admin`/`museum_curator`, request logging centralizzato con masking non sono richieste esplicitamente dal docente. Non sono in conflitto con le specifiche (la scelta delle API è libera) ma vanno tenute a mente in fase di presentazione: il valore percepito dal docente è su generalità/flessibilità/usabilità del **prodotto finale per il visitatore/curatore**, non sulla sofisticazione dell'infrastruttura backend.
+### Mappa delle porte (sviluppo locale)
+
+| Porta | Servizio | Note |
+|---|---|---|
+| **3002** | Backend Node.js | Porta 3001 evitata: occupata da Docker Desktop (`wslrelay.exe`/`com.docker.backend.exe` su Windows) |
+| **5173** | Navigator (Vite dev server) | |
+| **5174** | Marketplace (`serve.js`) | Spostato da 5173 per evitare conflitto col Navigator |
+
+### Credenziali seed (tutte con password `12345678`)
+
+| username | ruolo | accesso |
+|---|---|---|
+| `admin` | `super_admin` | Marketplace completo (musei, utenti, tutti i contenuti) |
+| `autore1` | `author` | Marketplace: solo Uffizi, no /users, lettura+scrittura contenuti |
+| `autore2` | `author` | Marketplace: solo Uffizi, no /users, lettura+scrittura contenuti |
+| `visitatore1` | `visitor` | Solo Navigator (sola lettura via API); login al Marketplace bloccato |
+| `visitatore2` | `visitor` | Solo Navigator (sola lettura via API); login al Marketplace bloccato |
+
+Email: `<username>@artaround.it`.
+
+### Note operative importanti
+
+- **API key**: il seed la rigenera casuale a ogni `npm run seed` (per design — è un segreto, non va resa stabile). Il valore va copiato dall'output del seed e incollato sia in `frontend/marketplace/serve.config.json` (campo `apiKey`) sia in `frontend/navigator/public/api.config.json` (campo `apiKey`). La CLI `node src/scripts/apikey-cli.js list` mostra il prefix ma non il valore completo — per ottenere un nuovo valore usa `node src/scripts/apikey-cli.js generate --name=<nome> --createdBy=system`.
+- **`museumId` non va più gestito a mano**: dal fix di idempotenza del 2026-06-30, il Navigator risolve il museo dinamicamente tramite `museumSlug` (`"galleria-degli-uffizi"`) in `museum.config.json`, chiamando `GET /museums?slug=...` all'avvio. Non serve più aggiornare un `museumId` statico dopo ogni seed.
+- **Avvio Marketplace in sviluppo**: `node frontend/marketplace/serve.js` → apre su `http://localhost:5174`. Richiede il backend attivo su `:3002`.
+- **Avvio Navigator in sviluppo**: `bun run dev` (o `npm run dev`) in `frontend/navigator/` → apre su `http://localhost:5173`. Richiede `public/api.config.json` creato a mano (non è in git) con `apiKey` e `baseUrl: "http://localhost:3002"`.
+- **Mockup Lovable** (`https://lovable.dev/projects/4b4b4697-98de-4764-920d-dfd0770bf734`): riferimento visivo usato inizialmente per il Navigator; il progetto reale è stato generato da Lovable con template SSR e poi migrato a SPA (vedi sezione 5b).
+- **Convenzione PowerShell per test API manuali**: usare `Invoke-RestMethod` invece di `curl` (l'alias `curl` di PowerShell non gestisce bene sintassi unix-style con `-H`/`-d` multi-riga); per i token JWT salvare sempre in variabile (`$token = $response.token`) invece di copiare dal terminale, che tronca l'output lungo nella visualizzazione a tabella.
+
+---
+
+## 5b. Navigator — stato implementativo dettagliato
+
+**Stack reale**: React 19 + TypeScript + TanStack Router + Tailwind, **Vite SPA standard**.
+
+**Storia della migrazione SPA**: il progetto era stato generato da Lovable con il template `tanstack_start_ts_current` (TanStack Start + Nitro, SSR pensato per l'ambiente sandbox Lovable). Fuori da Lovable il dev server crashava al boot perché il wrapper `@lovable.dev/vite-tanstack-config` non si inizializzava. Migrato a SPA pura il 2026-06-29: rimosso il layer SSR/Nitro, creato un entry point Vite standard. File rimossi: `src/server.ts`, `src/start.ts`. File aggiunti: `index.html`, `src/main.tsx`. Deploy finale: build statica (`dist/`) servita da Nginx o equivalente — non serve un processo Node SSR a runtime.
+
+**Schermate funzionanti**: `/login`, `/visits`, `/visit/:visitId`, `/player/:visitId/:stepIndex`, `/map/:visitId`.
+
+**Risoluzione del museo — via slug, non ID statico**. `museum.config.json` usa `museumSlug` (non più `museumId`). Il Navigator risolve lo slug nell'ID reale del museo all'avvio chiamando `GET /museums?slug=...` in `AppContext.tsx`, prima di esporre il museo al resto dell'app (gate di bootstrap in `__root.tsx`). Questo rende il Navigator indipendente dall'ID fisico nel database, coerente col criterio di valutazione "generalità".
+
+**Mappa multi-piano con pin** (`map.$visitId.tsx`): `VisitStep` ha un campo opzionale `mapCoords: { x: number, y: number, floor: number }` (percentuali sull'immagine, 0-100). Convenzione interna: `floor: 1` = sale 1-45 ("Secondo piano" Uffizi nell'etichetta UI), `floor: 2` = sale 46-101 ("Primo piano" Uffizi) — numerazione non ovvia, nata da un disallineamento fra il criterio usato per i dati del seed e il naming dei file immagine (`uffizi-p1.png`/`uffizi-p2.png`); è documentata con commento esplicito nel codice per evitare regressioni. Le immagini di sfondo vivono in `frontend/navigator/public/maps/` (`uffizi-p1.png` = piano con sale 46-101, `uffizi-p2.png` = piano con sale 1-45 — i nomi file NON corrispondono numericamente al `floor` che mostrano, per via della stessa origine storica). Il componente mostra un selettore con due bottoni in ordine "Primo piano" / "Secondo piano" (ordine logico per l'utente, disaccoppiato dal valore grezzo di `floor` tramite una tabella esplicita `FLOORS` nel componente) e pin posizionati con CSS assoluto (`left: x%`, `top: y%`); il click su un pin apre una card con titolo opera e bottone per saltare a quello step nel player.
+
+**Coordinate mapCoords per sala** (misurate con click diretto sulle planimetrie ufficiali Uffizi gennaio 2026; più opere nella stessa sala condividono le stesse coordinate nel seed):
+
+| Sala | floor | x% | y% | Opere |
+|---|---|---|---|---|
+| A9  | 1 | 43.9 | 23.2 | La Primavera, La nascita di Venere (Botticelli) |
+| A35 | 1 | 70.1 | 66.2 | Annunciazione, Adorazione dei Magi (Leonardo) |
+| A38 | 1 | 56.9 | 66.2 | Tondo Doni, Madonna del Cardellino, Leone X (Michelangelo/Raffaello) |
+| D23 | 2 | 83.5 | 82.7 | Flora, Venere di Urbino (Tiziano) |
+| E4  | 2 | 73.6 | 19.2 | Medusa, Sacrificio di Isacco, Giuditta e Oloferne (Caravaggio/Artemisia) |
+
+**Rendering pin** (`map.$visitId.tsx`): un pin per `VisitStep`, separati da offset circolare calcolato dinamicamente lato frontend. Le coordinate nel seed restano identiche per sala; l'offset (`RADIUS = 2.5%`) è solo visivo. Algoritmo: step raggruppati per `(x, y, floor)`, poi `offset = RADIUS × cos/sin((2π/N) × idx)`. I pin sono figli di un `div.relative` che wrappa strettamente l'`<img>` della mappa — non del container `flex` esterno — così `top: y%` è calcolato rispetto all'altezza dell'immagine e non del viewport.
+
+**Fix noti applicati durante lo sviluppo**:
+- **404 su `GET /artwork-items/:id`**: l'endpoint singolo non esiste nel backend (solo `PUT`/`DELETE` per id). Corretto a `GET /artwork-items?id=...` (singolo nel player, batch con CSV di id nella schermata dettaglio visita, via `ListResponse<ArtworkItem>`).
+- **Campi annidati letti male**: `currentItem.title` → `content.title` (con fallback `step.title`); `currentItem.register` → `classification.languageRegister`. `artist`/`style` non esistono su `ArtworkItem` (sono su `Artwork`) — fallback "non disponibile" accettato per il livello 18-24, nessuna fetch aggiuntiva.
+- **Token JWT persistito in `localStorage`**, con validazione all'avvio (se il backend risponde 401, logout automatico) e gate di bootstrap che impedisce alle route di partire prima della verifica.
+- **CommonJS vs ES Modules**: il backend usa `require` (CommonJS, scelta storica del progetto, non vincolo del docente); il Navigator usa `import` (ES Modules, naturale per React+Vite). I due coesistono senza conflitti — sono processi separati.
+
+**Gap noti rimasti**:
+- ~~UI/palette considerata sotto lo standard atteso dal docente~~ → **Redesign completato (2026-07-03)**: 5 schermate implementate sul token system "Galleria Bianca rivisitata" (§5c), verificate a 390px contro i mockup Claude Design con screenshot headless. Deviazioni accettate rispetto ai mockup (tutte per dati/logica mancanti, non per scelta di stile): niente login ospite/codice biglietto, niente bottom nav "Account", niente barra "in riproduzione" con tempi reali (limite Web Speech API — sostituita con chip Ascolta/Stop), niente attribuzione pittore su Player. Nota terminologica: l'`autore` richiesto dalla spec come metadato item è già coperto da `creatorId` su `ArtworkItem` — da non confondere con l'attribuzione del pittore (vive su `Artwork`, non su `ArtworkItem`; fallback "non disponibile" già accettato per 18-24).
+- **Bug aperto — sovrapposizione pin mappa a 390px**: `RADIUS = 2.5%` nell'offset circolare produce solo ~9px di separazione contro pin da 36px, causando overlap nei cluster su mobile. Coordinate pin restano valide; da correggere solo il calcolo dell'offset.
+- Bottone "Apri Marketplace" funzionante ma punta a un URL hardcoded (`http://localhost:5174`) — da rendere robusto/configurabile in vista del deploy sui container del dipartimento, dove le porte saranno diverse.
+
+---
+
+## 5c. Design token system — Navigator (finalizzato)
+
+Direzione scelta: "Galleria Bianca rivisitata".
+Palette: Fondo #FBFBF9, Superficie #FFFFFF, Pietra #ECEAE4,
+Grafite #1A1A18, Muto #6E6E68, Vermiglio #D2452B (accento).
+Tipografia: Figtree (display) + Instrument Sans (testo).
+Elemento firma: indice numerico grande (tappa/sala reali).
+Layout: mobile-first ~390px, testo-primo, controlli ≥44px.
+Player: comandi vocali equivalenti in strip orizzontale scorrevole
+con indicatore di posizione, invece di grid statica.
+
+Implementazione: i token vivono in `frontend/navigator/src/styles.css` — palette brand come custom properties `--palette-*` (oklch, equivalenti esatti degli hex sopra) mappate sui token semantici shadcn/Tailwind (`--background`, `--primary`, ...). I componenti usano solo i token semantici: un tema alternativo (es. alto contrasto) si aggiunge ridefinendo le sole `--palette-*` in una classe tema, senza toccare i componenti.
 
 ---
 
@@ -137,18 +188,20 @@ Vincolo esplicito e importante: **l'utente non deve mai accorgersi di interagire
 
 Dalla sezione "Requisiti di progetto" e "La consegna" delle slide:
 
-- [ ] Database già popolato al momento della presentazione, con un **museo reale** (es. Pinacoteca Nazionale, MAMbo, Musei Universitari) e contenuti non superficiali (uso di LLM per generarli è permesso, ma non "quattro testi svogliati")
-- [ ] Account marketplace: `autore1`, `autore2`, `visitatore1`, `visitatore2` — password `12345678` per tutti (altri account liberi, stessa password)
-- [ ] Almeno **3 visite** sullo stesso museo, **≥10 opere ciascuna**, differenziate per contenuti/livello di conoscenza
-- [ ] (Se 18-27) almeno una visita per fruizione sincronizzata, con test di competenza sensato a fine visita
-- [ ] (Se 18-33) QR code su carta per simulare presenza fisica + modulo di teletrasporto verso ciascun oggetto della visita
-- [ ] Deploy su **due container Docker del dipartimento** (codice + dati)
+- [x] Database già popolato al momento della presentazione, con un **museo reale** (Galleria degli Uffizi) e contenuti non superficiali (12 opere, 24 item, testi generati con LLM)
+- [x] Account marketplace: `autore1`, `autore2`, `visitatore1`, `visitatore2` — password `12345678` per tutti; `admin` con stessa password
+- [x] Almeno **3 visite** sullo stesso museo, **≥10 opere ciascuna**, differenziate per contenuti/livello di conoscenza
+- [x] Navigator funzionante end-to-end (login, selezione visita, player con TTS e comandi vocali/bottoni, mappa multi-piano)
+- [ ] (Se 18-27) — non in scope per questo progetto
+- [ ] (Se 18-33) — non in scope per questo progetto
+- [ ] Deploy su **due container Docker del dipartimento** (codice + dati) — **non ancora iniziato**, contattare i tecnici con anticipo
 - [ ] Directory `sources` con **tutti** i sorgenti leggibili (permessi 755 per directory/eseguibili, 644 per file), **senza** `node_modules`
 - [ ] File `README.txt` (non `.md`) dal template fornito, completo di: nome gruppo, membri (nome/cognome/matricola/email), tipo progetto e locazione file/docker, organizzazione sorgenti, tecnologie usate per ciascuna applicazione (server-side, marketplace, navigator), contributo individuale dettagliato, contributo della LLM se usata
 - [ ] `README.txt` sottomesso su Virtuale **prima** della data di valutazione e mai più modificato dopo
 
 ### Vincoli su gruppo e contributo individuale
-- Gruppi di **2-3 persone** (18-24 anche individuale o 2 persone); nessun gruppo oltre 3 persone per nessun motivo.
+
+- Gruppi di **2-3 persone** (18-24 anche individuale o 2 persone); nessun gruppo oltre 3 persone per nessun motivo. **Questo progetto: individuale.**
 - Ogni membro deve dimostrare un contributo **determinante**, su client **e** server: solo HTML/CSS non basta, così come solo parti marginali (login/logout/lettura preferenze). La distribuzione ideale dei compiti è **funzionale**, non architetturale (cioè non "uno fa tutto il backend, uno tutto il frontend").
 - Il progetto si presenta **tutto il gruppo insieme**, in presenza o su MS Teams — mai a pezzi in date diverse.
 
@@ -181,7 +234,13 @@ Più: fino a 2 punti aggiuntivi a discrezione del docente per scelte creative e 
 
 ## 9. Scadenze rilevanti A.A. 2025/26
 
-- Appelli scritto: 16 gen 2026 (regole anni passati), **28 gen 2026**, 12 feb 2026 (da confermare), 28 mag 2026, 23 giu 2026, 13 lug 2026, 16 set 2026. Posti limitati (45) per appello, prenotazione necessaria.
-- **30 settembre 2026**: ultima data per presentare il progetto dell'anno corrente (eventuali richieste motivate dell'ultimo minuto gestite a ottobre, a discrezione del docente).
-- **31 luglio 2026**: scadenza per sottomettere `README.txt` su Virtuale e richiedere uno slot per l'appello di settembre — nessuna richiesta accettata dopo questa data.
-- Scritto e progetto sono prove **indipendenti**: si può fare prima l'uno o l'altro; lo scritto è individuale, il progetto è di gruppo; il progetto si può ripresentare quante volte serve se tutto il gruppo è d'accordo.
+- Appelli scritto: 16 gen 2026 (regole anni passati), 28 gen 2026, 12 feb 2026 (da confermare), 28 mag 2026, 23 giu 2026, 13 lug 2026, 16 set 2026. Posti limitati (45) per appello, prenotazione necessaria.
+- **Deadline progetto: 31 luglio 2026.**
+
+---
+
+## 10. Prossimi passi (in ordine di priorità)
+
+1. ~~**Redesign UI Navigator**~~ → completato (2026-07-03); resta solo il fix overlap pin mappa (§5b).
+2. **Deploy sui container del dipartimento** — priorità attiva. Include: fix bottone "Apri Marketplace" (URL hardcoded `localhost:5174`); contattare i tecnici per le immagini Docker; adattare Navigator (build statica) e backend al setup reale.
+3. **`README.txt` di consegna** — da scrivere al momento della sottomissione su Virtuale, seguendo `docs/ReadmeTemplate2526-18-33.txt`, non più modificabile dopo l'invio.

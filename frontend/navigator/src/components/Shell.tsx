@@ -1,12 +1,6 @@
 import type { ReactNode } from "react";
 
-export function ErrorScreen({
-  message,
-  onRetry,
-}: {
-  message: string;
-  onRetry?: () => void;
-}) {
+export function ErrorScreen({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-6 text-center text-foreground">
       <h1 className="text-2xl font-semibold text-primary">Errore</h1>
@@ -46,7 +40,7 @@ export function Modal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-card p-6 text-card-foreground shadow-2xl"
+        className="w-full max-w-md rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="mb-3 text-xl font-bold text-primary">{title}</h2>

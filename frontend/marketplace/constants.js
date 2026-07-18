@@ -26,7 +26,8 @@ export const MUSEUM_STATUS = [
 
 export const USER_ROLES = [
   { value: 'super_admin', label: 'Super admin' },
-  { value: 'museum_curator', label: 'Curatore museo' },
+  { value: 'author', label: 'Autore' },
+  { value: 'visitor', label: 'Visitatore' },
 ];
 
 export const USER_STATUS = [

@@ -5,9 +5,10 @@ import {
   createRootRouteWithContext,
   useRouter,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AppProvider } from "../lib/AppContext";
+import { AppProvider, useApp } from "../lib/AppContext";
+import { ErrorScreen, LoadingScreen } from "../components/Shell";
 
 function NotFoundComponent() {
   return (
@@ -69,6 +70,15 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+function AppGate({ children }: { children: ReactNode }) {
+  const { loading, error, reload } = useApp();
+
+  if (loading) return <LoadingScreen />;
+  if (error) return <ErrorScreen message={error} onRetry={reload} />;
+
+  return children;
+}
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -81,7 +91,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <Outlet />
+        <AppGate>
+          <Outlet />
+        </AppGate>
       </AppProvider>
     </QueryClientProvider>
   );

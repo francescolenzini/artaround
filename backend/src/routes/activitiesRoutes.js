@@ -1,7 +1,7 @@
 const express = require('express');
 
 const Activity = require('../models/Activity');
-const { requireApiKeyAndJwt } = require('../middleware/auth');
+const { requireApiKeyAndJwt, requireContentEditor } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/asyncHandler');
 const { canAccessMuseum } = require('../services/tenant');
 const { generateEntityId } = require('../services/ids');
@@ -16,7 +16,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const filter = {};
 
-    if (req.user.role === 'museum_curator') {
+    if (req.user.role !== 'super_admin') {
       filter.$or = [{ museumId: { $in: req.user.assignedMuseumIds || [] } }, { museumId: { $exists: false } }];
     }
 
@@ -36,6 +36,7 @@ router.get(
 
 router.post(
   '/',
+  requireContentEditor,
   asyncHandler(async (req, res) => {
     const payload = req.body || {};
 

@@ -2,7 +2,7 @@ const express = require('express');
 
 const Artwork = require('../models/Artwork');
 const ArtworkItem = require('../models/ArtworkItem');
-const { requireApiKeyAndJwt } = require('../middleware/auth');
+const { requireApiKeyAndJwt, requireContentEditor } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/asyncHandler');
 const { canAccessMuseum } = require('../services/tenant');
 const { generateEntityId } = require('../services/ids');
@@ -17,11 +17,11 @@ router.get(
   asyncHandler(async (req, res) => {
     const baseFilter = {};
 
-    if (req.user.role === 'museum_curator') {
-      const curatorMuseumIds = req.user.assignedMuseumIds || [];
+    if (req.user.role !== 'super_admin') {
+      const scopedMuseumIds = req.user.assignedMuseumIds || [];
       const museumConstraint = req.query.museumId
-        ? { $in: curatorMuseumIds.filter((museumId) => museumId === req.query.museumId) }
-        : { $in: curatorMuseumIds };
+        ? { $in: scopedMuseumIds.filter((museumId) => museumId === req.query.museumId) }
+        : { $in: scopedMuseumIds };
 
       const artworks = await Artwork.find({ museumId: museumConstraint }).select('id').lean();
       baseFilter.artworkId = { $in: artworks.map((artwork) => artwork.id) };
@@ -47,6 +47,7 @@ router.get(
 
 router.post(
   '/',
+  requireContentEditor,
   asyncHandler(async (req, res) => {
     const payload = req.body || {};
     const artwork = await Artwork.findOne({ id: payload.artworkId }).lean();
@@ -68,6 +69,7 @@ router.post(
 
 router.put(
   '/:id',
+  requireContentEditor,
   asyncHandler(async (req, res) => {
     const item = await ArtworkItem.findOne({ id: req.params.id });
 
@@ -89,6 +91,7 @@ router.put(
 
 router.delete(
   '/:id',
+  requireContentEditor,
   asyncHandler(async (req, res) => {
     const item = await ArtworkItem.findOne({ id: req.params.id });
 

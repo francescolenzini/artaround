@@ -23,7 +23,7 @@ export async function init({ params }) {
   try {
     if (!isNew) museum = await museums.get(params.id);
     if (auth.isSuperAdmin()) {
-      const u = await users.list({ role: 'museum_curator', pageSize: 100, status: 'active' });
+      const u = await users.list({ role: 'author', pageSize: 100, status: 'active' });
       curatorOptions = (u.data || []).map((x) => ({ value: x.id, label: `${x.fullName} (${x.username})` }));
     }
   } catch (err) {

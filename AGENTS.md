@@ -1,12 +1,12 @@
-# CLAUDE.md
+# AGENTS.md
 
-Guida per Claude Code su questo repository. Per il contesto completo (specifiche del docente, criteri di valutazione, gap di progetto) vedi `docs/knowledge-base.md`; per il dettaglio tecnico del backend vedi `docs/ARCHITECTURE.md` e `docs/architecture.puml`.
+Guida per Codex su questo repository. Per il contesto completo (specifiche del docente, criteri di valutazione, gap di progetto) vedi `docs/knowledge-base.md`; per il dettaglio tecnico del backend vedi `docs/ARCHITECTURE.md` e `docs/architecture.puml`.
 
 ## Cos'è questo progetto
 
 ArtAround è un progetto del corso di Tecnologie Web (UniBO). Suite di app per visite museali personalizzate: **Navigator** (smartphone, durante la visita) e **Marketplace/Editor** (PC, prima della visita), appoggiate a un backend Node/Express/MongoDB comune. Il backend è avanzato; **nessuna delle due app frontend esiste ancora** (solo contratto di tipi in `frontend/index.ts` + mock in `frontend/mockData.ts`).
 
-## Vincoli hard — non violare per nessun motivo
+## Vincoli hard
 
 Sono requisiti del docente, non scelte di design discutibili. Violarli rende il progetto non accettabile:
 
@@ -39,7 +39,7 @@ docs/
   ARCHITECTURE.md          architettura tecnica dettagliata (backend + frontend pianificato)
   architecture.puml        diagramma (implementato vs pianificato)
   knowledge-base.md        specifiche del docente condensate, gap, requisiti di consegna
-  claude-project-instructions.md   istruzioni per il Claude Project companion (claude.ai)
+  Codex-project-instructions.md   istruzioni per il Codex Project companion (Codex.ai)
   25 Progetto 2526.pdf     slide originali del docente (fonte di verità per le specifiche)
   faqmd.md                 FAQ del docente
   ReadmeTemplate2526-18-33.txt   template del README.txt di consegna (diverso da README.md!)
@@ -74,21 +74,18 @@ docker compose up --build  # API su :3001, Swagger su :3001/docs, Mongo su :2701
 
 ## Igiene git (committare spesso, senza rischi)
 
-Storicamente il working tree accumula sessioni intere di lavoro prima di un commit: evitalo.
-
 - **Attiva l'hook** (una volta per clone): `git config core.hooksPath .githooks`. Il pre-commit
-  in `.githooks/pre-commit` blocca solo il committare per sbaglio segreti/staging (`.env`,
+  in `.githooks/pre-commit` blocca il committare per sbaglio segreti/staging (`.env`,
   `serve.config.json`, `api.config.json`, `museum.json`, `steps.json`, `docs/_design_pdf_pages/`),
-  **non** gira i test — così committare resta veloce e frequente.
-- **Convenzione**: al termine di ogni blocco di lavoro coerente, proponi/fai un commit tematico
-  (un commit = un cambiamento logico), invece di lasciar crescere il tree. Non accorpare in un
-  unico commit modifiche di ambiti scollegati (es. backend ruoli + design PDF).
+  senza girare i test — così committare resta veloce.
+- **Convenzione**: a fine di ogni blocco di lavoro coerente, un commit tematico (un commit = un
+  cambiamento logico), invece di lasciar crescere il working tree.
 
-## Gap noti / prossimi passi (vedi `docs/knowledge-base.md` §5 per i dettagli)
+## Prossimi passi (vedi `docs/knowledge-base.md` §5 per i dettagli)
 
 1. **Creare le due app frontend** (Navigator framework-based, Marketplace vanilla JS) — al momento non esistono, solo i tipi.
 2. **Espandere `seed.js`** per arrivare ai minimi di consegna: museo reale popolato, 3 visite ≥10 opere ciascuna sullo stesso museo, account `autore1`/`autore2`/`visitatore1`/`visitatore2` (password `12345678`). Il seed e il mock dataset attuali sono entrambi sotto questi minimi e con naming diverso.
-3. ~~**Modello ruoli marketplace**~~ ✅ Risolto: il modello è a tre ruoli `super_admin`/`author`/`visitor`. L'`author` crea/modifica contenuti (scoped ai musei assegnati); il `visitor` è di sola lettura (fruisce col Navigator) ed è bloccato al login del Marketplace. La scrittura è centralizzata nella guardia `requireContentEditor` (`backend/src/middleware/auth.js`).
+3. **Modello ruoli marketplace**: `super_admin`/`museum_curator` non coprono i concetti di "autore" (crea contenuti) e "visitatore" (fruisce contenuti) richiesti dalle specifiche — da progettare prima di costruire login/onboarding del marketplace.
 4. **`README.txt` di consegna**: file distinto da questo `README.md`, segue `docs/ReadmeTemplate2526-18-33.txt`. Va scritto solo al momento della sottomissione su Virtuale e dopo **non è più modificabile** — non toccarlo "di prova" prima del momento giusto.
 5. Estensioni 18-27 (sync/insegnante) e 18-33 (geo/QR + LLM) non iniziate — vedi `docs/knowledge-base.md` per i requisiti esatti prima di cominciare.
 

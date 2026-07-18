@@ -5,7 +5,7 @@
  *
  * Due responsabilita':
  *  1. Serve i file statici dell'app (HTML/JS/CSS) dalla cartella corrente.
- *  2. Fa da reverse-proxy verso il backend (default http://localhost:3001),
+ *  2. Fa da reverse-proxy verso il backend (default http://localhost:3002),
  *     iniettando l'header `x-api-key` letto da serve.config.json.
  *
  * Cosi' il browser vede una sola origine -> niente problemi di CORS e la
@@ -34,8 +34,8 @@ if (activeConfigPath !== CONFIG_PATH) {
   );
 }
 const config = JSON.parse(fs.readFileSync(activeConfigPath, 'utf8'));
-const PORT = Number(config.port) || 5173;
-const BACKEND = new URL(config.backendUrl || 'http://localhost:3001');
+const PORT = Number(config.port) || 5174;
+const BACKEND = new URL(config.backendUrl || 'http://localhost:3002');
 const API_KEY = config.apiKey || '';
 
 // Prefissi di path che vanno inoltrati al backend invece di servire file.

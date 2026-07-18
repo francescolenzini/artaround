@@ -1,5 +1,5 @@
 // ===== ROLES =====
-export type Role = 'super_admin' | 'museum_curator';
+export type Role = 'super_admin' | 'author' | 'visitor';
 
 export type UserStatus = 'active' | 'invited' | 'suspended' | 'archived';
 export type MuseumStatus = 'draft' | 'active' | 'archived';

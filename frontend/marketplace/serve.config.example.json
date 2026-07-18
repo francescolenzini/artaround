@@ -1,5 +1,5 @@
 {
   "apiKey": "INSERISCI-QUI-LA-API-KEY-STAMPATA-DA-npm-run-seed",
-  "backendUrl": "http://localhost:3001",
-  "port": 5173
+  "backendUrl": "http://localhost:3002",
+  "port": 5174
 }

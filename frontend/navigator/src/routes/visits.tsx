@@ -10,13 +10,13 @@ export const Route = createFileRoute("/visits")({
 });
 
 function VisitsPage() {
-  const { apiConfig, museum, token, logout } = useApp();
+  const { apiConfig, museum, museumReady, token, logout } = useApp();
   const [visits, setVisits] = useState<VisitSummary[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    if (!apiConfig || !museum || !token) return;
+    if (!apiConfig || !museum || !museumReady || !token || !museum.museumId) return;
     setErr(null);
     setVisits(null);
     apiFetch<ListResponse<VisitSummary>>(
@@ -26,50 +26,41 @@ function VisitsPage() {
     )
       .then((r) => setVisits(r.data))
       .catch((e) => setErr(e?.message ?? "Errore"));
-  }, [apiConfig, museum, token, reloadKey]);
+  }, [apiConfig, museum, museumReady, token, reloadKey]);
 
   if (!token) return <Navigate to="/login" />;
-  if (!museum) return <LoadingScreen />;
+  if (!museum || !museumReady) return <LoadingScreen />;
   if (err)
     return (
       <ErrorScreen message={err} onRetry={() => setReloadKey((k) => k + 1)} />
     );
 
   return (
-    <div className="min-h-screen bg-background pb-8 text-foreground">
-      <div className="relative h-56 w-full overflow-hidden">
-        <img
-          src={museum.coverImage}
-          alt={museum.name}
-          className="h-full w-full object-cover opacity-70"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
-        <div className="absolute bottom-4 left-4 right-4">
-          <h1 className="text-3xl font-bold text-primary drop-shadow-lg">
-            {museum.name}
-          </h1>
+    <div className="mx-auto min-h-screen max-w-md bg-background pb-10 text-foreground">
+      <header className="px-5 pt-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          {museum.name} <span className="text-primary">•</span>
+        </p>
+        <h1 className="mt-2 text-3xl font-bold">Visite disponibili</h1>
+        <div className="mt-4 flex gap-2">
+          <a
+            href={museum.marketplaceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex min-h-[44px] items-center rounded-full border border-border bg-card px-4 text-sm font-medium"
+          >
+            Apri Marketplace ↗
+          </a>
+          <button
+            onClick={logout}
+            className="flex min-h-[44px] items-center rounded-full border border-border bg-card px-4 text-sm font-medium text-muted-foreground"
+          >
+            Esci
+          </button>
         </div>
-      </div>
+      </header>
 
-      <div className="px-4 pt-4 flex items-center justify-between gap-2">
-        <a
-          href={museum.marketplaceUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="min-h-[44px] flex-1 rounded-lg bg-primary px-4 py-3 text-center font-semibold text-primary-foreground"
-        >
-          Apri Marketplace
-        </a>
-        <button
-          onClick={logout}
-          className="min-h-[44px] rounded-lg border border-border bg-card px-4 py-3 text-sm"
-        >
-          Esci
-        </button>
-      </div>
-
-      <h2 className="px-4 pt-6 pb-3 text-xl font-semibold">Visite disponibili</h2>
-      <div className="flex flex-col gap-3 px-4">
+      <div className="mt-6 flex flex-col gap-3 px-5">
         {!visits && <p className="text-muted-foreground">Caricamento…</p>}
         {visits?.length === 0 && (
           <p className="text-muted-foreground">Nessuna visita disponibile.</p>
@@ -79,24 +70,30 @@ function VisitsPage() {
             key={v.id}
             to="/visit/$visitId"
             params={{ visitId: v.id }}
-            className="block rounded-2xl border border-border bg-card p-5 transition active:scale-[0.98]"
+            className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition active:scale-[0.98]"
           >
-            <h3 className="text-xl font-semibold text-primary">{v.title}</h3>
-            {v.subtitle && (
-              <p className="mt-1 text-base text-muted-foreground">{v.subtitle}</p>
-            )}
-            <div className="mt-3 flex flex-wrap gap-2 text-sm text-muted-foreground">
-              {v.estimatedDuration && (
-                <span className="rounded-full bg-secondary px-3 py-1">
-                  ⏱ {v.estimatedDuration}
-                </span>
+            <div className="h-14 w-14 shrink-0 rounded-lg bg-secondary" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <h3 className="font-display text-base font-bold leading-snug">
+                {v.title}
+              </h3>
+              {v.subtitle && (
+                <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                  {v.subtitle}
+                </p>
               )}
-              {v.targetAudience && (
-                <span className="rounded-full bg-secondary px-3 py-1">
-                  👥 {v.targetAudience}
-                </span>
+              {(v.estimatedDuration || v.targetAudience) && (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  <span className="font-semibold text-primary">—</span>{" "}
+                  {[v.estimatedDuration, v.targetAudience]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
               )}
             </div>
+            <span className="text-lg text-muted-foreground" aria-hidden>
+              ›
+            </span>
           </Link>
         ))}
       </div>

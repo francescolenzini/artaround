@@ -2,6 +2,15 @@ node_modules/
 .DS_Store
 *.log
 
-# Config con API key — non versionare
+# Config con API key / secret — non versionare
 frontend/marketplace/serve.config.json
 frontend/navigator/public/api.config.json
+backend/.env
+.env
+
+# Export JSON di staging/debug generati dall'API — non versionare
+/museum.json
+/steps.json
+
+# Rendering generato dal PDF del design system (rigenerabile con shoot.mjs) — non versionare
+docs/_design_pdf_pages/

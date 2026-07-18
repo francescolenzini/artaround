@@ -16,74 +16,76 @@ const Visit = require('../models/Visit');
 const Activity = require('../models/Activity');
 const ApiKey = require('../models/ApiKey');
 
+const UFFIZI_SLUG = 'galleria-degli-uffizi';
+const BOOTSTRAP_API_KEY = '8e4548cac10363c2c6b3eee94ded29428a4778dbc2005ed6843b998ebf878ec0';
+
+async function upsertMany(model, docs, filterForDoc) {
+  return Promise.all(
+    docs.map((doc) => {
+      const { id, ...rest } = doc;
+      return model.updateOne(filterForDoc(doc), { $set: rest, $setOnInsert: { id } }, { upsert: true });
+    })
+  );
+}
+
 async function seed() {
   await connectDb();
 
   // Genera tutti gli ID prima di qualsiasi operazione async,
   // così le cross-reference tra entità sono consistenti.
-  const musUffizi = generateEntityId('mus');
+  let musUffizi = generateEntityId('mus');
 
-  const usrAdmin = generateEntityId('usr');
-  const usrAutore1 = generateEntityId('usr');
-  const usrAutore2 = generateEntityId('usr');
-  const usrVisitatore1 = generateEntityId('usr');
-  const usrVisitatore2 = generateEntityId('usr');
+  let usrAdmin = generateEntityId('usr');
+  let usrAutore1 = generateEntityId('usr');
+  let usrAutore2 = generateEntityId('usr');
+  let usrVisitatore1 = generateEntityId('usr');
+  let usrVisitatore2 = generateEntityId('usr');
 
-  const artVenere = generateEntityId('art');
-  const artPrimavera = generateEntityId('art');
-  const artAnnunciazione = generateEntityId('art');
-  const artAdorazione = generateEntityId('art');
-  const artTondoDoni = generateEntityId('art');
-  const artMadonna = generateEntityId('art');
-  const artLeoneX = generateEntityId('art');
-  const artVenereUrbino = generateEntityId('art');
-  const artFlora = generateEntityId('art');
-  const artMedusa = generateEntityId('art');
-  const artSacrificio = generateEntityId('art');
-  const artGiuditta = generateEntityId('art');
+  let artVenere = generateEntityId('art');
+  let artPrimavera = generateEntityId('art');
+  let artAnnunciazione = generateEntityId('art');
+  let artAdorazione = generateEntityId('art');
+  let artTondoDoni = generateEntityId('art');
+  let artMadonna = generateEntityId('art');
+  let artLeoneX = generateEntityId('art');
+  let artVenereUrbino = generateEntityId('art');
+  let artFlora = generateEntityId('art');
+  let artMedusa = generateEntityId('art');
+  let artSacrificio = generateEntityId('art');
+  let artGiuditta = generateEntityId('art');
 
-  const iVenereEl = generateEntityId('itm');
-  const iVenereAv = generateEntityId('itm');
-  const iPrimaveraEl = generateEntityId('itm');
-  const iPrimaveraAv = generateEntityId('itm');
-  const iAnnunciazioneEl = generateEntityId('itm');
-  const iAnnunciazioneAv = generateEntityId('itm');
-  const iAdorazioneEl = generateEntityId('itm');
-  const iAdorazioneAv = generateEntityId('itm');
-  const iTondoDoniEl = generateEntityId('itm');
-  const iTondoDoniAv = generateEntityId('itm');
-  const iMadonnaEl = generateEntityId('itm');
-  const iMadonnaAv = generateEntityId('itm');
-  const iLeoneXEl = generateEntityId('itm');
-  const iLeoneXAv = generateEntityId('itm');
-  const iVenereUrbinoEl = generateEntityId('itm');
-  const iVenereUrbinoAv = generateEntityId('itm');
-  const iFloraEl = generateEntityId('itm');
-  const iFloraAv = generateEntityId('itm');
-  const iMedusaEl = generateEntityId('itm');
-  const iMedusaAv = generateEntityId('itm');
-  const iSacrifEl = generateEntityId('itm');
-  const iSacrifAv = generateEntityId('itm');
-  const iGiudittaEl = generateEntityId('itm');
-  const iGiudittaAv = generateEntityId('itm');
+  let iVenereEl = generateEntityId('itm');
+  let iVenereAv = generateEntityId('itm');
+  let iPrimaveraEl = generateEntityId('itm');
+  let iPrimaveraAv = generateEntityId('itm');
+  let iAnnunciazioneEl = generateEntityId('itm');
+  let iAnnunciazioneAv = generateEntityId('itm');
+  let iAdorazioneEl = generateEntityId('itm');
+  let iAdorazioneAv = generateEntityId('itm');
+  let iTondoDoniEl = generateEntityId('itm');
+  let iTondoDoniAv = generateEntityId('itm');
+  let iMadonnaEl = generateEntityId('itm');
+  let iMadonnaAv = generateEntityId('itm');
+  let iLeoneXEl = generateEntityId('itm');
+  let iLeoneXAv = generateEntityId('itm');
+  let iVenereUrbinoEl = generateEntityId('itm');
+  let iVenereUrbinoAv = generateEntityId('itm');
+  let iFloraEl = generateEntityId('itm');
+  let iFloraAv = generateEntityId('itm');
+  let iMedusaEl = generateEntityId('itm');
+  let iMedusaAv = generateEntityId('itm');
+  let iSacrifEl = generateEntityId('itm');
+  let iSacrifAv = generateEntityId('itm');
+  let iGiudittaEl = generateEntityId('itm');
+  let iGiudittaAv = generateEntityId('itm');
 
-  const visHighlights = generateEntityId('vis');
-  const visRinascimento = generateEntityId('vis');
-  const visFamiglie = generateEntityId('vis');
-
-  await Promise.all([
-    Museum.deleteMany({}),
-    User.deleteMany({}),
-    Artwork.deleteMany({}),
-    ArtworkItem.deleteMany({}),
-    Visit.deleteMany({}),
-    Activity.deleteMany({}),
-    ApiKey.deleteMany({}),
-  ]);
+  let visHighlights = generateEntityId('vis');
+  let visRinascimento = generateEntityId('vis');
+  let visFamiglie = generateEntityId('vis');
 
   // ── MUSEO ─────────────────────────────────────────────────────────────────
 
-  await Museum.insertMany([
+  await upsertMany(Museum, [
     {
       id: musUffizi,
       name: 'Galleria degli Uffizi',
@@ -116,13 +118,18 @@ async function seed() {
       internalNotes: 'Museo campione per il progetto ArtAround — dati di demo.',
       assignedCuratorIds: [usrAutore1, usrAutore2],
     },
-  ]);
+  ], (doc) => ({ slug: doc.slug }));
+
+  const storedMuseum = await Museum.findOne({ slug: UFFIZI_SLUG }).lean();
+  if (storedMuseum?.id) {
+    musUffizi = storedMuseum.id;
+  }
 
   // ── UTENTI ────────────────────────────────────────────────────────────────
 
   const passwordHash = await bcrypt.hash('12345678', 10);
 
-  await User.insertMany([
+  await upsertMany(User, [
     {
       id: usrAdmin,
       fullName: 'Admin ArtAround',
@@ -139,7 +146,7 @@ async function seed() {
       email: 'autore1@artaround.it',
       username: 'autore1',
       passwordHash,
-      role: 'museum_curator',
+      role: 'author',
       status: 'active',
       assignedMuseumIds: [musUffizi],
     },
@@ -149,7 +156,7 @@ async function seed() {
       email: 'autore2@artaround.it',
       username: 'autore2',
       passwordHash,
-      role: 'museum_curator',
+      role: 'author',
       status: 'active',
       assignedMuseumIds: [musUffizi],
     },
@@ -159,7 +166,7 @@ async function seed() {
       email: 'visitatore1@artaround.it',
       username: 'visitatore1',
       passwordHash,
-      role: 'museum_curator',
+      role: 'visitor',
       status: 'active',
       assignedMuseumIds: [musUffizi],
     },
@@ -169,15 +176,25 @@ async function seed() {
       email: 'visitatore2@artaround.it',
       username: 'visitatore2',
       passwordHash,
-      role: 'museum_curator',
+      role: 'visitor',
       status: 'active',
       assignedMuseumIds: [musUffizi],
     },
+  ], (doc) => ({ username: doc.username }));
+
+  const storedUsers = await Promise.all([
+    User.findOne({ username: 'admin' }).lean(),
+    User.findOne({ username: 'autore1' }).lean(),
+    User.findOne({ username: 'autore2' }).lean(),
+    User.findOne({ username: 'visitatore1' }).lean(),
+    User.findOne({ username: 'visitatore2' }).lean(),
   ]);
+
+  [usrAdmin, usrAutore1, usrAutore2, usrVisitatore1, usrVisitatore2] = storedUsers.map((user) => user.id);
 
   // ── OPERE ─────────────────────────────────────────────────────────────────
 
-  await Artwork.insertMany([
+  await upsertMany(Artwork, [
     {
       id: artVenere,
       museumId: musUffizi,
@@ -346,11 +363,41 @@ async function seed() {
       tags: ['Artemisia', 'Gentileschi', 'Giuditta', 'Barocco', 'donne nell\'arte'],
       status: 'published',
     },
+  ], (doc) => ({ universalObjectId: doc.universalObjectId }));
+
+  const storedArtworks = await Promise.all([
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-001' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-002' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-003' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-004' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-005' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-006' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-007' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-008' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-009' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-010' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-011' }).lean(),
+    Artwork.findOne({ universalObjectId: 'UO-UFZ-012' }).lean(),
   ]);
+
+  [
+    artVenere,
+    artPrimavera,
+    artAnnunciazione,
+    artAdorazione,
+    artTondoDoni,
+    artMadonna,
+    artLeoneX,
+    artVenereUrbino,
+    artFlora,
+    artMedusa,
+    artSacrificio,
+    artGiuditta,
+  ] = storedArtworks.map((artwork) => artwork.id);
 
   // ── ARTWORK ITEMS ─────────────────────────────────────────────────────────
 
-  await ArtworkItem.insertMany([
+  await upsertMany(ArtworkItem, [
     // La nascita di Venere
     {
       id: iVenereEl,
@@ -710,11 +757,68 @@ async function seed() {
       creatorId: usrAutore1,
       lastUpdaterId: usrAutore1,
     },
+  ], (doc) => ({
+    artworkId: doc.artworkId,
+    'classification.languageRegister': doc.classification.languageRegister,
+  }));
+
+  const storedItems = await Promise.all([
+    ArtworkItem.findOne({ artworkId: artVenere, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artVenere, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artPrimavera, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artPrimavera, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artAnnunciazione, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artAnnunciazione, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artAdorazione, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artAdorazione, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artTondoDoni, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artTondoDoni, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artMadonna, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artMadonna, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artLeoneX, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artLeoneX, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artVenereUrbino, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artVenereUrbino, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artFlora, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artFlora, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artMedusa, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artMedusa, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artSacrificio, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artSacrificio, 'classification.languageRegister': 'avanzato' }).lean(),
+    ArtworkItem.findOne({ artworkId: artGiuditta, 'classification.languageRegister': 'elementare' }).lean(),
+    ArtworkItem.findOne({ artworkId: artGiuditta, 'classification.languageRegister': 'avanzato' }).lean(),
   ]);
+
+  [
+    iVenereEl,
+    iVenereAv,
+    iPrimaveraEl,
+    iPrimaveraAv,
+    iAnnunciazioneEl,
+    iAnnunciazioneAv,
+    iAdorazioneEl,
+    iAdorazioneAv,
+    iTondoDoniEl,
+    iTondoDoniAv,
+    iMadonnaEl,
+    iMadonnaAv,
+    iLeoneXEl,
+    iLeoneXAv,
+    iVenereUrbinoEl,
+    iVenereUrbinoAv,
+    iFloraEl,
+    iFloraAv,
+    iMedusaEl,
+    iMedusaAv,
+    iSacrifEl,
+    iSacrifAv,
+    iGiudittaEl,
+    iGiudittaAv,
+  ] = storedItems.map((item) => item.id);
 
   // ── VISITE ────────────────────────────────────────────────────────────────
 
-  await Visit.insertMany([
+  await upsertMany(Visit, [
     {
       id: visHighlights,
       museumId: musUffizi,
@@ -739,7 +843,7 @@ async function seed() {
           title: 'La Primavera — Botticelli',
           directionsFromPrevious: 'Entrate nella Sala 10-14 di Botticelli. La Primavera è sulla parete di fondo a sinistra: il grande dipinto con le figure su sfondo scuro.',
           itemId: iPrimaveraEl,
-          mapCoords: { x: 28, y: 42, floor: 1 },
+          mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 1,
         },
         {
@@ -748,7 +852,7 @@ async function seed() {
           title: 'La nascita di Venere — Botticelli',
           directionsFromPrevious: 'Rimanete nella stessa sala. La Nascita di Venere è sulla parete opposta alla Primavera, a pochi passi.',
           itemId: iVenereEl,
-          mapCoords: { x: 28, y: 48, floor: 1 },
+          mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 2,
         },
         {
@@ -757,7 +861,7 @@ async function seed() {
           title: 'Annunciazione — Leonardo da Vinci',
           directionsFromPrevious: 'Uscite dalla Sala 10-14, girate a destra nel corridoio e percorretelo fino alla Sala 35 (Leonardo). L\'Annunciazione è la prima grande opera sulla parete sinistra entrando.',
           itemId: iAnnunciazioneEl,
-          mapCoords: { x: 62, y: 28, floor: 1 },
+          mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 3,
         },
         {
@@ -766,7 +870,7 @@ async function seed() {
           title: 'Adorazione dei Magi — Leonardo da Vinci',
           directionsFromPrevious: 'Rimanete nella Sala 35. L\'Adorazione dei Magi è sulla parete di fronte, in posizione centrale.',
           itemId: iAdorazioneEl,
-          mapCoords: { x: 62, y: 35, floor: 1 },
+          mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 4,
         },
         {
@@ -775,7 +879,7 @@ async function seed() {
           title: 'Tondo Doni — Michelangelo',
           directionsFromPrevious: 'Proseguite lungo il corridoio fino alla Sala 41 (Michelangelo e Raffaello). Il Tondo Doni è nella prima nicchia a destra entrando, riconoscibile per la cornice in legno dorato e la forma circolare.',
           itemId: iTondoDoniEl,
-          mapCoords: { x: 62, y: 52, floor: 1 },
+          mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 5,
         },
         {
@@ -784,7 +888,7 @@ async function seed() {
           title: 'Madonna del Cardellino — Raffaello',
           directionsFromPrevious: 'Rimanete nella Sala 41. La Madonna del Cardellino di Raffaello è sulla parete laterale sinistra, non lontano dal Tondo Doni.',
           itemId: iMadonnaEl,
-          mapCoords: { x: 62, y: 58, floor: 1 },
+          mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 6,
         },
         {
@@ -793,7 +897,7 @@ async function seed() {
           title: 'Ritratto di Leone X — Raffaello',
           directionsFromPrevious: 'Spostatevi verso la parete di fondo della Sala 41: il Ritratto di Leone X occupa una posizione centrale di grande visibilità.',
           itemId: iLeoneXEl,
-          mapCoords: { x: 62, y: 64, floor: 1 },
+          mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 7,
         },
         {
@@ -802,7 +906,7 @@ async function seed() {
           title: 'Flora — Tiziano',
           directionsFromPrevious: 'Uscite dalla Sala 41 e avanzate lungo il corridoio fino alla Sala 83 (Tiziano e pittura veneziana). La Flora è nella prima sala veneziana, sulla parete destra.',
           itemId: iFloraEl,
-          mapCoords: { x: 62, y: 12, floor: 2 },
+          mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 8,
         },
         {
@@ -811,7 +915,7 @@ async function seed() {
           title: 'Venere di Urbino — Tiziano',
           directionsFromPrevious: 'Rimanete nella Sala 83. La Venere di Urbino è esposta sulla parete opposta alla Flora, di fronte a voi.',
           itemId: iVenereUrbinoEl,
-          mapCoords: { x: 62, y: 18, floor: 2 },
+          mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 9,
         },
         {
@@ -820,7 +924,7 @@ async function seed() {
           title: 'Medusa — Caravaggio',
           directionsFromPrevious: 'Percorrete il corridoio fino alla Sala 90 (Caravaggio). La Medusa è esposta su un supporto apposito al centro della sala, visibile da tutti i lati.',
           itemId: iMedusaEl,
-          mapCoords: { x: 28, y: 15, floor: 2 },
+          mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 10,
         },
         {
@@ -829,7 +933,7 @@ async function seed() {
           title: 'Sacrificio di Isacco — Caravaggio',
           directionsFromPrevious: 'Rimanete nella Sala 90. Il Sacrificio di Isacco è appeso sulla parete sinistra, accanto alla Medusa.',
           itemId: iSacrifEl,
-          mapCoords: { x: 28, y: 22, floor: 2 },
+          mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 11,
         },
         {
@@ -838,7 +942,7 @@ async function seed() {
           title: 'Giuditta e Oloferne — Artemisia Gentileschi',
           directionsFromPrevious: 'Proseguite nella Sala 96 (Artemisia Gentileschi). La Giuditta è l\'opera principale della sala, visibile appena entrati sulla parete di fondo.',
           itemId: iGiudittaEl,
-          mapCoords: { x: 28, y: 35, floor: 2 },
+          mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 12,
         },
       ],
@@ -868,7 +972,7 @@ async function seed() {
           title: 'La Primavera — analisi critica',
           directionsFromPrevious: 'Dal primo piano, percorrete il corridoio est fino alla Sala 10-14. La Primavera è sulla parete di fondo a sinistra.',
           itemId: iPrimaveraAv,
-          mapCoords: { x: 28, y: 42, floor: 1 },
+          mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 1,
         },
         {
@@ -877,7 +981,7 @@ async function seed() {
           title: 'La nascita di Venere — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 10-14. La Nascita di Venere è sulla parete opposta, visibile a pochi passi.',
           itemId: iVenereAv,
-          mapCoords: { x: 28, y: 48, floor: 1 },
+          mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 2,
         },
         {
@@ -886,7 +990,7 @@ async function seed() {
           title: 'Annunciazione — analisi critica',
           directionsFromPrevious: 'Uscite dalla Sala 10-14, girate a destra e percorrete il corridoio fino alla Sala 35 (Leonardo da Vinci). L\'Annunciazione è sulla parete sinistra entrando.',
           itemId: iAnnunciazioneAv,
-          mapCoords: { x: 62, y: 28, floor: 1 },
+          mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 3,
         },
         {
@@ -895,7 +999,7 @@ async function seed() {
           title: 'Adorazione dei Magi — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 35. L\'Adorazione dei Magi è sulla parete frontale, in posizione centrale.',
           itemId: iAdorazioneAv,
-          mapCoords: { x: 62, y: 35, floor: 1 },
+          mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 4,
         },
         {
@@ -904,7 +1008,7 @@ async function seed() {
           title: 'Tondo Doni — analisi critica',
           directionsFromPrevious: 'Avanzate lungo il corridoio fino alla Sala 41 (Michelangelo e Raffaello). Il Tondo Doni è nella prima nicchia a destra entrando nella sala.',
           itemId: iTondoDoniAv,
-          mapCoords: { x: 62, y: 52, floor: 1 },
+          mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 5,
         },
         {
@@ -913,7 +1017,7 @@ async function seed() {
           title: 'Madonna del Cardellino — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 41. La Madonna del Cardellino è sulla parete laterale sinistra.',
           itemId: iMadonnaAv,
-          mapCoords: { x: 62, y: 58, floor: 1 },
+          mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 6,
         },
         {
@@ -922,7 +1026,7 @@ async function seed() {
           title: 'Ritratto di Leone X — analisi critica',
           directionsFromPrevious: 'Spostatevi verso la parete di fondo della Sala 41: il Ritratto di Leone X è esposto in posizione preminente.',
           itemId: iLeoneXAv,
-          mapCoords: { x: 62, y: 64, floor: 1 },
+          mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 7,
         },
         {
@@ -931,7 +1035,7 @@ async function seed() {
           title: 'Flora — analisi critica',
           directionsFromPrevious: 'Uscite dalla Sala 41 e percorrete il corridoio fino alla Sala 83 (pittura veneziana, Tiziano). La Flora è sulla parete destra della sala.',
           itemId: iFloraAv,
-          mapCoords: { x: 62, y: 12, floor: 2 },
+          mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 8,
         },
         {
@@ -940,7 +1044,7 @@ async function seed() {
           title: 'Venere di Urbino — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 83. Voltate verso la parete opposta: la Venere di Urbino è il pendant della Flora.',
           itemId: iVenereUrbinoAv,
-          mapCoords: { x: 62, y: 18, floor: 2 },
+          mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 9,
         },
         {
@@ -949,7 +1053,7 @@ async function seed() {
           title: 'Sacrificio di Isacco — analisi critica',
           directionsFromPrevious: 'Continuate verso la Sala 90 (Caravaggio). Il Sacrificio di Isacco è sulla parete sinistra della sala.',
           itemId: iSacrifAv,
-          mapCoords: { x: 28, y: 22, floor: 2 },
+          mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 10,
         },
       ],
@@ -980,7 +1084,7 @@ async function seed() {
           title: 'La nascita di Venere',
           directionsFromPrevious: 'Salite al primo piano e seguite il corridoio fino alla Sala 10-14. La Nascita di Venere è sulla parete di fondo — la vedrete subito, è grandissima!',
           itemId: iVenereEl,
-          mapCoords: { x: 28, y: 48, floor: 1 },
+          mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 1,
         },
         {
@@ -989,7 +1093,7 @@ async function seed() {
           title: 'La Primavera',
           directionsFromPrevious: 'Giratevi: La Primavera è sulla parete di fronte, a soli pochi passi dalla Nascita di Venere.',
           itemId: iPrimaveraEl,
-          mapCoords: { x: 28, y: 42, floor: 1 },
+          mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 2,
         },
         {
@@ -998,7 +1102,7 @@ async function seed() {
           title: 'L\'Annunciazione di Leonardo',
           directionsFromPrevious: 'Uscite dalla Sala di Botticelli, girate a destra e camminate lungo il corridoio. Alla Sala 35 siete arrivati da Leonardo! L\'Annunciazione è sulla parete sinistra.',
           itemId: iAnnunciazioneEl,
-          mapCoords: { x: 62, y: 28, floor: 1 },
+          mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 3,
         },
         {
@@ -1007,7 +1111,7 @@ async function seed() {
           title: 'L\'Adorazione dei Magi',
           directionsFromPrevious: 'Rimanete nella stessa sala di Leonardo. L\'Adorazione dei Magi è sulla parete di fronte a voi — il grande dipinto marrone che sembra incompiuto.',
           itemId: iAdorazioneEl,
-          mapCoords: { x: 62, y: 35, floor: 1 },
+          mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 4,
         },
         {
@@ -1016,7 +1120,7 @@ async function seed() {
           title: 'Il Tondo Doni di Michelangelo',
           directionsFromPrevious: 'Continuate lungo il corridoio fino alla Sala 41. Appena entrate, cercate a destra il quadro tondo con la cornice di legno dorato — è unico nel suo genere!',
           itemId: iTondoDoniEl,
-          mapCoords: { x: 62, y: 52, floor: 1 },
+          mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 5,
         },
         {
@@ -1025,7 +1129,7 @@ async function seed() {
           title: 'La Madonna del Cardellino',
           directionsFromPrevious: 'Rimanete nella stessa sala. La Madonna del Cardellino di Raffaello è sulla parete laterale sinistra — cercate il quadretto con il piccolo uccellino!',
           itemId: iMadonnaEl,
-          mapCoords: { x: 62, y: 58, floor: 1 },
+          mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 6,
         },
         {
@@ -1034,7 +1138,7 @@ async function seed() {
           title: 'La Flora di Tiziano',
           directionsFromPrevious: 'Camminate lungo il corridoio fino alla grande Sala 83 con i dipinti veneziani. La Flora è la prima che vedrete a destra, la donna con i fiori.',
           itemId: iFloraEl,
-          mapCoords: { x: 62, y: 12, floor: 2 },
+          mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 7,
         },
         {
@@ -1043,7 +1147,7 @@ async function seed() {
           title: 'La Venere di Urbino',
           directionsFromPrevious: 'Giratevi verso l\'altra parete della sala. La Venere di Urbino è lì di fronte a voi — la signora sdraiata sul letto.',
           itemId: iVenereUrbinoEl,
-          mapCoords: { x: 62, y: 18, floor: 2 },
+          mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 8,
         },
         {
@@ -1052,7 +1156,7 @@ async function seed() {
           title: 'La Medusa di Caravaggio',
           directionsFromPrevious: 'Avanzate fino alla Sala 90. La Medusa è esposta su un supporto speciale al centro della sala — guardate, ma attenti a non pietrificarvi!',
           itemId: iMedusaEl,
-          mapCoords: { x: 28, y: 15, floor: 2 },
+          mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 9,
         },
         {
@@ -1061,16 +1165,24 @@ async function seed() {
           title: 'Giuditta e Oloferne',
           directionsFromPrevious: 'Percorrete ancora pochi passi fino alla Sala 96. La Giuditta è il grande dipinto sulla parete principale — si vede subito entrando, è molto drammatico!',
           itemId: iGiudittaEl,
-          mapCoords: { x: 28, y: 35, floor: 2 },
+          mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 10,
         },
       ],
     },
+  ], (doc) => ({ slug: doc.slug }));
+
+  const storedVisits = await Promise.all([
+    Visit.findOne({ slug: 'highlights-degli-uffizi' }).lean(),
+    Visit.findOne({ slug: 'capolavori-del-rinascimento' }).lean(),
+    Visit.findOne({ slug: 'uffizi-per-famiglie' }).lean(),
   ]);
+
+  [visHighlights, visRinascimento, visFamiglie] = storedVisits.map((visit) => visit.id);
 
   // ── ACTIVITY e APIKEY ─────────────────────────────────────────────────────
 
-  await Activity.insertMany([
+  await upsertMany(Activity, [
     {
       id: generateEntityId('act'),
       userId: usrAutore1,
@@ -1081,16 +1193,22 @@ async function seed() {
       museumId: musUffizi,
       timestamp: new Date(),
     },
-  ]);
+  ], (doc) => ({
+    userId: doc.userId,
+    entityType: doc.entityType,
+    entityId: doc.entityId,
+    action: doc.action,
+  }));
 
-  const rawApiKey = crypto.randomBytes(32).toString('hex');
-  await ApiKey.create({
+  const rawApiKey = BOOTSTRAP_API_KEY;
+  await upsertMany(ApiKey, [{
+    id: generateEntityId('key'),
     name: 'bootstrap-dev-key',
     prefix: rawApiKey.slice(0, 8),
     keyHash: ApiKey.hashValue(rawApiKey),
     status: 'active',
     createdByUserId: usrAdmin,
-  });
+  }], (doc) => ({ name: doc.name }));
 
   console.log('');
   console.log('Seed completato con successo!');
@@ -1104,11 +1222,17 @@ async function seed() {
   console.log('  Password di tutti gli utenti: 12345678');
   console.log('  API key di bootstrap: ' + rawApiKey);
   console.log('');
-
-  process.exit(0);
 }
 
-seed().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+module.exports = seed;
+
+if (require.main === module) {
+  seed().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  }).finally(async () => {
+    const mongoose = require('mongoose');
+    await mongoose.disconnect();
+    process.exit(0);
+  });
+}

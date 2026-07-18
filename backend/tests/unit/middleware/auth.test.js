@@ -120,10 +120,10 @@ describe('auth middleware', () => {
     const apiKey = await createApiKey({ name: 'Role Key' });
     const { user } = await createUser({
       id: 'usr-auth-role',
-      username: 'curator',
-      email: 'curator@example.com',
+      username: 'author',
+      email: 'author@example.com',
       password: 'RolePass123!',
-      role: 'museum_curator',
+      role: 'author',
     });
 
     const token = jwt.sign({ sub: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });

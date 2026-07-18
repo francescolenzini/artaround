@@ -19,6 +19,8 @@
  */
 
 @theme inline {
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -61,28 +63,45 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/*
+ * Palette "Galleria Bianca rivisitata" (design system finalizzato, vedi
+ * docs/knowledge-base.md §5c). I componenti usano SOLO i token semantici
+ * (--background, --primary, ...); la palette qui sotto è l'unico punto da
+ * ridefinire per un tema alternativo (es. alto contrasto):
+ *
+ *   .theme-high-contrast { --palette-canvas: ...; --palette-graphite: ...; }
+ */
 :root {
   --radius: 0.625rem;
-  /* Dark museum aesthetic: deep navy + gold */
-  --background: oklch(0.17 0.03 270);
-  --foreground: oklch(0.96 0.01 90);
-  --card: oklch(0.22 0.03 270);
-  --card-foreground: oklch(0.96 0.01 90);
-  --popover: oklch(0.22 0.03 270);
-  --popover-foreground: oklch(0.96 0.01 90);
-  --primary: oklch(0.82 0.15 85);
-  --primary-foreground: oklch(0.17 0.03 270);
-  --secondary: oklch(0.28 0.03 270);
-  --secondary-foreground: oklch(0.96 0.01 90);
-  --muted: oklch(0.26 0.02 270);
-  --muted-foreground: oklch(0.75 0.02 90);
-  --accent: oklch(0.82 0.15 85);
-  --accent-foreground: oklch(0.17 0.03 270);
-  --destructive: oklch(0.6 0.22 27);
-  --destructive-foreground: oklch(0.98 0.01 90);
-  --border: oklch(0.32 0.03 270);
-  --input: oklch(0.28 0.03 270);
-  --ring: oklch(0.82 0.15 85);
+
+  /* Palette brand — valori oklch equivalenti agli hex di riferimento */
+  --palette-canvas: oklch(0.9875 0.0026 106.45); /* Fondo #FBFBF9 */
+  --palette-surface: oklch(1 0 0); /* Superficie #FFFFFF */
+  --palette-stone: oklch(0.9369 0.0083 91.49); /* Pietra #ECEAE4 */
+  --palette-graphite: oklch(0.217 0.0038 106.71); /* Grafite #1A1A18 */
+  --palette-mute: oklch(0.5363 0.0092 106.7); /* Muto #6E6E68 */
+  --palette-vermilion: oklch(0.5867 0.1818 32.65); /* Vermiglio #D2452B */
+
+  /* Token semantici: mappano la palette sui ruoli shadcn/Tailwind */
+  --background: var(--palette-canvas);
+  --foreground: var(--palette-graphite);
+  --card: var(--palette-surface);
+  --card-foreground: var(--palette-graphite);
+  --popover: var(--palette-surface);
+  --popover-foreground: var(--palette-graphite);
+  --primary: var(--palette-vermilion);
+  --primary-foreground: var(--palette-surface);
+  --secondary: var(--palette-stone);
+  --secondary-foreground: var(--palette-graphite);
+  --muted: var(--palette-stone);
+  --muted-foreground: var(--palette-mute);
+  --accent: var(--palette-stone);
+  --accent-foreground: var(--palette-graphite);
+  --destructive: var(--palette-vermilion);
+  --destructive-foreground: var(--palette-surface);
+  --border: var(--palette-stone);
+  --input: var(--palette-stone);
+  --ring: var(--palette-vermilion);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -133,6 +152,18 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+/* Pulsazione dell'outline del microfono in ascolto (Fix 5).
+   Nome distinto da "pulse" per non collidere col keyframe built-in di Tailwind. */
+@keyframes pulse-outline {
+  0%,
+  100% {
+    outline-color: var(--palette-vermilion);
+  }
+  50% {
+    outline-color: transparent;
+  }
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -141,5 +172,15 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
   }
 }
