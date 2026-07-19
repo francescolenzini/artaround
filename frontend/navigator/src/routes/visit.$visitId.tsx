@@ -2,19 +2,26 @@ import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-ro
 import { useEffect, useState } from "react";
 import { useApp } from "../lib/AppContext";
 import { apiFetch } from "../lib/api";
-import type { ArtworkItem, ListResponse, Visit } from "../lib/types";
+import { REGISTER_ORDER, type Visit, type VisitStep } from "../lib/types";
 import { ErrorScreen, LoadingScreen } from "../components/Shell";
 
 export const Route = createFileRoute("/visit/$visitId")({
   component: VisitDetail,
 });
 
+// I registri coperti si leggono dalle chiavi dello step: nessuna fetch degli
+// item serve più per il riepilogo.
+function stepRegisters(s: VisitStep) {
+  const map = s.itemsByRegister;
+  if (!map) return [];
+  return REGISTER_ORDER.filter((r) => map[r]);
+}
+
 function VisitDetail() {
   const { visitId } = Route.useParams();
   const { apiConfig, token, setVisit } = useApp();
   const navigate = useNavigate();
   const [visit, setLocalVisit] = useState<Visit | null>(null);
-  const [items, setItems] = useState<Record<string, ArtworkItem>>({});
   const [err, setErr] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -26,18 +33,6 @@ function VisitDetail() {
       .then((v) => {
         setLocalVisit(v);
         setVisit(v);
-        const ids = Array.from(
-          new Set(v.steps.map((s) => s.itemId).filter(Boolean) as string[]),
-        );
-        apiFetch<ListResponse<ArtworkItem>>(
-          apiConfig,
-          token,
-          `/artwork-items?id=${ids.map(encodeURIComponent).join(',')}&pageSize=${ids.length}`,
-        ).then((r) => {
-          const map: Record<string, ArtworkItem> = {};
-          for (const item of r.data) map[item.id] = item;
-          setItems(map);
-        }).catch(() => setItems({}));
       })
       .catch((e) => setErr(e?.message ?? "Errore"));
   }, [apiConfig, token, visitId, reloadKey, setVisit]);
@@ -49,7 +44,7 @@ function VisitDetail() {
     );
   if (!visit) return <LoadingScreen />;
 
-  const artworkCount = visit.steps.filter((s) => s.itemId).length;
+  const artworkCount = visit.steps.filter((s) => stepRegisters(s).length > 0).length;
   const meta = [
     artworkCount > 0 ? `${artworkCount} opere` : null,
     visit.estimatedDuration,
@@ -85,7 +80,7 @@ function VisitDetail() {
       </h2>
       <ol className="px-5">
         {visit.steps.map((s, i) => {
-          const it = s.itemId ? items[s.itemId] : undefined;
+          const registers = stepRegisters(s);
           return (
             <li
               key={i}
@@ -96,11 +91,13 @@ function VisitDetail() {
               </span>
               <div className="flex-1">
                 <div className="text-base font-semibold">
-                  {it?.content?.title ?? s.title ?? labelForType(s.type)}
+                  {s.title ?? labelForType(s.type)}
                 </div>
                 <div className="mt-0.5 text-sm text-muted-foreground">
-                  {it?.classification?.languageRegister
-                    ? `Registro: ${it.classification.languageRegister}`
+                  {registers.length
+                    ? `Registri: ${registers
+                        .map((r) => r.charAt(0).toUpperCase() + r.slice(1))
+                        .join(", ")}`
                     : labelForType(s.type)}
                 </div>
               </div>

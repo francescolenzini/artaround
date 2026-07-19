@@ -10,7 +10,8 @@ import {
   escapeHtml,
   icons,
 } from '../components/ui.js';
-import { STEP_TYPE, STEP_TYPE_LABELS, REGISTER_LABELS, clientId } from '../constants.js';
+import { chooseItemWithPreview } from '../components/itemPreview.js';
+import { STEP_TYPE, STEP_TYPE_LABELS, REGISTER_LABELS, REGISTER_ORDER, clientId } from '../constants.js';
 
 let visit = null;
 let steps = [];
@@ -119,8 +120,61 @@ function smallBtn(label, onClick) {
   return b;
 }
 
-function newStep(type, title, itemId) {
-  return { id: clientId('step'), type, title, itemId, directionsFromPrevious: '', description: '' };
+function newStep(type, title, itemsByRegister) {
+  return { id: clientId('step'), type, title, itemsByRegister, directionsFromPrevious: '', description: '' };
+}
+
+function isItemStep(step) {
+  return step.type === 'main_item' || step.type === 'optional_item';
+}
+
+// Id di tutti gli item già assegnati a uno slot di uno step (qualunque registro).
+function assignedItemIds() {
+  return new Set(steps.flatMap((s) => Object.values(s.itemsByRegister || {})));
+}
+
+// Step-tappa già in sequenza per un'opera: uno step item i cui slot puntano a
+// item di quell'opera (concettualmente uno step = una tappa/opera).
+function findStepForArtwork(artworkId) {
+  return steps.find(
+    (s) =>
+      isItemStep(s) &&
+      Object.values(s.itemsByRegister || {}).some((id) => itemsById[id] && itemsById[id].artworkId === artworkId)
+  );
+}
+
+// Assegna un item allo slot del suo registro: riusa lo step esistente
+// dell'opera oppure ne crea uno nuovo; con più candidati per la coppia
+// (opera, registro) fa scegliere dalla preview.
+async function assignItem(artwork, item) {
+  const register = item.classification && item.classification.languageRegister;
+  if (!register) {
+    toast.error('Questo item non ha un registro linguistico.');
+    return;
+  }
+  const candidates = itemList.filter(
+    (it) => it.artworkId === artwork.id && it.classification && it.classification.languageRegister === register
+  );
+  let chosen = item;
+  if (candidates.length > 1) {
+    const picked = await chooseItemWithPreview({
+      candidates,
+      initialId: item.id,
+      title: `${artwork.title} — registro ${REGISTER_LABELS[register] || register}`,
+      subtitle: 'Più contenuti coprono questo registro: confrontali e scegli quale assegnare alla tappa.',
+    });
+    if (!picked) return;
+    chosen = picked;
+  }
+  const existing = findStepForArtwork(artwork.id);
+  if (existing) {
+    existing.itemsByRegister = { ...(existing.itemsByRegister || {}), [register]: chosen.id };
+    toast.success(`Registro "${REGISTER_LABELS[register] || register}" assegnato alla tappa esistente.`);
+  } else {
+    addStep(newStep('main_item', artwork.title, { [register]: chosen.id }));
+    toast.success('Tappa aggiunta.');
+  }
+  rerenderAll();
 }
 
 // --- Catalogo (sinistra) ----------------------------------------------------
@@ -139,7 +193,7 @@ function renderCatalog(catalogEl) {
     return;
   }
 
-  const usedItemIds = new Set(steps.map((s) => s.itemId).filter(Boolean));
+  const usedItemIds = assignedItemIds();
 
   for (const a of withItems) {
     const group = document.createElement('div');
@@ -156,15 +210,11 @@ function renderCatalog(catalogEl) {
       btn.innerHTML = `
         <span class="min-w-0">
           <span class="block truncate font-medium text-mute-600">${escapeHtml(title)}</span>
-          <span class="block text-xs text-mute-400">${used ? 'Già nella visita' : escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '')}</span>
+          <span class="block text-xs text-mute-400">${used ? 'Già assegnato a una tappa' : escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '')}</span>
         </span>
         <span class="shrink-0 ${used ? 'text-mute-400' : 'text-brand'}">${used ? icons.check : icons.arrowRight}</span>`;
       if (!used) {
-        btn.addEventListener('click', () => {
-          addStep(newStep('main_item', title, it.id));
-          rerenderAll();
-          toast.success('Tappa aggiunta.');
-        });
+        btn.addEventListener('click', () => assignItem(a, it));
       }
       group.appendChild(btn);
     }
@@ -231,12 +281,10 @@ function renderSteps(stepsEl) {
       }
       typeSel.addEventListener('change', (e) => {
         step.type = e.target.value;
-        // Le tappe non-item non devono trascinarsi dietro un itemId.
-        const isItemType = step.type === 'main_item' || step.type === 'optional_item';
-        if (!isItemType && step.itemId) {
-          step.itemId = undefined;
-          rerenderAll();
-        }
+        // Le tappe non-item non devono trascinarsi dietro item assegnati; il
+        // rerender mostra/nasconde anche la riga dei registri.
+        if (!isItemStep(step)) step.itemsByRegister = undefined;
+        rerenderAll();
       });
       rowTop.appendChild(typeSel);
     }
@@ -248,14 +296,45 @@ function renderSteps(stepsEl) {
       rowTop.appendChild(lock);
     }
 
-    if (step.itemId) {
-      const ref = document.createElement('span');
-      ref.className = 'rounded-md bg-stone-100 px-2 py-1 text-xs text-mute-400';
-      const it = itemsById[step.itemId];
-      ref.textContent = it ? `Item: ${(it.content && it.content.title) || step.itemId}` : `Item: ${step.itemId}`;
-      rowTop.appendChild(ref);
-    }
     body.appendChild(rowTop);
+
+    // Riepilogo registri della tappa: chip pieno = coperto (tooltip col titolo
+    // dell'item, X per liberare lo slot), chip tratteggiato = mancante.
+    if (isItemStep(step)) {
+      const regRow = document.createElement('div');
+      regRow.className = 'flex flex-wrap gap-1.5';
+      for (const reg of REGISTER_ORDER) {
+        const itemId = (step.itemsByRegister || {})[reg];
+        if (itemId) {
+          const it = itemsById[itemId];
+          const chip = document.createElement('span');
+          chip.className =
+            'inline-flex items-center gap-1 rounded-full bg-brand-light px-2.5 py-1 text-xs font-medium text-brand-dark';
+          chip.title = `Item: ${(it && it.content && it.content.title) || itemId}`;
+          const label = document.createElement('span');
+          label.textContent = REGISTER_LABELS[reg] || reg;
+          const rm = document.createElement('button');
+          rm.type = 'button';
+          rm.className = 'text-brand-dark/60 transition hover:text-brand-dark';
+          rm.title = 'Libera questo registro';
+          rm.innerHTML =
+            '<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+          rm.addEventListener('click', () => {
+            delete step.itemsByRegister[reg];
+            rerenderAll();
+          });
+          chip.append(label, rm);
+          regRow.appendChild(chip);
+        } else {
+          const chip = document.createElement('span');
+          chip.className = 'rounded-full border border-dashed border-stone-300 px-2.5 py-1 text-xs text-mute-400';
+          chip.textContent = REGISTER_LABELS[reg] || reg;
+          chip.title = 'Registro non coperto: clicca un item di questo registro nel catalogo';
+          regRow.appendChild(chip);
+        }
+      }
+      body.appendChild(regRow);
+    }
 
     const titleInput = document.createElement('input');
     titleInput.type = 'text';
@@ -317,7 +396,8 @@ async function save() {
     title: (s.title && s.title.trim()) || STEP_TYPE_LABELS[s.type] || 'Tappa',
     description: s.description || undefined,
     directionsFromPrevious: s.directionsFromPrevious || undefined,
-    itemId: s.itemId || undefined,
+    itemsByRegister:
+      s.itemsByRegister && Object.keys(s.itemsByRegister).length ? s.itemsByRegister : undefined,
     order: i + 1,
   }));
   try {

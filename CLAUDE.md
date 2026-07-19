@@ -83,7 +83,7 @@ docs/
 # Backend
 cd backend
 npm install
-npm run seed              # idempotente (upsert su slug): Uffizi, 5 utenti, 12 opere, 24 item, 3 visite
+npm run seed              # idempotente (upsert su slug): Uffizi, 5 utenti, 12 opere, 37 item, 3 visite
 npm run dev                # nodemon, hot reload — su Windows evita la porta 3001 (conflitto Docker Desktop),
                             # usa PORT=3002 in .env se giri backend/Navigator/Marketplace tutti insieme in locale
 npm test                   # jest --runInBand (tutta la suite)

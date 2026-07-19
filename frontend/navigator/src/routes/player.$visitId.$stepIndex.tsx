@@ -2,7 +2,15 @@ import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "../lib/AppContext";
 import { apiFetch } from "../lib/api";
-import type { Artwork, ArtworkItem, ListResponse, Visit } from "../lib/types";
+import {
+  REGISTER_ORDER,
+  type Artwork,
+  type ArtworkItem,
+  type LanguageRegister,
+  type ListResponse,
+  type Visit,
+  type VisitStep,
+} from "../lib/types";
 import { ErrorScreen, LoadingScreen, Modal, Toast } from "../components/Shell";
 import { speak, startRecognition, stopSpeak, type RecognitionHandle } from "../lib/speech";
 
@@ -17,6 +25,41 @@ const VOICE_PAIRS: [string, string][] = [
   ["Troppo semplice", "Non capisco"],
   ["Chi è l'autore", "Qual è lo stile"],
 ];
+
+// Registri disponibili per lo step, già nell'ordine della scala.
+function availableRegisters(step?: VisitStep): LanguageRegister[] {
+  const map = step?.itemsByRegister;
+  if (!map) return [];
+  return REGISTER_ORDER.filter((r) => map[r]);
+}
+
+// Registro effettivo per uno step: il preferito se coperto, altrimenti il più
+// vicino nella scala (a parità di distanza vince il più semplice, per non
+// spiazzare l'utente con un salto verso l'alto).
+function resolveRegister(
+  step: VisitStep | undefined,
+  preferred: LanguageRegister | null,
+): LanguageRegister | null {
+  const avail = availableRegisters(step);
+  if (!avail.length) return null;
+  const target = preferred ?? "medio";
+  if (avail.includes(target)) return target;
+  const ti = REGISTER_ORDER.indexOf(target);
+  let best = avail[0];
+  let bestDist = Infinity;
+  for (const r of avail) {
+    const d = Math.abs(REGISTER_ORDER.indexOf(r) - ti);
+    if (d < bestDist) {
+      best = r;
+      bestDist = d;
+    }
+  }
+  return best;
+}
+
+function registerLabel(r: LanguageRegister) {
+  return r.charAt(0).toUpperCase() + r.slice(1);
+}
 
 function PlayerPage() {
   const { visitId, stepIndex } = Route.useParams();
@@ -73,21 +116,44 @@ function PlayerPage() {
 
   const step = visit?.steps[idx];
 
-  // Load current artwork item
+  // Registro preferito dall'utente nella sessione: persiste tra le tappe
+  // (il componente non si smonta al cambio di stepIndex).
+  const [register, setRegister] = useState<LanguageRegister | null>(null);
+  const effectiveRegister = useMemo(() => resolveRegister(step, register), [step, register]);
+  const currentItemId =
+    step && effectiveRegister ? step.itemsByRegister?.[effectiveRegister] : undefined;
+
+  // Cache degli item già scaricati: cambiare registro avanti e indietro non
+  // deve rifare richieste di rete.
+  const itemCache = useRef<Record<string, ArtworkItem>>({});
+
+  const fetchItem = useCallback(
+    async (id: string): Promise<ArtworkItem | null> => {
+      if (itemCache.current[id]) return itemCache.current[id];
+      if (!apiConfig || !token) return null;
+      const r = await apiFetch<ListResponse<ArtworkItem>>(
+        apiConfig,
+        token,
+        `/artwork-items?id=${encodeURIComponent(id)}`,
+      );
+      const item = r.data[0] ?? null;
+      if (item) itemCache.current[id] = item;
+      return item;
+    },
+    [apiConfig, token],
+  );
+
+  // Carica l'item corrente (tappa + registro effettivo)
   useEffect(() => {
     if (!apiConfig || !token || !step) return;
-    if (!step.itemId) {
+    if (!currentItemId) {
       setCurrentItem(null);
       return;
     }
-    apiFetch<ListResponse<ArtworkItem>>(
-      apiConfig,
-      token,
-      `/artwork-items?id=${encodeURIComponent(step.itemId)}`,
-    )
-      .then((r) => setCurrentItem(r.data[0] ?? null))
+    fetchItem(currentItemId)
+      .then((item) => setCurrentItem(item))
       .catch(() => setToast("Impossibile caricare il contenuto"));
-  }, [apiConfig, token, step, setCurrentItem]);
+  }, [apiConfig, token, step, currentItemId, fetchItem, setCurrentItem]);
 
   useEffect(() => {
     if (!toast) return;
@@ -110,34 +176,55 @@ function PlayerPage() {
     [navigate, visit, visitId, stopTts],
   );
 
-  const fetchRegister = useCallback(
-    async (register: "avanzato" | "elementare") => {
-      if (!apiConfig || !token || !currentItem) {
-        setToast("Contenuto non disponibile");
-        return;
-      }
-      const artworkId = currentItem.artworkId;
-      if (!artworkId) {
-        setToast("Contenuto non disponibile");
-        return;
-      }
-      try {
-        const r = await apiFetch<ListResponse<ArtworkItem>>(
-          apiConfig,
-          token,
-          `/artwork-items?artworkId=${encodeURIComponent(artworkId)}&pageSize=20`,
+  // Primo registro disponibile nella direzione richiesta lungo la scala
+  // (-1 = più semplice, +1 = più avanzato), o null se non ce n'è.
+  const registerInDirection = useCallback(
+    (dir: 1 | -1): LanguageRegister | null => {
+      if (!effectiveRegister) return null;
+      const avail = availableRegisters(step);
+      const from = REGISTER_ORDER.indexOf(effectiveRegister);
+      const candidates =
+        dir === 1
+          ? REGISTER_ORDER.slice(from + 1)
+          : REGISTER_ORDER.slice(0, from).reverse();
+      return candidates.find((r) => avail.includes(r)) ?? null;
+    },
+    [effectiveRegister, step],
+  );
+
+  const canSimpler = registerInDirection(-1) != null;
+  const canAdvanced = registerInDirection(1) != null;
+
+  // Cambia registro: aggiorna insieme schermo (screenText via currentItem)
+  // e sintesi vocale (ttsText), come richiesto dalla spec.
+  const goToRegister = useCallback(
+    async (dir: 1 | -1) => {
+      const target = registerInDirection(dir);
+      if (!target) {
+        setToast(
+          dir === 1
+            ? "Non c'è una versione più avanzata per questa tappa"
+            : "Non c'è una versione più semplice per questa tappa",
         );
-        const match = r.data.find((it) => it.classification?.languageRegister === register);
-        if (!match || !match.content?.ttsText) {
+        return;
+      }
+      const id = step?.itemsByRegister?.[target];
+      if (!id) return;
+      setRegister(target);
+      try {
+        const item = await fetchItem(id);
+        if (!item) {
           setToast("Contenuto non disponibile");
           return;
         }
-        playTts(match.content.ttsText);
+        setCurrentItem(item);
+        stopTts();
+        if (item.content?.ttsText) playTts(item.content.ttsText);
       } catch {
         setToast("Contenuto non disponibile");
       }
     },
-    [apiConfig, token, currentItem, playTts],
+    [registerInDirection, step, fetchItem, setCurrentItem, stopTts, playTts],
   );
 
   // Cache delle opere già caricate (l'endpoint item non include autore/stile,
@@ -205,8 +292,8 @@ function PlayerPage() {
       if (has("cos'è questo", "cos è questo", "descrivi"))
         return currentItem?.content?.ttsText && playTts(currentItem.content.ttsText);
       if (has("di più", "di piu", "dimmi di più", "dimmi di piu", "troppo semplice"))
-        return fetchRegister("avanzato");
-      if (has("di meno", "dimmi di meno", "non capisco")) return fetchRegister("elementare");
+        return goToRegister(1);
+      if (has("di meno", "dimmi di meno", "non capisco")) return goToRegister(-1);
       if (has("autore")) return showAuthor();
       if (has("stile")) return showStyle();
       if (has("uscita")) return showLogistics("exit");
@@ -216,7 +303,7 @@ function PlayerPage() {
       if (has("ostacoli")) return showLogistics("obstacles");
       setToast(`Comando non riconosciuto: "${text}"`);
     },
-    [idx, goTo, currentItem, playTts, fetchRegister, showAuthor, showStyle, showLogistics],
+    [idx, goTo, currentItem, playTts, goToRegister, showAuthor, showStyle, showLogistics],
   );
 
   const toggleMic = useCallback(() => {
@@ -243,9 +330,9 @@ function PlayerPage() {
 
   const content = useMemo(() => {
     if (!step) return "";
-    if (step.itemId) return currentItem?.content?.screenText ?? "";
+    if (currentItemId) return currentItem?.content?.screenText ?? "";
     return step.description ?? "";
-  }, [step, currentItem]);
+  }, [step, currentItemId, currentItem]);
 
   // Strip orizzontale "Chiedi all'audioguida": pagine e posizione corrente
   const stripRef = useRef<HTMLDivElement | null>(null);
@@ -272,14 +359,15 @@ function PlayerPage() {
     el.scrollBy({ left: dir * el.clientWidth, behavior: "smooth" });
   }, []);
 
-  // Handler per etichetta: le pill riusano gli stessi handler dei comandi vocali
-  const voiceActions: Record<string, () => void> = {
-    "Dimmi di meno": () => fetchRegister("elementare"),
-    "Dimmi di più": () => fetchRegister("avanzato"),
-    "Troppo semplice": () => fetchRegister("avanzato"),
-    "Non capisco": () => fetchRegister("elementare"),
-    "Chi è l'autore": showAuthor,
-    "Qual è lo stile": showStyle,
+  // Handler per etichetta: le pill riusano gli stessi handler dei comandi
+  // vocali; disabled = nessun registro disponibile in quella direzione.
+  const voiceActions: Record<string, { run: () => void; disabled?: boolean }> = {
+    "Dimmi di meno": { run: () => goToRegister(-1), disabled: !canSimpler },
+    "Dimmi di più": { run: () => goToRegister(1), disabled: !canAdvanced },
+    "Troppo semplice": { run: () => goToRegister(1), disabled: !canAdvanced },
+    "Non capisco": { run: () => goToRegister(-1), disabled: !canSimpler },
+    "Chi è l'autore": { run: showAuthor },
+    "Qual è lo stile": { run: showStyle },
   };
 
   if (!token) return <Navigate to="/login" />;
@@ -322,9 +410,16 @@ function PlayerPage() {
           <div className="rounded-2xl border border-border bg-card p-4">
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 shrink-0 rounded-lg bg-secondary" aria-hidden />
-              <h2 className="font-display text-lg font-bold leading-snug">
-                {currentItem?.content?.title ?? step.title}
-              </h2>
+              <div className="min-w-0">
+                <h2 className="font-display text-lg font-bold leading-snug">
+                  {currentItem?.content?.title ?? step.title}
+                </h2>
+                {currentItemId && effectiveRegister && (
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Registro: {registerLabel(effectiveRegister)}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="mt-4 flex w-full gap-2">
               <button
@@ -416,8 +511,18 @@ function PlayerPage() {
           >
             {VOICE_PAIRS.map(([left, right]) => (
               <div key={left} className="flex w-full shrink-0 snap-start gap-2">
-                <Chip label={left} onClick={voiceActions[left]} grow />
-                <Chip label={right} onClick={voiceActions[right]} grow />
+                <Chip
+                  label={left}
+                  onClick={voiceActions[left].run}
+                  disabled={voiceActions[left].disabled}
+                  grow
+                />
+                <Chip
+                  label={right}
+                  onClick={voiceActions[right].run}
+                  disabled={voiceActions[right].disabled}
+                  grow
+                />
               </div>
             ))}
           </div>
@@ -465,11 +570,13 @@ function Chip({
   onClick,
   muted,
   grow,
+  disabled,
 }: {
   label: string;
   onClick: () => void;
   muted?: boolean;
   grow?: boolean;
+  disabled?: boolean;
 }) {
   const style = muted
     ? "bg-secondary text-foreground"
@@ -477,7 +584,8 @@ function Chip({
   return (
     <button
       onClick={onClick}
-      className={`min-h-[44px] rounded-full px-4 text-sm font-medium active:scale-95 ${
+      disabled={disabled}
+      className={`min-h-[44px] rounded-full px-4 text-sm font-medium active:scale-95 disabled:opacity-40 disabled:active:scale-100 ${
         grow ? "flex-1" : "shrink-0 whitespace-nowrap"
       } ${style}`}
     >

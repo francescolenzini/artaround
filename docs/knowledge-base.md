@@ -33,7 +33,8 @@ Le specifiche del docente fissano un modello a due strutture dati, **prima** di 
 |---|---|---|
 | Item | `ArtworkItem` | `classification.fruitionLength`, `classification.languageRegister`, `license`, `creatorId` coprono lunghezza/registro/autore/licenza richiesti |
 | Oggetto descritto dall'item | `Artwork` | Item e oggetto sono separati in due collezioni (`ArtworkItem.artworkId → Artwork.id`), coerente con "item multipli per lo stesso oggetto" |
-| Visit | `Visit` | `steps[]` = sequenza di item + logistica |
+| Visit | `Visit` | `steps[]` = sequenza di tappe + logistica |
+| Item multipli per lo stesso oggetto nella visita | `VisitStep.itemsByRegister` | Mappa `{ registro → ArtworkItem.id }`, al massimo un item per registro per tappa (una tappa = un'opera); sostituisce il vecchio `itemId` singolo (2026-07-19). Il player Navigator cambia registro con "non capisco"/"troppo semplice" navigando la scala infantile→specialistico |
 | Indicazioni logistiche tra item | `VisitStep.directionsFromPrevious` | Step di tipo `transition`/`logistics_intro` per le indicazioni non legate a un item specifico |
 | Posizione fisica dell'item nella visita | `VisitStep.mapCoords` | `{ x, y, floor }` — percentuali sull'immagine della mappa di piano (aggiunto 2026-06-30) |
 | Item su contenuti associati (stili, artisti, eventi) | **Non modellato** | `Artwork` rappresenta solo oggetti fisici del museo; non c'è un'entità per "contenuto associato" non legato a un oggetto specifico — **gap aperto, non bloccante per 18-24** |
