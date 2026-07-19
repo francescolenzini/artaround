@@ -12,6 +12,8 @@ import {
   type VisitStep,
 } from "../lib/types";
 import { ErrorScreen, LoadingScreen, Modal, Toast } from "../components/Shell";
+import { RichText } from "../components/RichText";
+import { richTextToPlain } from "../lib/richtext";
 import { speak, startRecognition, stopSpeak, type RecognitionHandle } from "../lib/speech";
 
 export const Route = createFileRoute("/player/$visitId/$stepIndex")({
@@ -425,7 +427,9 @@ function PlayerPage() {
               <button
                 onClick={() => {
                   if (playing) return;
-                  const t = currentItem?.content?.ttsText ?? content;
+                  // Il testo a schermo può contenere markup: al TTS va la
+                  // versione in testo semplice, mai i tag.
+                  const t = currentItem?.content?.ttsText ?? richTextToPlain(content);
                   if (t) playTts(t);
                 }}
                 className={`flex min-h-[44px] items-center justify-center whitespace-nowrap rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition-all duration-300 ease-in-out ${
@@ -450,7 +454,11 @@ function PlayerPage() {
             {step.directionsFromPrevious}
           </div>
         )}
-        <p className="mt-5 whitespace-pre-wrap text-[17px] leading-relaxed">{content || "—"}</p>
+        <RichText
+          value={content}
+          fallback="—"
+          className="mt-5 text-[17px] leading-relaxed"
+        />
       </main>
 
       {/* Bottom panel */}

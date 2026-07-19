@@ -12,6 +12,7 @@ import {
   escapeHtml,
   icons,
 } from '../components/ui.js';
+import { renderRichText, richTextToPlain, RICH_TEXT_CLASS } from '../components/richtext.js';
 import { REGISTER_LABELS, fruitionLabel } from '../constants.js';
 import { openArtworkForm, openItemForm } from './content.js';
 
@@ -64,7 +65,7 @@ function renderMeta(metaEl, a) {
   ].filter(([, v]) => v);
   metaEl.innerHTML = `
     <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-      ${a.description ? `<p class="mb-4 text-sm leading-relaxed text-mute-600">${escapeHtml(a.description)}</p>` : ''}
+      ${a.description ? `<div class="mb-4 text-sm leading-relaxed text-mute-600 ${RICH_TEXT_CLASS}">${renderRichText(a.description)}</div>` : ''}
       <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
         ${rows
           .map(
@@ -125,7 +126,7 @@ function itemCard(it, artwork, reload) {
         <span>Registro: ${escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '—')}</span>
         <span>· Durata: ${escapeHtml(fruitionLabel(it.classification?.fruitionLength) || '—')}</span>
       </div>
-      ${it.content?.screenText ? `<p class="mt-2 line-clamp-2 text-sm text-mute-400">${escapeHtml(it.content.screenText)}</p>` : ''}
+      ${it.content?.screenText ? `<p class="mt-2 line-clamp-2 text-sm text-mute-400">${escapeHtml(richTextToPlain(it.content.screenText))}</p>` : ''}
     </div>`;
   const actions = document.createElement('div');
   actions.className = 'flex shrink-0 gap-1.5';

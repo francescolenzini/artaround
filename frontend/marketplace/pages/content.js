@@ -3,6 +3,7 @@ import { artworks, items, museumContext, activities, auth } from '../api.js';
 import { toast } from '../components/toast.js';
 import { renderTable } from '../components/table.js';
 import { buildForm, openModal, confirmDialog } from '../components/modal.js';
+import { richTextToPlain } from '../components/richtext.js';
 import {
   pageHeader,
   primaryButton,
@@ -320,7 +321,7 @@ export async function openArtworkForm(artwork, reload) {
     { name: 'universalObjectId', label: 'ID universale (opz.)', colSpan: 1, value: artwork?.universalObjectId },
     { name: 'materials', label: 'Materiali', type: 'tags', value: artwork?.materials || [], help: 'Invio o virgola per aggiungere' },
     { name: 'tags', label: 'Tag', type: 'tags', value: artwork?.tags || [], help: 'Invio o virgola per aggiungere' },
-    { name: 'description', label: 'Descrizione', type: 'textarea', rows: 3, value: artwork?.description },
+    { name: 'description', label: 'Descrizione', type: 'richtext', rows: 3, value: artwork?.description },
   ]);
 
   openModal({
@@ -379,7 +380,8 @@ export async function openArtworkForm(artwork, reload) {
 const TTS_WORDS_PER_MINUTE = 155;
 
 function estimateReadingSeconds(text) {
-  const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+  // richTextToPlain: il testo a schermo può contenere markup, i tag non sono parole.
+  const words = richTextToPlain(text).trim().split(/\s+/).filter(Boolean);
   return words.length ? Math.round((words.length / TTS_WORDS_PER_MINUTE) * 60) : 0;
 }
 
@@ -416,7 +418,7 @@ export function openItemForm(artwork, item, reload) {
       onChange: (checked, f) => f.setHidden('screenText', !checked),
     },
     {
-      name: 'screenText', label: 'Testo a schermo', type: 'textarea', rows: 4, value: ct.screenText,
+      name: 'screenText', label: 'Testo a schermo', type: 'richtext', rows: 4, value: ct.screenText,
       onInput: (text, f) => f.setValue('targetDurationSeconds', estimateReadingSeconds(text)),
     },
     {

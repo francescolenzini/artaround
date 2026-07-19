@@ -45,7 +45,7 @@ export async function init({ params }) {
     { name: 'status', label: 'Stato', type: 'select', required: true, options: MUSEUM_STATUS, value: museum?.status || 'draft', colSpan: 1 },
     { name: 'defaultLanguage', label: 'Lingua predefinita', required: true, value: museum?.defaultLanguage || 'it', colSpan: 1 },
     { name: 'shortDescription', label: 'Descrizione breve', type: 'textarea', required: true, rows: 2, value: museum?.shortDescription },
-    { name: 'longDescription', label: 'Descrizione estesa', type: 'textarea', rows: 4, value: museum?.longDescription },
+    { name: 'longDescription', label: 'Descrizione estesa', type: 'richtext', rows: 4, value: museum?.longDescription },
     { name: 'city', label: 'Città', required: true, colSpan: 1, value: museum?.city },
     { name: 'country', label: 'Paese', required: true, colSpan: 1, value: museum?.country },
     { name: 'address', label: 'Indirizzo', required: true, colSpan: 1, value: museum?.address },

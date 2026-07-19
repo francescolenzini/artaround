@@ -4,6 +4,7 @@ import { useApp } from "../lib/AppContext";
 import { apiFetch } from "../lib/api";
 import { REGISTER_ORDER, type Visit, type VisitStep } from "../lib/types";
 import { ErrorScreen, LoadingScreen } from "../components/Shell";
+import { RichText } from "../components/RichText";
 
 export const Route = createFileRoute("/visit/$visitId")({
   component: VisitDetail,
@@ -68,11 +69,10 @@ function VisitDetail() {
         {meta && (
           <p className="mt-2 text-sm text-muted-foreground">{meta}</p>
         )}
-        {visit.description && (
-          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-            {visit.description}
-          </p>
-        )}
+        <RichText
+          value={visit.description}
+          className="mt-4 text-base leading-relaxed text-muted-foreground"
+        />
       </div>
 
       <h2 className="px-5 pt-8 pb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">

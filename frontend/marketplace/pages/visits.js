@@ -171,7 +171,7 @@ export function openVisitForm(visit) {
   if (!isNew) {
     fields.push(
       { name: 'status', label: 'Stato', type: 'select', required: true, options: VISIT_STATUS, value: visit.status || 'draft', colSpan: 1 },
-      { name: 'description', label: 'Descrizione', type: 'textarea', rows: 3, value: visit.description }
+      { name: 'description', label: 'Descrizione', type: 'richtext', rows: 3, value: visit.description }
     );
   }
   const form = buildForm(fields);

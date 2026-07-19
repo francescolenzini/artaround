@@ -1,4 +1,5 @@
 // Modale riusabile + builder di form + dialog di conferma.
+import { buildRichTextEditor } from './richtext.js';
 
 // Registro delle modali aperte, per poterle chiudere tutte al cambio rotta
 // (altrimenti backdrop e listener su document resterebbero orfani).
@@ -194,7 +195,7 @@ export function confirmDialog({
 /**
  * Costruisce un form da una descrizione di campi.
  * fields: [{ name, label, type, options, required, placeholder, help, value, colSpan, min, max, step, rows, readonly, onChange, onInput }]
- * type: text | textarea | number | select | multiselect | checkbox | password | tags | selectAddable
+ * type: text | textarea | richtext | number | select | multiselect | checkbox | password | tags | selectAddable
  * `onChange(value, formApi)` è supportato sui checkbox, per campi dipendenti;
  * `onInput(value, formApi)` sugli altri campi, per ricalcoli live.
  * @returns {{ node: HTMLElement, getValues: Function, setFieldError: Function, setDisabled: Function, setHidden: Function, setValue: Function }}
@@ -276,6 +277,8 @@ export function buildForm(fields, values = {}) {
         if (selected.includes(String(o.value))) opt.selected = true;
         input.appendChild(opt);
       }
+    } else if (f.type === 'richtext') {
+      input = buildRichTextEditor(f, current);
     } else if (f.type === 'tags') {
       input = buildTagsInput(f, current);
     } else if (f.type === 'selectAddable') {
@@ -301,7 +304,11 @@ export function buildForm(fields, values = {}) {
     }
 
     if (typeof f.onInput === 'function') {
-      input.addEventListener('input', (e) => f.onInput(e.target.value, formApi));
+      // Per il richtext l'evento 'input' del contenteditable risale fino al
+      // wrapper, ma il valore va letto da getValue() (e.target.value non esiste).
+      input.addEventListener('input', (e) =>
+        f.onInput(f.type === 'richtext' ? input.getValue() : e.target.value, formApi)
+      );
     }
 
     col.appendChild(input);
@@ -333,7 +340,7 @@ export function buildForm(fields, values = {}) {
         out[name] = Array.from(input.selectedOptions).map((o) => o.value);
       } else if (field.type === 'tags') {
         out[name] = input.getTags();
-      } else if (field.type === 'selectAddable') {
+      } else if (field.type === 'selectAddable' || field.type === 'richtext') {
         out[name] = input.getValue();
       } else {
         const v = input.value.trim();
@@ -370,6 +377,7 @@ export function buildForm(fields, values = {}) {
     const ref = refs[name];
     if (!ref) return;
     if (ref.field.type === 'checkbox') ref.input.checked = Boolean(value);
+    else if (typeof ref.input.setValue === 'function') ref.input.setValue(value);
     else if ('value' in ref.input) ref.input.value = value == null ? '' : value;
   }
 

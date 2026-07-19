@@ -3,6 +3,7 @@
 // (opera, registro), ma riusabile ovunque serva mostrare un item senza editarlo.
 import { openModal } from './modal.js';
 import { escapeHtml } from './ui.js';
+import { renderRichText, RICH_TEXT_CLASS } from './richtext.js';
 import { REGISTER_LABELS, fruitionLabel } from '../constants.js';
 
 /**
@@ -32,18 +33,23 @@ export function itemPreviewCard(item) {
           .join('')}
       </div>
     </div>
-    ${previewText('Testo a schermo', content.screenText)}
+    ${previewText('Testo a schermo', content.screenText, { rich: true })}
     ${previewText('Testo per la sintesi vocale', content.ttsText)}`;
   return card;
 }
 
-function previewText(label, text) {
+// rich: true per i campi che possono contenere markup minimo (testo a schermo);
+// il testo TTS resta sempre testo semplice.
+function previewText(label, text, { rich = false } = {}) {
+  const body = !text
+    ? '<span class="italic text-mute-400">Non presente</span>'
+    : rich
+      ? renderRichText(text)
+      : escapeHtml(text);
   return `
     <div>
       <p class="text-xs font-semibold uppercase tracking-wide text-mute-400">${label}</p>
-      <p class="mt-1 max-h-36 overflow-y-auto whitespace-pre-wrap rounded-lg bg-canvas px-3 py-2 text-sm leading-relaxed text-mute-600">${
-        text ? escapeHtml(text) : '<span class="italic text-mute-400">Non presente</span>'
-      }</p>
+      <div class="mt-1 max-h-36 overflow-y-auto whitespace-pre-wrap rounded-lg bg-canvas px-3 py-2 text-sm leading-relaxed text-mute-600 ${rich ? RICH_TEXT_CLASS : ''}">${body}</div>
     </div>`;
 }
 

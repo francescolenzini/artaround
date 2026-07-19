@@ -159,7 +159,7 @@ function renderInfo(infoEl) {
       help: 'Identificativo leggibile della visita (facoltativo).',
     },
     { name: 'coverImage', label: 'Immagine di copertina (URL)', value: visit.coverImage, placeholder: 'https://…', colSpan: 1 },
-    { name: 'description', label: 'Descrizione', type: 'textarea', rows: 3, value: visit.description },
+    { name: 'description', label: 'Descrizione', type: 'richtext', rows: 3, value: visit.description },
   ]);
   // Il museo è il contesto corrente, non un valore del form: disabled (non
   // focusabile né selezionabile), non solo readonly. Niente cursore di
