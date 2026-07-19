@@ -17,6 +17,7 @@ const activitiesRoutes = require('./routes/activitiesRoutes');
 const usersRoutes = require('./routes/usersRoutes');
 const apiKeysRoutes = require('./routes/apiKeysRoutes');
 const requestLogsRoutes = require('./routes/requestLogsRoutes');
+const uploadsRoutes = require('./routes/uploadsRoutes');
 
 async function buildApp() {
   await connectDb();
@@ -51,6 +52,7 @@ async function buildApp() {
   app.use('/users', usersRoutes);
   app.use('/api-keys', apiKeysRoutes);
   app.use('/request-logs', requestLogsRoutes);
+  app.use('/uploads', uploadsRoutes);
 
   app.use(errorHandler);
   return app;

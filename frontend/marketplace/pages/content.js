@@ -1,5 +1,5 @@
 // Catalogo contenuti: opere del museo selezionato con item subordinati.
-import { artworks, items, museumContext, activities, auth } from '../api.js';
+import { artworks, items, museumContext, activities, auth, uploads } from '../api.js';
 import { toast } from '../components/toast.js';
 import { renderTable } from '../components/table.js';
 import { buildForm, openModal, confirmDialog } from '../components/modal.js';
@@ -294,6 +294,17 @@ function itemRow(it, artwork, reloadItems) {
 
 // --- Form opera -------------------------------------------------------------
 
+// Risolve il campo immagine dei form: se c'è un nuovo file lo carica su
+// /uploads e ritorna l'URL, altrimenti mantiene l'URL già salvato (null se
+// l'immagine è stata rimossa).
+async function resolveImageSource(image) {
+  if (image?.file) {
+    const uploaded = await uploads.create(image.file);
+    return uploaded.url;
+  }
+  return image?.url || null;
+}
+
 export async function openArtworkForm(artwork, reload) {
   const isNew = !artwork;
   // Valori di categoria/stile già usati nel museo, per le select con "+"
@@ -322,6 +333,7 @@ export async function openArtworkForm(artwork, reload) {
     { name: 'materials', label: 'Materiali', type: 'tags', value: artwork?.materials || [], help: 'Invio o virgola per aggiungere' },
     { name: 'tags', label: 'Tag', type: 'tags', value: artwork?.tags || [], help: 'Invio o virgola per aggiungere' },
     { name: 'description', label: 'Descrizione', type: 'richtext', rows: 3, value: artwork?.description },
+    { name: 'image', label: 'Immagine', type: 'image', value: (artwork?.assets || []).find((a) => a.type === 'image')?.source, help: 'PNG, JPEG, WebP o GIF, max 5MB' },
   ]);
 
   openModal({
@@ -342,6 +354,12 @@ export async function openArtworkForm(artwork, reload) {
         if (!(itemsRes.data || []).length)
           throw new Error('Per pubblicare l\'opera serve almeno un item.');
       }
+      // Upload dell'eventuale nuovo file prima di costruire il payload: gli
+      // asset non-immagine esistenti (es. futuri video/audio) vengono
+      // preservati, l'asset immagine viene sostituito/rimosso.
+      const imageSource = await resolveImageSource(v.image);
+      const existingImage = (artwork?.assets || []).find((a) => a.type === 'image');
+      const otherAssets = (artwork?.assets || []).filter((a) => a.type !== 'image');
       const payload = {
         title: v.title,
         artist: v.artist,
@@ -352,6 +370,12 @@ export async function openArtworkForm(artwork, reload) {
         materials: v.materials,
         tags: v.tags,
         description: v.description,
+        assets: imageSource
+          ? [
+              existingImage?.source === imageSource ? existingImage : { type: 'image', source: imageSource },
+              ...otherAssets,
+            ]
+          : otherAssets,
       };
       if (isNew) {
         payload.museumId = museumContext.id;
@@ -404,6 +428,7 @@ export function openItemForm(artwork, item, reload) {
     { name: 'targetDurationSeconds', label: 'Durata lettura stimata (s)', type: 'number', colSpan: 1, value: estimateReadingSeconds(ct.screenText), readonly: true, help: 'Calcolata dal testo a schermo (~155 parole/min)' },
     { name: 'status', label: 'Stato', type: 'select', required: true, options: ITEM_STATUS, value: item?.status || 'draft', colSpan: 1 },
     { name: 'license', label: 'Licenza', colSpan: 1, value: item?.license, placeholder: 'es. CC BY-SA 4.0' },
+    { name: 'image', label: 'Immagine', type: 'image', value: item?.images?.[0]?.source, help: 'PNG, JPEG, WebP o GIF, max 5MB' },
     {
       name: 'isFree', label: 'Gratuito', type: 'checkbox', value: isFreeInitial,
       onChange: (checked, f) => {
@@ -449,8 +474,17 @@ export function openItemForm(artwork, item, reload) {
         form.setFieldError('fruitionLength', 'Inserisci una durata di almeno 1 minuto');
         throw new Error('Durata fruizione non valida.');
       }
+      const imageSource = await resolveImageSource(v.image);
+      const existingImage = item?.images?.[0];
       const payload = {
         artworkId: artwork.id,
+        images: imageSource
+          ? [
+              existingImage?.source === imageSource
+                ? existingImage
+                : { id: clientId('img'), source: imageSource },
+            ]
+          : [],
         classification: {
           fruitionLength: fruition,
           languageRegister: v.languageRegister,

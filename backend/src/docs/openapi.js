@@ -17,6 +17,7 @@ const openapi = {
     { name: 'Users' },
     { name: 'API Keys' },
     { name: 'Request Logs' },
+    { name: 'Uploads' },
   ],
   components: {
     securitySchemes: {
@@ -355,6 +356,12 @@ const openapi = {
     },
     '/request-logs': {
       get: { tags: ['Request Logs'], summary: 'List request logs (super_admin)', security: [{ ApiKeyAuth: [] }, { BearerAuth: [] }], parameters: [{ $ref: '#/components/parameters/PageParam' }, { $ref: '#/components/parameters/PageSizeParam' }, { $ref: '#/components/parameters/SortByParam' }, { $ref: '#/components/parameters/SortOrderParam' }, { $ref: '#/components/parameters/SearchQueryParam' }, { $ref: '#/components/parameters/QueryStringParam' }, { $ref: '#/components/parameters/FiltersParam' }], responses: { '200': { description: 'Request logs paginated list' } } },
+    },
+    '/uploads': {
+      post: { tags: ['Uploads'], summary: 'Upload image file (multipart field "file", max 5MB, png/jpeg/webp/gif)', security: [{ ApiKeyAuth: [] }, { BearerAuth: [] }], requestBody: { required: true, content: { 'multipart/form-data': { schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } }, required: ['file'] } } } }, responses: { '201': { description: 'Upload created: {id, filename, mimeType, size, url}' }, '400': { description: 'Missing file or unsupported type' }, '413': { description: 'File too large' } } },
+    },
+    '/uploads/{id}': {
+      get: { tags: ['Uploads'], summary: 'Serve uploaded image binary (public, usable in <img src>)', parameters: [{ $ref: '#/components/parameters/IdParam' }], responses: { '200': { description: 'Image binary' }, '404': { description: 'Not found' } } },
     },
   },
 };

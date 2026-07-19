@@ -101,7 +101,10 @@ function buildQuery(query) {
 }
 
 async function rawRequest(method, path, { query, body, skipAuthRedirect } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+  // Con FormData (upload file) il Content-Type lo imposta il browser,
+  // boundary multipart compreso: non va forzato a JSON.
+  const isFormData = body instanceof FormData;
+  const headers = isFormData ? {} : { 'Content-Type': 'application/json' };
   const token = auth.token;
   if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -110,7 +113,7 @@ async function rawRequest(method, path, { query, body, skipAuthRedirect } = {}) 
     response = await fetch(path + buildQuery(query), {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
     });
   } catch (networkErr) {
     throw new ApiError(0, `Rete non raggiungibile: ${networkErr.message}`);
@@ -176,5 +179,15 @@ export const users = {
   update: (id, body) => rawRequest('PATCH', `/users/${id}`, { body }),
 };
 
-export const api = { auth, museumContext, museums, artworks, items, visits, activities, users };
+// Upload immagini: POST multipart, risposta { id, url, ... }. `url` è il
+// riferimento da salvare nei record (assets/images) e usare come src.
+export const uploads = {
+  create(file) {
+    const body = new FormData();
+    body.append('file', file);
+    return rawRequest('POST', '/uploads', { body });
+  },
+};
+
+export const api = { auth, museumContext, museums, artworks, items, visits, activities, users, uploads };
 export default api;

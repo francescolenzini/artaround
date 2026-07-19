@@ -54,3 +54,7 @@
 
 - CORS abilitato (`app.use(cors())`) per consentire le chiamate dal Navigator/Marketplace in sviluppo locale (porte diverse = origin diverse)
 - Seed reso idempotente: upsert per identificatori stabili (slug per i musei) invece di generazione random a ogni esecuzione, per non rompere i riferimenti salvati nelle config statiche del frontend
+
+## Upload immagini (`/uploads`)
+
+Aggiunto il 2026-07-19 per i form Artwork/ArtworkItem del Marketplace. `POST /uploads` (multipart, campo `file`, via `multer` in memoryStorage) accetta solo immagini (png/jpeg/webp/gif) fino a 5MB, richiede api-key + JWT + ruolo content editor, e risponde `{ id, filename, mimeType, size, url }` con `id` in formato `upl-...` (`generateEntityId`). Il binario è persistito **in MongoDB** (modello `Upload`, campo `Buffer` — scelta deliberata per il deploy sui due container del dipartimento: le immagini vivono nel container dati Mongo, quello persistito, e sopravvivono ai redeploy del container codice senza volumi aggiuntivi). `GET /uploads/:id` serve il binario ed è **pubblica** (niente header custom sui tag `<img>`). Il riferimento salvato nei record è l'`url` relativo (`/uploads/upl-...`): il Marketplace lo usa direttamente (stessa origine via proxy), il Navigator deve prefissarlo con il `baseUrl` di `api.config.json` quando lo renderizza.

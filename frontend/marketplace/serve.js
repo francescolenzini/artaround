@@ -49,6 +49,7 @@ const API_PREFIXES = [
   '/users',
   '/api-keys',
   '/request-logs',
+  '/uploads',
   '/health',
 ];
 

@@ -56,6 +56,7 @@ function statusBadgeNode(status) {
 }
 
 function renderMeta(metaEl, a) {
+  const image = (a.assets || []).find((asset) => asset.type === 'image');
   const rows = [
     ['Categoria', a.category],
     ['Stile', a.style],
@@ -65,6 +66,7 @@ function renderMeta(metaEl, a) {
   ].filter(([, v]) => v);
   metaEl.innerHTML = `
     <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+      ${image ? `<img src="${escapeHtml(image.source)}" alt="${escapeHtml(a.title)}" class="mb-4 max-h-72 w-full rounded-xl border border-stone-200 object-cover">` : ''}
       ${a.description ? `<div class="mb-4 text-sm leading-relaxed text-mute-600 ${RICH_TEXT_CLASS}">${renderRichText(a.description)}</div>` : ''}
       <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
         ${rows

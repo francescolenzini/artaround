@@ -195,7 +195,7 @@ export function confirmDialog({
 /**
  * Costruisce un form da una descrizione di campi.
  * fields: [{ name, label, type, options, required, placeholder, help, value, colSpan, min, max, step, rows, readonly, onChange, onInput }]
- * type: text | textarea | richtext | number | select | multiselect | checkbox | password | tags | selectAddable
+ * type: text | textarea | richtext | number | select | multiselect | checkbox | password | tags | selectAddable | image
  * `onChange(value, formApi)` è supportato sui checkbox, per campi dipendenti;
  * `onInput(value, formApi)` sugli altri campi, per ricalcoli live.
  * @returns {{ node: HTMLElement, getValues: Function, setFieldError: Function, setDisabled: Function, setHidden: Function, setValue: Function }}
@@ -283,6 +283,8 @@ export function buildForm(fields, values = {}) {
       input = buildTagsInput(f, current);
     } else if (f.type === 'selectAddable') {
       input = buildSelectAddable(f, current, baseCls);
+    } else if (f.type === 'image') {
+      input = buildImageInput(f, current);
     } else {
       input = document.createElement('input');
       input.type = f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text';
@@ -340,7 +342,7 @@ export function buildForm(fields, values = {}) {
         out[name] = Array.from(input.selectedOptions).map((o) => o.value);
       } else if (field.type === 'tags') {
         out[name] = input.getTags();
-      } else if (field.type === 'selectAddable' || field.type === 'richtext') {
+      } else if (field.type === 'selectAddable' || field.type === 'richtext' || field.type === 'image') {
         out[name] = input.getValue();
       } else {
         const v = input.value.trim();
@@ -532,6 +534,79 @@ function buildSelectAddable(f, current, baseCls) {
     entry.disabled = disabled;
     toggle.disabled = disabled;
     wrap.classList.toggle('opacity-60', disabled);
+  };
+  return wrap;
+}
+
+/**
+ * Campo immagine: input file con anteprima e rimozione. Nessun upload qui:
+ * getValue() ritorna { file, url } dove `file` è il nuovo File selezionato
+ * (o null) e `url` l'URL già salvato nel record (o null se rimosso); è il
+ * submit del form a caricare il file e salvare l'URL risultante.
+ */
+function buildImageInput(f, current) {
+  const wrap = document.createElement('div');
+  wrap.className = 'space-y-2';
+
+  let url = typeof current === 'string' && current ? current : null;
+  let file = null;
+  let objectUrl = null;
+
+  const preview = document.createElement('div');
+  preview.className = 'relative hidden';
+  const img = document.createElement('img');
+  img.alt = 'Anteprima immagine';
+  img.className = 'h-36 w-full rounded-lg border border-stone-200 bg-canvas object-cover';
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.title = 'Rimuovi immagine';
+  removeBtn.className =
+    'absolute right-2 top-2 rounded-full bg-graphite/60 p-1.5 text-white transition hover:bg-graphite/80';
+  removeBtn.innerHTML = CHIP_X_SVG;
+  preview.append(img, removeBtn);
+
+  const entry = document.createElement('input');
+  entry.type = 'file';
+  entry.accept = 'image/png,image/jpeg,image/webp,image/gif';
+  entry.className =
+    'w-full cursor-pointer text-sm text-mute-400 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-light file:px-3.5 file:py-2 file:text-sm file:font-medium file:text-brand-dark file:transition hover:file:bg-brand/20';
+
+  function refresh() {
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+      objectUrl = null;
+    }
+    let src = null;
+    if (file) {
+      objectUrl = URL.createObjectURL(file);
+      src = objectUrl;
+    } else if (url) {
+      src = url;
+    }
+    if (src) img.src = src;
+    preview.classList.toggle('hidden', !src);
+  }
+
+  entry.addEventListener('change', () => {
+    file = entry.files && entry.files[0] ? entry.files[0] : null;
+    refresh();
+  });
+  removeBtn.addEventListener('click', () => {
+    file = null;
+    url = null;
+    entry.value = '';
+    refresh();
+  });
+
+  refresh();
+  wrap.append(preview, entry);
+
+  wrap.getValue = () => ({ file, url });
+  wrap.setDisabled = (disabled) => {
+    entry.disabled = disabled;
+    removeBtn.disabled = disabled;
+    wrap.classList.toggle('opacity-60', disabled);
+    wrap.classList.toggle('pointer-events-none', disabled);
   };
   return wrap;
 }
