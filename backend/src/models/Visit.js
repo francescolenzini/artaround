@@ -27,6 +27,7 @@ const visitSchema = new mongoose.Schema(
     subtitle: { type: String },
     description: { type: String },
     targetAudience: { type: String },
+    coverImage: { type: String },
     estimatedDurationMinutes: { type: Number, required: true },
     estimatedDuration: { type: String },
     authorId: { type: String, required: true, index: true },

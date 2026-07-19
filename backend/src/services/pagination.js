@@ -145,6 +145,7 @@ async function paginateQuery({
   defaultPageSize = DEFAULT_PAGE_SIZE,
   maxPageSize = MAX_PAGE_SIZE,
   searchableFields = [],
+  extraSearchConditions = [],
   ignoreFilterFields = [],
   select,
   lean = true,
@@ -166,10 +167,13 @@ async function paginateQuery({
 
   const qRaw = req.query.q || req.query.queryString || req.query.search;
   const q = typeof qRaw === 'string' ? qRaw.trim() : '';
-  if (q && searchableFields.length > 0) {
-    finalFilter.$or = searchableFields.map((field) => ({
-      [field]: { $regex: escapeRegex(q), $options: 'i' },
-    }));
+  if (q && (searchableFields.length > 0 || extraSearchConditions.length > 0)) {
+    finalFilter.$or = [
+      ...searchableFields.map((field) => ({
+        [field]: { $regex: escapeRegex(q), $options: 'i' },
+      })),
+      ...extraSearchConditions,
+    ];
   }
 
   const sort = buildSort({
@@ -219,4 +223,5 @@ async function paginateQuery({
 
 module.exports = {
   paginateQuery,
+  escapeRegex,
 };

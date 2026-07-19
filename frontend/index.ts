@@ -150,6 +150,7 @@ export interface Visit {
   subtitle?: string;
   description?: string;
   targetAudience?: string;
+  coverImage?: string;
   estimatedDurationMinutes: number;
   estimatedDuration?: string; // viewmodel
   authorId: string;

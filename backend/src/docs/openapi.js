@@ -146,6 +146,7 @@ const openapi = {
           subtitle: { type: 'string' },
           description: { type: 'string' },
           targetAudience: { type: 'string' },
+          coverImage: { type: 'string' },
           estimatedDurationMinutes: { type: 'number' },
           estimatedDuration: { type: 'string' },
           authorId: { type: 'string' },

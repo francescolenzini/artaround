@@ -1,11 +1,12 @@
 const express = require('express');
 
 const Artwork = require('../models/Artwork');
+const ArtworkItem = require('../models/ArtworkItem');
 const { requireApiKeyAndJwt, requireContentEditor } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/asyncHandler');
 const { canAccessMuseum } = require('../services/tenant');
 const { generateEntityId } = require('../services/ids');
-const { paginateQuery } = require('../services/pagination');
+const { paginateQuery, escapeRegex } = require('../services/pagination');
 
 const router = express.Router();
 
@@ -20,6 +21,22 @@ router.get(
       filter.museumId = { $in: req.user.assignedMuseumIds || [] };
     }
 
+    // La ricerca copre anche i campi testuali degli item: risolviamo prima gli
+    // artworkId degli item corrispondenti (solo id, via distinct), così la
+    // query paginata resta una sola anche con migliaia di contenuti.
+    const qRaw = req.query.q || req.query.queryString || req.query.search;
+    const q = typeof qRaw === 'string' ? qRaw.trim() : '';
+    const extraSearchConditions = [];
+    if (q) {
+      const rx = { $regex: escapeRegex(q), $options: 'i' };
+      const matchedArtworkIds = await ArtworkItem.distinct('artworkId', {
+        $or: [{ 'content.title': rx }, { 'content.screenText': rx }, { 'content.ttsText': rx }, { license: rx }],
+      });
+      if (matchedArtworkIds.length) {
+        extraSearchConditions.push({ id: { $in: matchedArtworkIds } });
+      }
+    }
+
     const result = await paginateQuery({
       model: Artwork,
       req,
@@ -28,6 +45,7 @@ router.get(
       defaultSortBy: 'createdAt',
       defaultSortOrder: 'desc',
       searchableFields: ['id', 'museumId', 'title', 'artist', 'category', 'style', 'description', 'universalObjectId'],
+      extraSearchConditions,
     });
 
     return res.status(200).json(result);
