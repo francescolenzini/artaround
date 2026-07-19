@@ -7,7 +7,15 @@ const visitStepSchema = new mongoose.Schema(
     title: { type: String, required: true },
     description: { type: String },
     directionsFromPrevious: { type: String },
-    itemId: { type: String },
+    // Una tappa = un'opera: al massimo un ArtworkItem per registro linguistico.
+    // Le chiavi sono fisse (scala dei registri), i valori sono id di ArtworkItem.
+    itemsByRegister: {
+      infantile: { type: String },
+      elementare: { type: String },
+      medio: { type: String },
+      avanzato: { type: String },
+      specialistico: { type: String },
+    },
     mapCoords: {
       x: { type: Number },
       y: { type: Number },

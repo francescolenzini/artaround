@@ -8,6 +8,9 @@ export type ArtworkItemStatus = 'draft' | 'published';
 export type VisitStatus = 'draft' | 'published' | 'archived';
 
 export type LanguageRegister = 'infantile' | 'elementare' | 'medio' | 'avanzato' | 'specialistico';
+
+/** Scala ordinata dei registri, dal più semplice al più specialistico. */
+export const REGISTER_ORDER: LanguageRegister[] = ['infantile', 'elementare', 'medio', 'avanzato', 'specialistico'];
 export type FruitionLength = '3s' | '15s' | '40s' | '1min' | '4min';
 export type StepType = 'main_item' | 'optional_item' | 'logistics_intro' | 'transition';
 
@@ -134,7 +137,8 @@ export interface ArtworkItem {
 export interface VisitStep {
   id: string;
   type: StepType;
-  itemId?: string; // references ArtworkItem.id
+  /** Una tappa = un'opera: al massimo un ArtworkItem.id per registro linguistico. */
+  itemsByRegister?: Partial<Record<LanguageRegister, string>>;
   title: string;
   description?: string;
   directionsFromPrevious?: string;

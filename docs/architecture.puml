@@ -15,7 +15,7 @@ skinparam component<<planned>> {
   FontColor #666666
 }
 
-title ArtAround - Diagramma Architetturale\n(continuo = implementato, tratteggiato = pianificato)
+title ArtAround - Diagramma Architetturale (aggiornato 2026-07-18)\n(continuo = implementato, tratteggiato = pianificato)
 
 ' ── Attori ──
 actor "Visitatore" as VIS
@@ -23,21 +23,21 @@ actor "Autore/Curatore" as AUT
 actor "Super Admin" as SA
 actor "Developer" as DEV
 
-' ── Frontend Navigator (pianificato) ──
-package "ArtAround Navigator (smartphone)\n[PIANIFICATO - framework JS/TS a scelta]" as NAV <<planned>> {
-  [Selezione museo/visita] as NavSelect <<planned>>
-  [Navigazione (mappa oggetti)] as NavMap <<planned>>
-  [Presentazione (TTS + testo)] as NavPresent <<planned>>
-  [Comandi vocali\n(vocabolario controllato)] as NavVoice <<planned>>
-  [UI accessibile a bottoni] as NavA11y <<planned>>
+' ── Frontend Navigator (implementato) ──
+package "ArtAround Navigator (smartphone)\n[IMPLEMENTATO - React 19 + TanStack Router, Vite SPA]" as NAV {
+  [Login + AppContext\n(bootstrap, slug->museumId)] as NavSelect
+  [Mappa multi-piano\ncon pin cliccabili] as NavMap
+  [Player: testo + TTS\n(Web Speech API)] as NavPresent
+  [Comandi vocali\n(vocabolario controllato, STT)] as NavVoice
+  [UI a bottoni equivalente] as NavA11y
 }
 
-' ── Frontend Marketplace/Editor (pianificato) ──
-package "ArtAround Marketplace/Editor (PC)\n[PIANIFICATO - vanilla JS/TS, no framework SPA]" as MKT <<planned>> {
-  [Selezione museo] as MktSelect <<planned>>
-  [Editor visite] as MktVisitEditor <<planned>>
-  [Creazione contenuti/item] as MktContent <<planned>>
-  [Pubblicazione\n(licenza/prezzo/vendite)] as MktPublish <<planned>>
+' ── Frontend Marketplace/Editor (implementato) ──
+package "ArtAround Marketplace/Editor (PC)\n[IMPLEMENTATO - vanilla JS, router hash-based, no framework SPA]" as MKT {
+  [Musei (lista + dettaglio)] as MktSelect
+  [Visit Builder\n(catalogo + sequenza step)] as MktVisitEditor
+  [Contenuti: opere + item\n(licenza/prezzo/pubblicazione)] as MktContent
+  [Utenti (solo super_admin)] as MktPublish
 }
 
 ' ── Frontend - contratto tipi (esistente) ──
@@ -113,7 +113,7 @@ package "Deploy finale [PIANIFICATO]\n2 container dipartimento UniBO" as DEPT <<
 
 ' ── CLI Tools ──
 package "CLI Scripts [ESISTENTE]" as CLI {
-  [seed.js\n(dati demo - sotto i minimi di consegna)] as Seed
+  [seed.js\n(conforme ai minimi di consegna, idempotente per slug)] as Seed
   [apikey-cli.js\n(generate/disable/list)] as ApiKeyCLI
 }
 
@@ -121,13 +121,13 @@ package "CLI Scripts [ESISTENTE]" as CLI {
 VIS --> NAV : "usa durante la visita"
 AUT --> MKT : "crea/pubblica contenuti"
 SA --> API : "API Key + JWT\n(full access)"
-AUT --> API : "API Key + JWT\n(scoped access, come museum_curator)"
+AUT --> API : "API Key + JWT\n(scoped access, ruolo author)"
 DEV --> SwaggerUI : "Basic Auth"
 DEV --> CLI
 
 ' ── Frontend client -> Backend ──
-NAV ..> API : "REST JSON\n(da implementare)"
-MKT ..> API : "REST JSON\n(da implementare)"
+NAV --> API : "REST JSON\n(x-api-key + JWT Bearer)"
+MKT --> API : "REST JSON via proxy serve.js\n(x-api-key + JWT Bearer)"
 
 ' ── Middleware Flow ──
 JSONParser -down-> ReqLog

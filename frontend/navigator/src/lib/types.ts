@@ -42,11 +42,28 @@ export interface VisitSummary {
   targetAudience?: string;
 }
 
+export type LanguageRegister =
+  | "infantile"
+  | "elementare"
+  | "medio"
+  | "avanzato"
+  | "specialistico";
+
+/** Scala ordinata dei registri, dal più semplice al più specialistico. */
+export const REGISTER_ORDER: LanguageRegister[] = [
+  "infantile",
+  "elementare",
+  "medio",
+  "avanzato",
+  "specialistico",
+];
+
 export interface VisitStep {
   id: string;
   type: "logistics_intro" | "main_item" | "optional_item" | "transition";
   title?: string;
-  itemId?: string;
+  /** Una tappa = un'opera: al massimo un ArtworkItem.id per registro linguistico. */
+  itemsByRegister?: Partial<Record<LanguageRegister, string>>;
   description?: string;
   directionsFromPrevious?: string;
   mapCoords?: { x: number; y: number; floor?: number };

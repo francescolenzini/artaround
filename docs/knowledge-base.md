@@ -3,6 +3,7 @@
 > Riassunto delle specifiche del docente, stato di avanzamento e gap aperti.
 > Per l'architettura tecnica (as-built) vedi `ARCHITECTURE.md`.
 > Aggiornato il 2026-07-04: redesign UI Navigator completato e verificato (5 schermate, token system "Galleria Bianca rivisitata"). Bug aperto: overlap pin mappa a 390px.
+> Aggiornato il 2026-07-18: riallineati `CLAUDE.md`, `docs/ARCHITECTURE.md` e `docs/architecture.puml` allo stato reale — erano rimasti disallineati a livelli diversi (`CLAUDE.md` dichiarava ancora i due frontend "da creare"; `ARCHITECTURE.md` descriveva nel Navigator un gap già chiuso dal redesign UI del 2026-07-03; `architecture.puml` mostrava Navigator e Marketplace come "pianificati"). Nessun cambiamento funzionale al codice, solo documentazione. Questo file (`knowledge-base.md`) era già quello aggiornato correttamente ed è stato usato come riferimento per correggere gli altri tre.
 
 ---
 

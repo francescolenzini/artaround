@@ -77,6 +77,10 @@ export const STEP_TYPE = [
   { value: 'transition', label: 'Transizione' },
 ];
 
+// Scala ordinata dei registri (dal più semplice al più specialistico): è
+// l'ordine di LANGUAGE_REGISTER, riusato da builder e riepiloghi.
+export const REGISTER_ORDER = LANGUAGE_REGISTER.map((r) => r.value);
+
 export const ROLE_LABELS = Object.fromEntries(USER_ROLES.map((r) => [r.value, r.label]));
 export const REGISTER_LABELS = Object.fromEntries(LANGUAGE_REGISTER.map((r) => [r.value, r.label]));
 export const LENGTH_LABELS = Object.fromEntries(FRUITION_LENGTH.map((r) => [r.value, r.label]));

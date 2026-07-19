@@ -1,3 +1,5 @@
+> Aggiornato il 2026-07-18: riallineato allo stato reale dopo che questo file era rimasto indietro rispetto a `docs/knowledge-base.md` (il paragrafo "Gap noti rimasti" del Navigator descriveva un problema già risolto). Aggiunta una sezione dedicata al Marketplace, prima assente qui pur essendo l'app già completa.
+
 ## Stato del progetto a colpo d'occhio
 
 | Componente | Stato | Note |
@@ -32,7 +34,19 @@
 - Bug `currentItem.title`/`.artist`/`.register`: i campi reali sono annidati (`content.title`, `classification.languageRegister`); `artist`/`style` non esistono su `ArtworkItem` (sono su `Artwork`) — fallback "non disponibile" accettato per il livello 18-24
 - Token JWT persistito in `localStorage`, con validazione all'avvio e logout automatico su 401
 
-**Gap noti rimasti**: pin sulla mappa con coordinate stimate "a occhio", in fase di affinamento manuale; UI/palette considerata da migliorare (valutata su criteri di sofisticazione grafica, facilità d'uso, eleganza).
+**Gap noti rimasti**: redesign UI completato il 2026-07-03 (token system "Galleria Bianca rivisitata", 5 schermate verificate a 390px — dettagli in `docs/knowledge-base.md` §5c). Resta un bug puntuale e circoscritto: overlap dei pin sulla mappa a 390px, perché `RADIUS = 2.5%` nell'offset circolare produce solo ~9px di separazione contro pin da 36px — le coordinate `mapCoords` sono corrette (misurate sulle planimetrie ufficiali Uffizi), va corretto solo il calcolo dell'offset in `map.$visitId.tsx`. Bottone "Apri Marketplace" con URL hardcoded (`http://localhost:5174`), da rendere configurabile in vista del deploy sui container del dipartimento.
+
+## Marketplace/Editor — stato implementativo dettagliato
+
+**Stack reale**: vanilla JS con ES Modules nativi, **nessun bundler/build step**, Tailwind via CDN. Routing basato su `location.hash` (SPA senza framework, come richiesto dal vincolo del docente). Struttura a tre livelli in `frontend/marketplace/`: `app.js` (bootstrap + router hash-based + guard di ruolo/museo), `components/` (libreria UI riusabile: `table.js`/`renderTable` per tabelle paginate con righe espandibili, `modal.js`/`buildForm` per form dichiarativi da array di campi, più `sidebar.js`, `topbar.js`, `toast.js`, `ui.js`), `pages/` (una coppia file HTML+JS per vista, caricata con `import()` dinamico all'interno del router).
+
+**Dev server** (`serve.js`, zero dipendenze npm): due responsabilità — servire i file statici dell'app (con fallback su `index.html` per i deep-link via hash) e fare da **reverse proxy** verso il backend, iniettando lui l'header `x-api-key` letto da `serve.config.json` (non versionato). Così la api key non finisce mai nel bundle client-side, e il browser vede una sola origine.
+
+**Pagine**: musei (lista a card + dettaglio/editing, creazione riservata a `super_admin`), contenuti (opere con item annidati in righe espandibili, regola di business "un'opera si pubblica solo se ha almeno un item"), **Visit Builder** (catalogo item a sinistra raggruppato per opera, click-to-append; sequenza step a destra con riordino manuale a frecce su/giù; salvataggio atomico dell'intero array `steps` in un'unica `PUT`, nessun autosave), utenti (solo `super_admin`, sospensione via `PATCH {status}` invece di cancellazione — non esiste `DELETE /users`).
+
+**RBAC lato client**: le guardie nel router (`route.superAdmin`, `route.needsMuseum` in `app.js`) sono solo UX (redirect + toast se l'utente non ha i permessi) — la sicurezza reale resta interamente nel backend (JWT + ruolo + api-key iniettata dal proxy, mai esposta al client).
+
+**43/43 check di integrazione passati** (vedi `frontend/marketplace/smoke-test.js`).
 
 ## Backend — fix rilevanti post go-live
 

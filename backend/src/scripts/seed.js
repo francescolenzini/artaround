@@ -79,6 +79,24 @@ async function seed() {
   let iGiudittaEl = generateEntityId('itm');
   let iGiudittaAv = generateEntityId('itm');
 
+  // Opere "vetrina" con la scala completa dei 5 registri (infantile/medio/
+  // specialistico in aggiunta alla coppia elementare/avanzato di base).
+  let iVenereIn = generateEntityId('itm');
+  let iVenereMd = generateEntityId('itm');
+  // Secondo candidato per la coppia (Venere, medio): esercita la scelta con
+  // preview nel Visit Builder.
+  let iVenereMd2 = generateEntityId('itm');
+  let iVenereSp = generateEntityId('itm');
+  let iPrimaveraIn = generateEntityId('itm');
+  let iPrimaveraMd = generateEntityId('itm');
+  let iPrimaveraSp = generateEntityId('itm');
+  let iMedusaIn = generateEntityId('itm');
+  let iMedusaMd = generateEntityId('itm');
+  let iMedusaSp = generateEntityId('itm');
+  let iGiudittaIn = generateEntityId('itm');
+  let iGiudittaMd = generateEntityId('itm');
+  let iGiudittaSp = generateEntityId('itm');
+
   let visHighlights = generateEntityId('vis');
   let visRinascimento = generateEntityId('vis');
   let visFamiglie = generateEntityId('vis');
@@ -427,6 +445,62 @@ async function seed() {
       creatorId: usrAutore1,
       lastUpdaterId: usrAutore1,
     },
+    {
+      id: iVenereIn,
+      artworkId: artVenere,
+      classification: { fruitionLength: '15s', languageCode: 'it', languageRegister: 'infantile' },
+      content: {
+        title: 'La nascita di Venere — per i più piccoli',
+        screenText: 'Guarda che grande conchiglia!\nSopra c\'è Venere, una principessa del mare appena nata.\nIl vento la spinge piano piano verso la spiaggia, dove un\'amica la aspetta con un mantello pieno di fiori.',
+        ttsText: 'Guarda che grande conchiglia! Sopra c\'è Venere, una principessa del mare appena nata. Il vento la spinge piano piano verso la spiaggia, dove un\'amica la aspetta con un mantello pieno di fiori.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
+    {
+      id: iVenereMd,
+      artworkId: artVenere,
+      classification: { fruitionLength: '1min', languageCode: 'it', languageRegister: 'medio' },
+      content: {
+        title: 'La nascita di Venere — racconto',
+        screenText: 'Botticelli dipinse questa tela tra il 1484 e il 1486 per la famiglia Medici.\nVenere, dea dell\'amore e della bellezza, approda a riva su una conchiglia sospinta dal soffio di Zefiro e della ninfa Aura.\nSulla destra una delle Ore, divinità delle stagioni, le porge un manto ricamato di fiori primaverili.\nLa posa di Venere riprende le statue antiche della "Venere pudica", che Botticelli reinterpreta con una grazia tutta nuova.',
+        ttsText: 'Botticelli dipinse questa tela tra il 1484 e il 1486 per la famiglia Medici. Venere, dea dell\'amore e della bellezza, approda a riva su una conchiglia sospinta dal soffio di Zefiro e della ninfa Aura. Sulla destra una delle Ore, divinità delle stagioni, le porge un manto ricamato di fiori primaverili. La posa di Venere riprende le statue antiche della Venere pudica, che Botticelli reinterpreta con una grazia tutta nuova.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
+    {
+      id: iVenereMd2,
+      artworkId: artVenere,
+      classification: { fruitionLength: '1min', languageCode: 'it', languageRegister: 'medio' },
+      content: {
+        title: 'La nascita di Venere — tra mito e tecnica',
+        screenText: 'Questa versione del racconto parte dai materiali: Botticelli scelse la tempera su tela, rara all\'epoca, che rende la superficie leggera e luminosa come un affresco.\nL\'oro vero, steso a pennello sui capelli di Venere e sulle ali di Zefiro, doveva brillare alla luce delle candele.\nIl mare è costruito con semplici segni a "V" ripetuti: una soluzione quasi astratta, che non cerca il realismo ma il ritmo decorativo.\nAnche i fiori che cadono nel vento sono botanicamente riconoscibili: sono rose, il fiore sacro alla dea.',
+        ttsText: 'Questa versione del racconto parte dai materiali: Botticelli scelse la tempera su tela, rara all\'epoca, che rende la superficie leggera e luminosa come un affresco. L\'oro vero, steso a pennello sui capelli di Venere e sulle ali di Zefiro, doveva brillare alla luce delle candele. Il mare è costruito con semplici segni a V ripetuti: una soluzione quasi astratta, che non cerca il realismo ma il ritmo decorativo. Anche i fiori che cadono nel vento sono rose, il fiore sacro alla dea.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore2,
+      lastUpdaterId: usrAutore2,
+    },
+    {
+      id: iVenereSp,
+      artworkId: artVenere,
+      classification: { fruitionLength: '4min', languageCode: 'it', languageRegister: 'specialistico' },
+      content: {
+        title: 'La nascita di Venere — scheda specialistica',
+        screenText: 'La tela (172,5 × 278,5 cm) è il primo esempio toscano di grande formato mitologico su tela, supporto associato alla decorazione delle ville suburbane.\nL\'iconografia deriva dall\'Anadiomene apellea nota tramite Plinio (Nat. Hist. XXXV) e dagli Omerici Inni; la mediazione poliziana resta discussa dalla critica post-Warburg.\nLa Venere pudica cita il tipo statuario della Venus de\' Medici, che Botticelli poteva conoscere tramite la collezione medicea; la torsione anatomicamente impossibile del collo è scelta antinaturalistica deliberata.\nLe indagini riflettografiche (Opificio delle Pietre Dure, 1987) hanno rivelato un disegno sottostante essenziale, con varianti minime: prassi atipica rispetto alla Primavera, indice di un cartone preparatorio già definito.\nLa stesura a tempera magra con velature di verde terra nelle carni e l\'uso di oro in conchiglia collocano l\'opera nella piena maturità tecnica del maestro.',
+        ttsText: 'La tela, di centosettantadue centimetri per duecentosettantotto, è il primo esempio toscano di grande formato mitologico su tela, supporto associato alla decorazione delle ville suburbane. L\'iconografia deriva dall\'Anadiomene apellea nota tramite Plinio e dagli Inni omerici; la mediazione di Poliziano resta discussa dalla critica. La Venere pudica cita il tipo statuario della Venus de\' Medici; la torsione anatomicamente impossibile del collo è una scelta antinaturalistica deliberata. Le indagini riflettografiche hanno rivelato un disegno sottostante essenziale, con varianti minime, indice di un cartone preparatorio già definito. La stesura a tempera magra con velature di verde terra nelle carni e l\'uso di oro in conchiglia collocano l\'opera nella piena maturità tecnica del maestro.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
 
     // La Primavera
     {
@@ -451,6 +525,48 @@ async function seed() {
         title: 'La Primavera — lettura critica',
         screenText: 'La Primavera (1477-1482) è l\'opera più enigmatica di Botticelli e tra le più studiate della storia dell\'arte.\nLe interpretazioni si moltiplicano: da allegoria neoplatonica del pensiero di Marsilio Ficino, a calendario stagionale mitologico, a rappresentazione delle virtù medicee.\nLe nove figure — Mercurio, Tre Grazie, Venere, Cupido, Flora, Cloris e Zefiro — formano una processione narrativa da destra a sinistra, rara nell\'iconografia rinascimentale.\nLa superficie traboccante di oltre 500 specie botaniche identificabili rivela una conoscenza naturalistica di straordinaria precisione.',
         ttsText: 'La Primavera, dipinta tra il 1477 e il 1482, è l\'opera più enigmatica di Botticelli e tra le più studiate della storia dell\'arte. Le interpretazioni si moltiplicano: da allegoria neoplatonica del pensiero di Marsilio Ficino, a calendario stagionale mitologico, a rappresentazione delle virtù medicee. Le nove figure formano una processione narrativa da destra a sinistra, rara nell\'iconografia rinascimentale. La superficie traboccante di oltre cinquecento specie botaniche identificabili rivela una conoscenza naturalistica di straordinaria precisione.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
+    {
+      id: iPrimaveraIn,
+      artworkId: artPrimavera,
+      classification: { fruitionLength: '15s', languageCode: 'it', languageRegister: 'infantile' },
+      content: {
+        title: 'La Primavera — per i più piccoli',
+        screenText: 'Questo quadro è un giardino magico pieno di fiori!\nProva a contare i personaggi: sono nove, e ognuno ha un compito speciale.\nC\'è anche un bambino che vola con l\'arco: è Cupido, e con le sue frecce fa innamorare le persone.',
+        ttsText: 'Questo quadro è un giardino magico pieno di fiori! Prova a contare i personaggi: sono nove, e ognuno ha un compito speciale. C\'è anche un bambino che vola con l\'arco: è Cupido, e con le sue frecce fa innamorare le persone.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
+    {
+      id: iPrimaveraMd,
+      artworkId: artPrimavera,
+      classification: { fruitionLength: '1min', languageCode: 'it', languageRegister: 'medio' },
+      content: {
+        title: 'La Primavera — racconto',
+        screenText: 'In un boschetto di aranci si muovono nove figure della mitologia classica.\nDa destra: Zefiro, vento di primavera, insegue la ninfa Cloris che si trasforma in Flora, la dea fiorita.\nAl centro presiede Venere, sovrastata da Cupido bendato; a sinistra danzano le tre Grazie e Mercurio dissolve le nuvole con il suo bastone.\nIl prato contiene centinaia di specie di fiori realmente osservate: un tappeto botanico che celebra il rinnovarsi della natura.',
+        ttsText: 'In un boschetto di aranci si muovono nove figure della mitologia classica. Da destra: Zefiro, vento di primavera, insegue la ninfa Cloris che si trasforma in Flora, la dea fiorita. Al centro presiede Venere, sovrastata da Cupido bendato; a sinistra danzano le tre Grazie e Mercurio dissolve le nuvole con il suo bastone. Il prato contiene centinaia di specie di fiori realmente osservate: un tappeto botanico che celebra il rinnovarsi della natura.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
+    {
+      id: iPrimaveraSp,
+      artworkId: artPrimavera,
+      classification: { fruitionLength: '4min', languageCode: 'it', languageRegister: 'specialistico' },
+      content: {
+        title: 'La Primavera — scheda specialistica',
+        screenText: 'La tavola (203 × 314 cm, tempera grassa) è documentata nell\'inventario mediceo del 1499 nella camera di Lorenzo di Pierfrancesco de\' Medici, accanto alla Pallade e il centauro.\nLa lettura neoplatonica (Gombrich, Wind) interpreta la sequenza Zefiro-Cloris-Flora come ascesa dall\'amore sensibile all\'amor divino, con Venere-Humanitas mediatrice; letture successive privilegiano la committenza nuziale del 1482.\nLa fonte primaria resta Ovidio (Fasti V, 193-214) per la metamorfosi di Cloris, integrata da Lucrezio (De rerum natura V) per la processione stagionale.\nL\'analisi botanica di Levi d\'Ancona ha censito oltre 130 specie identificabili, fiorenti tra marzo e maggio nell\'area fiorentina: un realismo scientifico in tensione con l\'assetto antiprospettico della scena.\nIl restauro del 1982 ha restituito la brillantezza delle lacche e confermato l\'assenza di pentimenti strutturali.',
+        ttsText: 'La tavola, documentata nell\'inventario mediceo del 1499 nella camera di Lorenzo di Pierfrancesco de\' Medici, misura due metri per oltre tre. La lettura neoplatonica di Gombrich e Wind interpreta la sequenza Zefiro, Cloris, Flora come ascesa dall\'amore sensibile all\'amor divino, con Venere Humanitas mediatrice; letture successive privilegiano la committenza nuziale del 1482. La fonte primaria resta Ovidio, integrata da Lucrezio per la processione stagionale. L\'analisi botanica ha censito oltre centotrenta specie identificabili, fiorenti tra marzo e maggio nell\'area fiorentina: un realismo scientifico in tensione con l\'assetto antiprospettico della scena. Il restauro del 1982 ha restituito la brillantezza delle lacche.',
       },
       isFree: true,
       status: 'published',
@@ -697,6 +813,48 @@ async function seed() {
       creatorId: usrAutore1,
       lastUpdaterId: usrAutore1,
     },
+    {
+      id: iMedusaIn,
+      artworkId: artMedusa,
+      classification: { fruitionLength: '15s', languageCode: 'it', languageRegister: 'infantile' },
+      content: {
+        title: 'Medusa — per i più piccoli',
+        screenText: 'Aiuto, un mostro con i serpenti al posto dei capelli!\nÈ Medusa, una creatura delle storie greche antiche.\nNon avere paura: è solo dipinta sopra uno scudo rotondo, come quelli dei cavalieri.',
+        ttsText: 'Aiuto, un mostro con i serpenti al posto dei capelli! È Medusa, una creatura delle storie greche antiche. Non avere paura: è solo dipinta sopra uno scudo rotondo, come quelli dei cavalieri.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
+    {
+      id: iMedusaMd,
+      artworkId: artMedusa,
+      classification: { fruitionLength: '1min', languageCode: 'it', languageRegister: 'medio' },
+      content: {
+        title: 'Medusa — racconto',
+        screenText: 'Nel mito greco chi incrociava lo sguardo di Medusa veniva pietrificato; Perseo la vinse guardandola riflessa nel proprio scudo.\nCaravaggio gioca proprio su questo: dipinge la testa mozzata sulla superficie convessa di uno scudo da parata vero.\nIl sangue sgorga ancora e la bocca è spalancata in un grido: l\'attimo scelto è quello tra la vita e la morte.\nLo scudo fu donato dal cardinal Del Monte a Ferdinando I de\' Medici per l\'armeria di famiglia, dove stupiva gli ospiti come una meraviglia.',
+        ttsText: 'Nel mito greco chi incrociava lo sguardo di Medusa veniva pietrificato; Perseo la vinse guardandola riflessa nel proprio scudo. Caravaggio gioca proprio su questo: dipinge la testa mozzata sulla superficie convessa di uno scudo da parata vero. Il sangue sgorga ancora e la bocca è spalancata in un grido: l\'attimo scelto è quello tra la vita e la morte. Lo scudo fu donato dal cardinal Del Monte a Ferdinando primo de\' Medici per l\'armeria di famiglia, dove stupiva gli ospiti come una meraviglia.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
+    {
+      id: iMedusaSp,
+      artworkId: artMedusa,
+      classification: { fruitionLength: '4min', languageCode: 'it', languageRegister: 'specialistico' },
+      content: {
+        title: 'Medusa — scheda specialistica',
+        screenText: 'La rotella da parata (Ø 60 cm circa, olio su tela incollata su legno di pioppo) giunse a Firenze nel 1598 come dono del cardinal Francesco Maria Del Monte al granduca Ferdinando I.\nLa cosiddetta "Medusa Murtola" (collezione privata, autenticata 2002) precede la versione uffiziana; le indagini radiografiche mostrano nella seconda una messa a punto compositiva, non una replica meccanica.\nIl cartiglio seicentesco dell\'inventario mediceo la registrava montata su un\'armatura persiana donata dallo scià Abbas I: contesto di Wunderkammer che ne condizionò la ricezione.\nLa critica (Marini, Gregori) vi legge la traduzione caravaggesca del paragone tra pittura e scultura: la convessità reale del supporto genera l\'illusione concava del volto, secondo il principio ottico già leonardesco.\nL\'urlo è studiato dal vero con ogni probabilità su modello maschile, come suggerisce la fisiognomica; l\'identificazione con un autoritratto resta ipotesi non documentata.',
+        ttsText: 'La rotella da parata, olio su tela incollata su legno di pioppo, giunse a Firenze nel 1598 come dono del cardinal Del Monte al granduca Ferdinando primo. La cosiddetta Medusa Murtola precede la versione degli Uffizi; le indagini radiografiche mostrano nella seconda una messa a punto compositiva, non una replica meccanica. L\'inventario mediceo la registrava montata su un\'armatura persiana donata dallo scià Abbas primo: un contesto da camera delle meraviglie che ne condizionò la ricezione. La critica vi legge la traduzione caravaggesca del paragone tra pittura e scultura: la convessità reale del supporto genera l\'illusione concava del volto. L\'urlo è studiato dal vero con ogni probabilità su modello maschile; l\'identificazione con un autoritratto resta ipotesi non documentata.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
 
     // Sacrificio di Isacco
     {
@@ -757,64 +915,118 @@ async function seed() {
       creatorId: usrAutore1,
       lastUpdaterId: usrAutore1,
     },
+    {
+      id: iGiudittaIn,
+      artworkId: artGiuditta,
+      classification: { fruitionLength: '15s', languageCode: 'it', languageRegister: 'infantile' },
+      content: {
+        title: 'Giuditta e Oloferne — per i più piccoli',
+        screenText: 'Questa è la storia di Giuditta, un\'eroina coraggiosissima.\nPer salvare la sua città sconfisse un generale cattivo, aiutata dalla sua amica fedele.\nL\'ha dipinta Artemisia, una delle prime donne pittrici famose: anche lei era molto coraggiosa!',
+        ttsText: 'Questa è la storia di Giuditta, un\'eroina coraggiosissima. Per salvare la sua città sconfisse un generale cattivo, aiutata dalla sua amica fedele. L\'ha dipinta Artemisia, una delle prime donne pittrici famose: anche lei era molto coraggiosa!',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
+    {
+      id: iGiudittaMd,
+      artworkId: artGiuditta,
+      classification: { fruitionLength: '1min', languageCode: 'it', languageRegister: 'medio' },
+      content: {
+        title: 'Giuditta e Oloferne — racconto',
+        screenText: 'L\'episodio viene dal Libro di Giuditta: la vedova ebrea entra nell\'accampamento assiro e decapita il generale Oloferne, liberando la città di Betulia.\nArtemisia Gentileschi sceglie il momento più crudo e lo illumina come una scena di teatro, con la tecnica dei forti contrasti imparata da Caravaggio.\nA differenza di molti colleghi uomini, dipinge le due donne come complici forti e determinate, impegnate in uno sforzo fisico reale.\nIl sangue che schizza sulle lenzuola scandalizzò i contemporanei: per secoli il quadro rimase appeso in angoli poco visibili.',
+        ttsText: 'L\'episodio viene dal Libro di Giuditta: la vedova ebrea entra nell\'accampamento assiro e decapita il generale Oloferne, liberando la città di Betulia. Artemisia Gentileschi sceglie il momento più crudo e lo illumina come una scena di teatro, con la tecnica dei forti contrasti imparata da Caravaggio. A differenza di molti colleghi uomini, dipinge le due donne come complici forti e determinate, impegnate in uno sforzo fisico reale. Il sangue che schizza sulle lenzuola scandalizzò i contemporanei: per secoli il quadro rimase appeso in angoli poco visibili.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
+    {
+      id: iGiudittaSp,
+      artworkId: artGiuditta,
+      classification: { fruitionLength: '4min', languageCode: 'it', languageRegister: 'specialistico' },
+      content: {
+        title: 'Giuditta e Oloferne — scheda specialistica',
+        screenText: 'La tela (146,5 × 108 cm) è la seconda redazione del soggetto, successiva alla versione di Capodimonte (1612-13 circa) e databile al soggiorno fiorentino grazie alla nota di pagamento granducale del 1620.\nLa radiografia ha rivelato varianti significative rispetto alla prima versione: il braccio destro di Giuditta ruotato per accentuare la leva del gesto e l\'aggiunta del bracciale con Diana, letto come firma iconografica dell\'artista.\nLa struttura compositiva a croce obliqua concentra i tre corpi nel primo piano, senza sfondo architettonico: soluzione che radicalizza il modello caravaggesco della Giuditta Costa.\nLa provenienza è ricostruita dagli inventari medicei: registrata a Palazzo Pitti nel 1637, migrò agli Uffizi solo nel 1774, esposta con riluttanza per la crudezza del soggetto.\nLa bibliografia recente (Garrard, Locker, Barker) ha spostato il fuoco dalla biografia processuale all\'autocoscienza professionale di Artemisia, documentata dal carteggio con i committenti.',
+        ttsText: 'La tela è la seconda redazione del soggetto, successiva alla versione di Capodimonte e databile al soggiorno fiorentino grazie alla nota di pagamento granducale del 1620. La radiografia ha rivelato varianti significative: il braccio destro di Giuditta ruotato per accentuare la leva del gesto e l\'aggiunta del bracciale con Diana, letto come firma iconografica dell\'artista. La struttura compositiva a croce obliqua concentra i tre corpi nel primo piano, senza sfondo architettonico. La provenienza è ricostruita dagli inventari medicei: registrata a Palazzo Pitti nel 1637, migrò agli Uffizi solo nel 1774, esposta con riluttanza per la crudezza del soggetto. La bibliografia recente ha spostato il fuoco dalla biografia processuale all\'autocoscienza professionale di Artemisia.',
+      },
+      isFree: true,
+      status: 'published',
+      creatorId: usrAutore1,
+      lastUpdaterId: usrAutore1,
+    },
   ], (doc) => ({
+    // Il titolo distingue anche i candidati multipli sullo stesso registro
+    // (es. i due "medio" della Nascita di Venere).
     artworkId: doc.artworkId,
-    'classification.languageRegister': doc.classification.languageRegister,
+    'content.title': doc.content.title,
   }));
 
-  const storedItems = await Promise.all([
-    ArtworkItem.findOne({ artworkId: artVenere, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artVenere, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artPrimavera, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artPrimavera, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artAnnunciazione, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artAnnunciazione, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artAdorazione, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artAdorazione, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artTondoDoni, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artTondoDoni, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artMadonna, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artMadonna, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artLeoneX, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artLeoneX, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artVenereUrbino, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artVenereUrbino, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artFlora, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artFlora, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artMedusa, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artMedusa, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artSacrificio, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artSacrificio, 'classification.languageRegister': 'avanzato' }).lean(),
-    ArtworkItem.findOne({ artworkId: artGiuditta, 'classification.languageRegister': 'elementare' }).lean(),
-    ArtworkItem.findOne({ artworkId: artGiuditta, 'classification.languageRegister': 'avanzato' }).lean(),
-  ]);
+  // Risoluzione degli id realmente memorizzati: il titolo è la chiave stabile,
+  // unica anche tra candidati multipli sullo stesso registro (stesso criterio
+  // del filtro di upsert qui sopra).
+  const storedItems = await ArtworkItem.find({ artworkId: { $in: storedArtworks.map((a) => a.id) } }).lean();
+  const itemIdByTitle = new Map(storedItems.map((item) => [item.content.title, item.id]));
+  const itemByTitle = (title) => {
+    const id = itemIdByTitle.get(title);
+    if (!id) throw new Error(`Seed inconsistente: item "${title}" non trovato dopo l'upsert`);
+    return id;
+  };
 
-  [
-    iVenereEl,
-    iVenereAv,
-    iPrimaveraEl,
-    iPrimaveraAv,
-    iAnnunciazioneEl,
-    iAnnunciazioneAv,
-    iAdorazioneEl,
-    iAdorazioneAv,
-    iTondoDoniEl,
-    iTondoDoniAv,
-    iMadonnaEl,
-    iMadonnaAv,
-    iLeoneXEl,
-    iLeoneXAv,
-    iVenereUrbinoEl,
-    iVenereUrbinoAv,
-    iFloraEl,
-    iFloraAv,
-    iMedusaEl,
-    iMedusaAv,
-    iSacrifEl,
-    iSacrifAv,
-    iGiudittaEl,
-    iGiudittaAv,
-  ] = storedItems.map((item) => item.id);
+  iVenereEl = itemByTitle('La nascita di Venere');
+  iVenereAv = itemByTitle('La nascita di Venere — lettura critica');
+  iVenereIn = itemByTitle('La nascita di Venere — per i più piccoli');
+  iVenereMd = itemByTitle('La nascita di Venere — racconto');
+  iVenereMd2 = itemByTitle('La nascita di Venere — tra mito e tecnica');
+  iVenereSp = itemByTitle('La nascita di Venere — scheda specialistica');
+  iPrimaveraEl = itemByTitle('La Primavera');
+  iPrimaveraAv = itemByTitle('La Primavera — lettura critica');
+  iPrimaveraIn = itemByTitle('La Primavera — per i più piccoli');
+  iPrimaveraMd = itemByTitle('La Primavera — racconto');
+  iPrimaveraSp = itemByTitle('La Primavera — scheda specialistica');
+  iAnnunciazioneEl = itemByTitle('Annunciazione');
+  iAnnunciazioneAv = itemByTitle('Annunciazione — lettura critica');
+  iAdorazioneEl = itemByTitle('Adorazione dei Magi');
+  iAdorazioneAv = itemByTitle('Adorazione dei Magi — lettura critica');
+  iTondoDoniEl = itemByTitle('Tondo Doni');
+  iTondoDoniAv = itemByTitle('Tondo Doni — lettura critica');
+  iMadonnaEl = itemByTitle('Madonna del Cardellino');
+  iMadonnaAv = itemByTitle('Madonna del Cardellino — lettura critica');
+  iLeoneXEl = itemByTitle('Ritratto di Leone X');
+  iLeoneXAv = itemByTitle('Ritratto di Leone X — lettura critica');
+  iVenereUrbinoEl = itemByTitle('Venere di Urbino');
+  iVenereUrbinoAv = itemByTitle('Venere di Urbino — lettura critica');
+  iFloraEl = itemByTitle('Flora');
+  iFloraAv = itemByTitle('Flora — lettura critica');
+  iMedusaEl = itemByTitle('Medusa');
+  iMedusaAv = itemByTitle('Medusa — lettura critica');
+  iMedusaIn = itemByTitle('Medusa — per i più piccoli');
+  iMedusaMd = itemByTitle('Medusa — racconto');
+  iMedusaSp = itemByTitle('Medusa — scheda specialistica');
+  iSacrifEl = itemByTitle('Sacrificio di Isacco');
+  iSacrifAv = itemByTitle('Sacrificio di Isacco — lettura critica');
+  iGiudittaEl = itemByTitle('Giuditta e Oloferne');
+  iGiudittaAv = itemByTitle('Giuditta e Oloferne — lettura critica');
+  iGiudittaIn = itemByTitle('Giuditta e Oloferne — per i più piccoli');
+  iGiudittaMd = itemByTitle('Giuditta e Oloferne — racconto');
+  iGiudittaSp = itemByTitle('Giuditta e Oloferne — scheda specialistica');
+
+  // Mappe registro→item riusate dagli step delle visite: la stessa tappa serve
+  // tutti i registri disponibili per quell'opera.
+  const venereRegisters = { infantile: iVenereIn, elementare: iVenereEl, medio: iVenereMd, avanzato: iVenereAv, specialistico: iVenereSp };
+  const primaveraRegisters = { infantile: iPrimaveraIn, elementare: iPrimaveraEl, medio: iPrimaveraMd, avanzato: iPrimaveraAv, specialistico: iPrimaveraSp };
+  const medusaRegisters = { infantile: iMedusaIn, elementare: iMedusaEl, medio: iMedusaMd, avanzato: iMedusaAv, specialistico: iMedusaSp };
+  const giudittaRegisters = { infantile: iGiudittaIn, elementare: iGiudittaEl, medio: iGiudittaMd, avanzato: iGiudittaAv, specialistico: iGiudittaSp };
+  const annunciazioneRegisters = { elementare: iAnnunciazioneEl, avanzato: iAnnunciazioneAv };
+  const adorazioneRegisters = { elementare: iAdorazioneEl, avanzato: iAdorazioneAv };
+  const tondoDoniRegisters = { elementare: iTondoDoniEl, avanzato: iTondoDoniAv };
+  const madonnaRegisters = { elementare: iMadonnaEl, avanzato: iMadonnaAv };
+  const leoneXRegisters = { elementare: iLeoneXEl, avanzato: iLeoneXAv };
+  const venereUrbinoRegisters = { elementare: iVenereUrbinoEl, avanzato: iVenereUrbinoAv };
+  const floraRegisters = { elementare: iFloraEl, avanzato: iFloraAv };
+  const sacrificioRegisters = { elementare: iSacrifEl, avanzato: iSacrifAv };
 
   // ── VISITE ────────────────────────────────────────────────────────────────
 
@@ -842,7 +1054,7 @@ async function seed() {
           type: 'main_item',
           title: 'La Primavera — Botticelli',
           directionsFromPrevious: 'Entrate nella Sala 10-14 di Botticelli. La Primavera è sulla parete di fondo a sinistra: il grande dipinto con le figure su sfondo scuro.',
-          itemId: iPrimaveraEl,
+          itemsByRegister: primaveraRegisters,
           mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 1,
         },
@@ -851,7 +1063,7 @@ async function seed() {
           type: 'main_item',
           title: 'La nascita di Venere — Botticelli',
           directionsFromPrevious: 'Rimanete nella stessa sala. La Nascita di Venere è sulla parete opposta alla Primavera, a pochi passi.',
-          itemId: iVenereEl,
+          itemsByRegister: venereRegisters,
           mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 2,
         },
@@ -860,7 +1072,7 @@ async function seed() {
           type: 'main_item',
           title: 'Annunciazione — Leonardo da Vinci',
           directionsFromPrevious: 'Uscite dalla Sala 10-14, girate a destra nel corridoio e percorretelo fino alla Sala 35 (Leonardo). L\'Annunciazione è la prima grande opera sulla parete sinistra entrando.',
-          itemId: iAnnunciazioneEl,
+          itemsByRegister: annunciazioneRegisters,
           mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 3,
         },
@@ -869,7 +1081,7 @@ async function seed() {
           type: 'main_item',
           title: 'Adorazione dei Magi — Leonardo da Vinci',
           directionsFromPrevious: 'Rimanete nella Sala 35. L\'Adorazione dei Magi è sulla parete di fronte, in posizione centrale.',
-          itemId: iAdorazioneEl,
+          itemsByRegister: adorazioneRegisters,
           mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 4,
         },
@@ -878,7 +1090,7 @@ async function seed() {
           type: 'main_item',
           title: 'Tondo Doni — Michelangelo',
           directionsFromPrevious: 'Proseguite lungo il corridoio fino alla Sala 41 (Michelangelo e Raffaello). Il Tondo Doni è nella prima nicchia a destra entrando, riconoscibile per la cornice in legno dorato e la forma circolare.',
-          itemId: iTondoDoniEl,
+          itemsByRegister: tondoDoniRegisters,
           mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 5,
         },
@@ -887,7 +1099,7 @@ async function seed() {
           type: 'main_item',
           title: 'Madonna del Cardellino — Raffaello',
           directionsFromPrevious: 'Rimanete nella Sala 41. La Madonna del Cardellino di Raffaello è sulla parete laterale sinistra, non lontano dal Tondo Doni.',
-          itemId: iMadonnaEl,
+          itemsByRegister: madonnaRegisters,
           mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 6,
         },
@@ -896,7 +1108,7 @@ async function seed() {
           type: 'main_item',
           title: 'Ritratto di Leone X — Raffaello',
           directionsFromPrevious: 'Spostatevi verso la parete di fondo della Sala 41: il Ritratto di Leone X occupa una posizione centrale di grande visibilità.',
-          itemId: iLeoneXEl,
+          itemsByRegister: leoneXRegisters,
           mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 7,
         },
@@ -905,7 +1117,7 @@ async function seed() {
           type: 'main_item',
           title: 'Flora — Tiziano',
           directionsFromPrevious: 'Uscite dalla Sala 41 e avanzate lungo il corridoio fino alla Sala 83 (Tiziano e pittura veneziana). La Flora è nella prima sala veneziana, sulla parete destra.',
-          itemId: iFloraEl,
+          itemsByRegister: floraRegisters,
           mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 8,
         },
@@ -914,7 +1126,7 @@ async function seed() {
           type: 'main_item',
           title: 'Venere di Urbino — Tiziano',
           directionsFromPrevious: 'Rimanete nella Sala 83. La Venere di Urbino è esposta sulla parete opposta alla Flora, di fronte a voi.',
-          itemId: iVenereUrbinoEl,
+          itemsByRegister: venereUrbinoRegisters,
           mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 9,
         },
@@ -923,7 +1135,7 @@ async function seed() {
           type: 'main_item',
           title: 'Medusa — Caravaggio',
           directionsFromPrevious: 'Percorrete il corridoio fino alla Sala 90 (Caravaggio). La Medusa è esposta su un supporto apposito al centro della sala, visibile da tutti i lati.',
-          itemId: iMedusaEl,
+          itemsByRegister: medusaRegisters,
           mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 10,
         },
@@ -932,7 +1144,7 @@ async function seed() {
           type: 'main_item',
           title: 'Sacrificio di Isacco — Caravaggio',
           directionsFromPrevious: 'Rimanete nella Sala 90. Il Sacrificio di Isacco è appeso sulla parete sinistra, accanto alla Medusa.',
-          itemId: iSacrifEl,
+          itemsByRegister: sacrificioRegisters,
           mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 11,
         },
@@ -941,7 +1153,7 @@ async function seed() {
           type: 'main_item',
           title: 'Giuditta e Oloferne — Artemisia Gentileschi',
           directionsFromPrevious: 'Proseguite nella Sala 96 (Artemisia Gentileschi). La Giuditta è l\'opera principale della sala, visibile appena entrati sulla parete di fondo.',
-          itemId: iGiudittaEl,
+          itemsByRegister: giudittaRegisters,
           mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 12,
         },
@@ -971,7 +1183,7 @@ async function seed() {
           type: 'main_item',
           title: 'La Primavera — analisi critica',
           directionsFromPrevious: 'Dal primo piano, percorrete il corridoio est fino alla Sala 10-14. La Primavera è sulla parete di fondo a sinistra.',
-          itemId: iPrimaveraAv,
+          itemsByRegister: primaveraRegisters,
           mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 1,
         },
@@ -980,7 +1192,7 @@ async function seed() {
           type: 'main_item',
           title: 'La nascita di Venere — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 10-14. La Nascita di Venere è sulla parete opposta, visibile a pochi passi.',
-          itemId: iVenereAv,
+          itemsByRegister: venereRegisters,
           mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 2,
         },
@@ -989,7 +1201,7 @@ async function seed() {
           type: 'main_item',
           title: 'Annunciazione — analisi critica',
           directionsFromPrevious: 'Uscite dalla Sala 10-14, girate a destra e percorrete il corridoio fino alla Sala 35 (Leonardo da Vinci). L\'Annunciazione è sulla parete sinistra entrando.',
-          itemId: iAnnunciazioneAv,
+          itemsByRegister: annunciazioneRegisters,
           mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 3,
         },
@@ -998,7 +1210,7 @@ async function seed() {
           type: 'main_item',
           title: 'Adorazione dei Magi — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 35. L\'Adorazione dei Magi è sulla parete frontale, in posizione centrale.',
-          itemId: iAdorazioneAv,
+          itemsByRegister: adorazioneRegisters,
           mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 4,
         },
@@ -1007,7 +1219,7 @@ async function seed() {
           type: 'main_item',
           title: 'Tondo Doni — analisi critica',
           directionsFromPrevious: 'Avanzate lungo il corridoio fino alla Sala 41 (Michelangelo e Raffaello). Il Tondo Doni è nella prima nicchia a destra entrando nella sala.',
-          itemId: iTondoDoniAv,
+          itemsByRegister: tondoDoniRegisters,
           mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 5,
         },
@@ -1016,7 +1228,7 @@ async function seed() {
           type: 'main_item',
           title: 'Madonna del Cardellino — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 41. La Madonna del Cardellino è sulla parete laterale sinistra.',
-          itemId: iMadonnaAv,
+          itemsByRegister: madonnaRegisters,
           mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 6,
         },
@@ -1025,7 +1237,7 @@ async function seed() {
           type: 'main_item',
           title: 'Ritratto di Leone X — analisi critica',
           directionsFromPrevious: 'Spostatevi verso la parete di fondo della Sala 41: il Ritratto di Leone X è esposto in posizione preminente.',
-          itemId: iLeoneXAv,
+          itemsByRegister: leoneXRegisters,
           mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 7,
         },
@@ -1034,7 +1246,7 @@ async function seed() {
           type: 'main_item',
           title: 'Flora — analisi critica',
           directionsFromPrevious: 'Uscite dalla Sala 41 e percorrete il corridoio fino alla Sala 83 (pittura veneziana, Tiziano). La Flora è sulla parete destra della sala.',
-          itemId: iFloraAv,
+          itemsByRegister: floraRegisters,
           mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 8,
         },
@@ -1043,7 +1255,7 @@ async function seed() {
           type: 'main_item',
           title: 'Venere di Urbino — analisi critica',
           directionsFromPrevious: 'Rimanete nella Sala 83. Voltate verso la parete opposta: la Venere di Urbino è il pendant della Flora.',
-          itemId: iVenereUrbinoAv,
+          itemsByRegister: venereUrbinoRegisters,
           mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 9,
         },
@@ -1052,7 +1264,7 @@ async function seed() {
           type: 'main_item',
           title: 'Sacrificio di Isacco — analisi critica',
           directionsFromPrevious: 'Continuate verso la Sala 90 (Caravaggio). Il Sacrificio di Isacco è sulla parete sinistra della sala.',
-          itemId: iSacrifAv,
+          itemsByRegister: sacrificioRegisters,
           mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 10,
         },
@@ -1083,7 +1295,7 @@ async function seed() {
           type: 'main_item',
           title: 'La nascita di Venere',
           directionsFromPrevious: 'Salite al primo piano e seguite il corridoio fino alla Sala 10-14. La Nascita di Venere è sulla parete di fondo — la vedrete subito, è grandissima!',
-          itemId: iVenereEl,
+          itemsByRegister: venereRegisters,
           mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 1,
         },
@@ -1092,7 +1304,7 @@ async function seed() {
           type: 'main_item',
           title: 'La Primavera',
           directionsFromPrevious: 'Giratevi: La Primavera è sulla parete di fronte, a soli pochi passi dalla Nascita di Venere.',
-          itemId: iPrimaveraEl,
+          itemsByRegister: primaveraRegisters,
           mapCoords: { x: 43.9, y: 23.2, floor: 1 },
           order: 2,
         },
@@ -1101,7 +1313,7 @@ async function seed() {
           type: 'main_item',
           title: 'L\'Annunciazione di Leonardo',
           directionsFromPrevious: 'Uscite dalla Sala di Botticelli, girate a destra e camminate lungo il corridoio. Alla Sala 35 siete arrivati da Leonardo! L\'Annunciazione è sulla parete sinistra.',
-          itemId: iAnnunciazioneEl,
+          itemsByRegister: annunciazioneRegisters,
           mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 3,
         },
@@ -1110,7 +1322,7 @@ async function seed() {
           type: 'main_item',
           title: 'L\'Adorazione dei Magi',
           directionsFromPrevious: 'Rimanete nella stessa sala di Leonardo. L\'Adorazione dei Magi è sulla parete di fronte a voi — il grande dipinto marrone che sembra incompiuto.',
-          itemId: iAdorazioneEl,
+          itemsByRegister: adorazioneRegisters,
           mapCoords: { x: 70.1, y: 66.2, floor: 1 },
           order: 4,
         },
@@ -1119,7 +1331,7 @@ async function seed() {
           type: 'main_item',
           title: 'Il Tondo Doni di Michelangelo',
           directionsFromPrevious: 'Continuate lungo il corridoio fino alla Sala 41. Appena entrate, cercate a destra il quadro tondo con la cornice di legno dorato — è unico nel suo genere!',
-          itemId: iTondoDoniEl,
+          itemsByRegister: tondoDoniRegisters,
           mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 5,
         },
@@ -1128,7 +1340,7 @@ async function seed() {
           type: 'main_item',
           title: 'La Madonna del Cardellino',
           directionsFromPrevious: 'Rimanete nella stessa sala. La Madonna del Cardellino di Raffaello è sulla parete laterale sinistra — cercate il quadretto con il piccolo uccellino!',
-          itemId: iMadonnaEl,
+          itemsByRegister: madonnaRegisters,
           mapCoords: { x: 56.9, y: 66.2, floor: 1 },
           order: 6,
         },
@@ -1137,7 +1349,7 @@ async function seed() {
           type: 'main_item',
           title: 'La Flora di Tiziano',
           directionsFromPrevious: 'Camminate lungo il corridoio fino alla grande Sala 83 con i dipinti veneziani. La Flora è la prima che vedrete a destra, la donna con i fiori.',
-          itemId: iFloraEl,
+          itemsByRegister: floraRegisters,
           mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 7,
         },
@@ -1146,7 +1358,7 @@ async function seed() {
           type: 'main_item',
           title: 'La Venere di Urbino',
           directionsFromPrevious: 'Giratevi verso l\'altra parete della sala. La Venere di Urbino è lì di fronte a voi — la signora sdraiata sul letto.',
-          itemId: iVenereUrbinoEl,
+          itemsByRegister: venereUrbinoRegisters,
           mapCoords: { x: 83.5, y: 82.7, floor: 2 },
           order: 8,
         },
@@ -1155,7 +1367,7 @@ async function seed() {
           type: 'main_item',
           title: 'La Medusa di Caravaggio',
           directionsFromPrevious: 'Avanzate fino alla Sala 90. La Medusa è esposta su un supporto speciale al centro della sala — guardate, ma attenti a non pietrificarvi!',
-          itemId: iMedusaEl,
+          itemsByRegister: medusaRegisters,
           mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 9,
         },
@@ -1164,7 +1376,7 @@ async function seed() {
           type: 'main_item',
           title: 'Giuditta e Oloferne',
           directionsFromPrevious: 'Percorrete ancora pochi passi fino alla Sala 96. La Giuditta è il grande dipinto sulla parete principale — si vede subito entrando, è molto drammatico!',
-          itemId: iGiudittaEl,
+          itemsByRegister: giudittaRegisters,
           mapCoords: { x: 73.6, y: 19.2, floor: 2 },
           order: 10,
         },
@@ -1216,7 +1428,8 @@ async function seed() {
   console.log('  Museo:     Galleria degli Uffizi (' + musUffizi + ')');
   console.log('  Utenti:    5  (admin, autore1, autore2, visitatore1, visitatore2)');
   console.log('  Opere:     12');
-  console.log('  Items:     24 (2 per opera: elementare + avanzato)');
+  console.log('  Items:     37 (elementare + avanzato per tutte; 5 registri completi per');
+  console.log('             Venere, Primavera, Medusa e Giuditta; 2 candidati "medio" per Venere)');
   console.log('  Visite:    3  (Highlights 13 step, Rinascimento 11 step, Famiglie 11 step)');
   console.log('');
   console.log('  Password di tutti gli utenti: 12345678');

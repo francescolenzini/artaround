@@ -1,0 +1,54 @@
+GENERALI
+1- Inizializzare backend e frontend con Git.
+2- Descrizioni museo wyswyg
+(3) Aggregare città, paese, indirizzo, cap con API Google
+4- Upload del logo e dell'immagine di copertina
+5- Servizi lookup
+6- Sistemare UI curatori assegnati
+
+MARKETPLACE
+1- Estendere la ricerca agli Item, non solo Artwork.
+2- Codice lingua -> Lingua.
+3- Durata target?
+4- Algoritmo durata lettura.
+5- Valuta a tendina.
+6- step di 0,5 o 1 nel prezzo e correggere 0.*
+7- checkbox "gratuito" deve abilitare e disabilitare prezzo e valuta.
+8- idem per sintesi tts e testo a schermo, da mettere sopra ai text boxes.
+9- stile è ancora in inglese nel seed
+10- componente tag (badge/chip) nel modale <- campo di testo
+11- idem per materiale
+12- autocomplete per artista
+13- wyswyg per descrizione artwork e item (descrizione a schermo)
+14- categoria a tendina o lookup e stili (con possibile "+" con form di aggiunta rapida)
+15- idem per stili
+16- select pubblico target
+17- Modale di creazione visita di default e stato non selezionabile in bozza e senza descrizione.
+18- Ricerca avanzata visita simile a quella dei contenuti.
+19- Freccia -> invece di + in builder visita.
+20- Stesso item non deve essere aggiungibile più volte: diventa in READONLY muted nella colonna di sinistra.
+21- X invece del cestino sulla card dell'oggetto della visita.
+22- possibile drag and drop su mappa
+23- Tipologia di item (tappa, logistica, etc) NON modificabile.
+24- Deve essere possibile aggiungere un'immagine di copertina per la visita
+25- Aggiungere licenza dell'item.
+26- Ridefinizione "Registro Linguistico".
+27- Rendere unica la possibilità di scelta degli Item per singolo Artwork.
+28- Inizio e Fine Statici in Sequenza Visita.
+
+NAVIGATOR
+1- BUG: bozza è visitabile da Visitatore1.
+2- Rivedere casi di errore. X
+3- Rendere possibile tornare alla pagina di panoramica della visita tramite il pulsante "Back". X
+4- Direttiva PWA. X
+5- Modificare velocità lettura e aggiungere barra progresso.
+6- Aggiungere label pill logistiche.
+7- Trasformare le pill da testi a icone standard. X
+8- Considerare imagearea per mappa. X
+(9) Immagine che va a tutto schermo dopo Play.
+10- La descrizione testuale a schermo deve cambiare selezionando una delle opzioni. X
+11- I tasti devono essere visibili solo se esiste l'item corrispondente e sull'item ci deve essere la possibilità di essere classifica
+12- Idem per tasto TTS.
+
+BACKEND
+1- fallback GET immagine di copertina Visita -> immagine di copertina Museo
