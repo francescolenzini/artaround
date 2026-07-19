@@ -12,7 +12,7 @@ import {
   escapeHtml,
   icons,
 } from '../components/ui.js';
-import { REGISTER_LABELS, LENGTH_LABELS } from '../constants.js';
+import { REGISTER_LABELS, fruitionLabel } from '../constants.js';
 import { openArtworkForm, openItemForm } from './content.js';
 
 export async function init({ params }) {
@@ -123,7 +123,7 @@ function itemCard(it, artwork, reload) {
       </div>
       <div class="mt-1 flex flex-wrap gap-2 text-xs text-mute-400">
         <span>Registro: ${escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '—')}</span>
-        <span>· Durata: ${escapeHtml(LENGTH_LABELS[it.classification?.fruitionLength] || '—')}</span>
+        <span>· Durata: ${escapeHtml(fruitionLabel(it.classification?.fruitionLength) || '—')}</span>
       </div>
       ${it.content?.screenText ? `<p class="mt-2 line-clamp-2 text-sm text-mute-400">${escapeHtml(it.content.screenText)}</p>` : ''}
     </div>`;

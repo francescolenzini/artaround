@@ -193,10 +193,11 @@ export function confirmDialog({
 
 /**
  * Costruisce un form da una descrizione di campi.
- * fields: [{ name, label, type, options, required, placeholder, help, value, colSpan, min, max, step, rows, onChange }]
+ * fields: [{ name, label, type, options, required, placeholder, help, value, colSpan, min, max, step, rows, readonly, onChange, onInput }]
  * type: text | textarea | number | select | multiselect | checkbox | password | tags | selectAddable
- * `onChange(value, formApi)` è supportato sui checkbox, per campi dipendenti.
- * @returns {{ node: HTMLElement, getValues: Function, setFieldError: Function, setDisabled: Function }}
+ * `onChange(value, formApi)` è supportato sui checkbox, per campi dipendenti;
+ * `onInput(value, formApi)` sugli altri campi, per ricalcoli live.
+ * @returns {{ node: HTMLElement, getValues: Function, setFieldError: Function, setDisabled: Function, setHidden: Function, setValue: Function }}
  */
 export function buildForm(fields, values = {}) {
   const form = document.createElement('form');
@@ -227,7 +228,7 @@ export function buildForm(fields, values = {}) {
       label.appendChild(input);
       label.appendChild(span);
       col.appendChild(label);
-      refs[f.name] = { input, field: f };
+      refs[f.name] = { input, field: f, col };
       form.appendChild(col);
       continue;
     }
@@ -289,6 +290,18 @@ export function buildForm(fields, values = {}) {
       if (f.max != null) input.max = f.max;
       if (f.step != null) input.step = f.step;
       if (current != null) input.value = current;
+      if (input.type === 'number') {
+        // Normalizza al blur input parziali tipo "0." che il browser espone
+        // come stringa vuota/badInput e resterebbero non parsabili al submit.
+        input.addEventListener('blur', () => {
+          const n = input.valueAsNumber;
+          input.value = Number.isFinite(n) ? String(n) : '';
+        });
+      }
+    }
+
+    if (typeof f.onInput === 'function') {
+      input.addEventListener('input', (e) => f.onInput(e.target.value, formApi));
     }
 
     col.appendChild(input);
@@ -304,7 +317,7 @@ export function buildForm(fields, values = {}) {
     errEl.className = 'hidden text-xs text-red-500';
     col.appendChild(errEl);
 
-    refs[f.name] = { input, field: f, errEl };
+    refs[f.name] = { input, field: f, errEl, col };
     form.appendChild(col);
   }
 
@@ -314,7 +327,8 @@ export function buildForm(fields, values = {}) {
       if (field.type === 'checkbox') {
         out[name] = input.checked;
       } else if (field.type === 'number') {
-        out[name] = input.value === '' ? null : Number(input.value);
+        const n = input.valueAsNumber;
+        out[name] = Number.isFinite(n) ? n : null;
       } else if (field.type === 'multiselect') {
         out[name] = Array.from(input.selectedOptions).map((o) => o.value);
       } else if (field.type === 'tags') {
@@ -329,9 +343,8 @@ export function buildForm(fields, values = {}) {
     return out;
   }
 
-  // Abilita/disabilita un campo (usato per dipendenze tra campi, es. prezzo
-  // disattivato quando l'item è gratuito). I tipi compositi espongono un
-  // proprio setDisabled.
+  // Abilita/disabilita un campo. I tipi compositi espongono un proprio
+  // setDisabled.
   function setDisabled(name, disabled) {
     const ref = refs[name];
     if (!ref) return;
@@ -343,6 +356,21 @@ export function buildForm(fields, values = {}) {
     ref.input.classList.toggle('bg-stone-100', disabled);
     ref.input.classList.toggle('text-mute-400', disabled);
     ref.input.classList.toggle('cursor-not-allowed', disabled);
+  }
+
+  // Mostra/nasconde un campo intero, label e help compresi (usato per
+  // dipendenze da checkbox, es. prezzo/valuta visibili solo se non gratuito).
+  function setHidden(name, hidden) {
+    const ref = refs[name];
+    if (ref) ref.col.classList.toggle('hidden', hidden);
+  }
+
+  // Imposta programmaticamente il valore di un campo (es. campi calcolati).
+  function setValue(name, value) {
+    const ref = refs[name];
+    if (!ref) return;
+    if (ref.field.type === 'checkbox') ref.input.checked = Boolean(value);
+    else if ('value' in ref.input) ref.input.value = value == null ? '' : value;
   }
 
   function setFieldError(name, message) {
@@ -358,7 +386,7 @@ export function buildForm(fields, values = {}) {
     }
   }
 
-  Object.assign(formApi, { node: form, getValues, setFieldError, setDisabled });
+  Object.assign(formApi, { node: form, getValues, setFieldError, setDisabled, setHidden, setValue });
   return formApi;
 }
 

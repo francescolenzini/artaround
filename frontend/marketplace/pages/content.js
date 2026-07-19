@@ -19,13 +19,14 @@ import {
 import {
   ARTWORK_STATUS,
   ITEM_STATUS,
-  FRUITION_LENGTH,
   LANGUAGE_REGISTER,
   LANGUAGES,
   CURRENCIES,
   REGISTER_LABELS,
-  LENGTH_LABELS,
   LANGUAGE_LABELS,
+  fruitionLabel,
+  fruitionToMinutes,
+  minutesToFruition,
   clientId,
 } from '../constants.js';
 
@@ -255,7 +256,7 @@ function itemRow(it, artwork, reloadItems) {
       </div>
       <div class="mt-0.5 flex flex-wrap gap-2 text-xs text-mute-400">
         <span>Registro: ${escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '—')}</span>
-        <span>· Durata: ${escapeHtml(LENGTH_LABELS[it.classification?.fruitionLength] || '—')}</span>
+        <span>· Durata: ${escapeHtml(fruitionLabel(it.classification?.fruitionLength) || '—')}</span>
         ${it.classification?.languageCode ? `<span>· Lingua: ${escapeHtml(LANGUAGE_LABELS[it.classification.languageCode] || it.classification.languageCode)}</span>` : ''}
       </div>
     </div>`;
@@ -373,6 +374,15 @@ export async function openArtworkForm(artwork, reload) {
 
 // --- Form item --------------------------------------------------------------
 
+// Stima della durata di lettura TTS del testo a schermo: conteggio parole a
+// ~155 parole/minuto (velocità media del parlato italiano), in secondi.
+const TTS_WORDS_PER_MINUTE = 155;
+
+function estimateReadingSeconds(text) {
+  const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+  return words.length ? Math.round((words.length / TTS_WORDS_PER_MINUTE) * 60) : 0;
+}
+
 export function openItemForm(artwork, item, reload) {
   const isNew = !item;
   const c = item?.classification || {};
@@ -387,36 +397,39 @@ export function openItemForm(artwork, item, reload) {
   const form = buildForm([
     { name: 'title', label: 'Titolo item', required: true, value: ct.title },
     { name: 'languageRegister', label: 'Registro linguistico', type: 'select', required: true, options: LANGUAGE_REGISTER, value: c.languageRegister || 'medio', colSpan: 1 },
-    { name: 'fruitionLength', label: 'Durata fruizione', type: 'select', required: true, options: FRUITION_LENGTH, value: c.fruitionLength || '1min', colSpan: 1 },
+    { name: 'fruitionLength', label: 'Durata fruizione (minuti)', type: 'number', required: true, colSpan: 1, value: fruitionToMinutes(c.fruitionLength) ?? 1, min: 1, step: 1, help: 'Minuti interi' },
     { name: 'languageCode', label: 'Lingua', type: 'select', required: true, options: LANGUAGES, value: c.languageCode || 'it', colSpan: 1 },
-    { name: 'targetDurationSeconds', label: 'Durata target (s)', type: 'number', colSpan: 1, value: c.targetDurationSeconds, min: 0 },
+    { name: 'targetDurationSeconds', label: 'Durata lettura stimata (s)', type: 'number', colSpan: 1, value: estimateReadingSeconds(ct.screenText), readonly: true, help: 'Calcolata dal testo a schermo (~155 parole/min)' },
     { name: 'status', label: 'Stato', type: 'select', required: true, options: ITEM_STATUS, value: item?.status || 'draft', colSpan: 1 },
     { name: 'license', label: 'Licenza', colSpan: 1, value: item?.license, placeholder: 'es. CC BY-SA 4.0' },
     {
-      name: 'isFree', label: 'Gratuito', type: 'checkbox', value: isFreeInitial, colSpan: 1,
+      name: 'isFree', label: 'Gratuito', type: 'checkbox', value: isFreeInitial,
       onChange: (checked, f) => {
-        f.setDisabled('priceValue', checked);
-        f.setDisabled('priceCurrency', checked);
+        f.setHidden('priceValue', checked);
+        f.setHidden('priceCurrency', checked);
       },
     },
-    { name: 'priceValue', label: 'Prezzo', type: 'number', colSpan: 1, value: price.value, min: 0, step: 0.5, help: 'solo se a pagamento' },
+    { name: 'priceValue', label: 'Prezzo', type: 'number', colSpan: 1, value: price.value, min: 0, step: 0.01 },
     { name: 'priceCurrency', label: 'Valuta', type: 'select', required: true, options: CURRENCIES, value: price.currency || 'EUR', colSpan: 1 },
     {
       name: 'supportsScreen', label: 'Supporta schermo', type: 'checkbox', value: supportsScreenInitial,
-      onChange: (checked, f) => f.setDisabled('screenText', !checked),
+      onChange: (checked, f) => f.setHidden('screenText', !checked),
     },
-    { name: 'screenText', label: 'Testo a schermo', type: 'textarea', rows: 4, value: ct.screenText },
+    {
+      name: 'screenText', label: 'Testo a schermo', type: 'textarea', rows: 4, value: ct.screenText,
+      onInput: (text, f) => f.setValue('targetDurationSeconds', estimateReadingSeconds(text)),
+    },
     {
       name: 'supportsTTS', label: 'Supporta TTS', type: 'checkbox', value: supportsTTSInitial,
-      onChange: (checked, f) => f.setDisabled('ttsText', !checked),
+      onChange: (checked, f) => f.setHidden('ttsText', !checked),
     },
     { name: 'ttsText', label: 'Testo per sintesi vocale (TTS)', type: 'textarea', rows: 4, value: ct.ttsText },
   ]);
   // Stato iniziale dei campi dipendenti dai checkbox.
-  form.setDisabled('priceValue', isFreeInitial);
-  form.setDisabled('priceCurrency', isFreeInitial);
-  form.setDisabled('screenText', !supportsScreenInitial);
-  form.setDisabled('ttsText', !supportsTTSInitial);
+  form.setHidden('priceValue', isFreeInitial);
+  form.setHidden('priceCurrency', isFreeInitial);
+  form.setHidden('screenText', !supportsScreenInitial);
+  form.setHidden('ttsText', !supportsTTSInitial);
 
   openModal({
     title: isNew ? `Nuovo item — ${artwork.title}` : 'Modifica item',
@@ -429,13 +442,19 @@ export function openItemForm(artwork, item, reload) {
         form.setFieldError('title', 'Campo obbligatorio');
         throw new Error('Inserisci il titolo dell\'item.');
       }
+      const fruition = minutesToFruition(v.fruitionLength);
+      if (!fruition) {
+        form.setFieldError('fruitionLength', 'Inserisci una durata di almeno 1 minuto');
+        throw new Error('Durata fruizione non valida.');
+      }
       const payload = {
         artworkId: artwork.id,
         classification: {
-          fruitionLength: v.fruitionLength,
+          fruitionLength: fruition,
           languageRegister: v.languageRegister,
           languageCode: v.languageCode || undefined,
-          targetDurationSeconds: v.targetDurationSeconds ?? undefined,
+          // Sempre ricalcolata dal testo a schermo corrente, mai editata a mano.
+          targetDurationSeconds: estimateReadingSeconds(v.screenText),
         },
         content: {
           title: v.title,

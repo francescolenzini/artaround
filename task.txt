@@ -7,34 +7,23 @@ GENERALI
 6- Sistemare UI curatori assegnati
 
 MARKETPLACE
-1- Estendere la ricerca agli Item, non solo Artwork.
-2- Codice lingua -> Lingua.
-3- Durata target?
-4- Algoritmo durata lettura.
-5- Valuta a tendina.
-6- step di 0,5 o 1 nel prezzo e correggere 0.*
-7- checkbox "gratuito" deve abilitare e disabilitare prezzo e valuta.
-8- idem per sintesi tts e testo a schermo, da mettere sopra ai text boxes.
-9- stile è ancora in inglese nel seed
-10- componente tag (badge/chip) nel modale <- campo di testo
-11- idem per materiale
-12- autocomplete per artista
-13- wyswyg per descrizione artwork e item (descrizione a schermo)
-14- categoria a tendina o lookup e stili (con possibile "+" con form di aggiunta rapida)
-15- idem per stili
-16- select pubblico target
-17- Modale di creazione visita di default e stato non selezionabile in bozza e senza descrizione.
-18- Ricerca avanzata visita simile a quella dei contenuti.
-19- Freccia -> invece di + in builder visita.
-20- Stesso item non deve essere aggiungibile più volte: diventa in READONLY muted nella colonna di sinistra.
-21- X invece del cestino sulla card dell'oggetto della visita.
-22- possibile drag and drop su mappa
-23- Tipologia di item (tappa, logistica, etc) NON modificabile.
-24- Deve essere possibile aggiungere un'immagine di copertina per la visita
-25- Aggiungere licenza dell'item.
-26- Ridefinizione "Registro Linguistico".
-27- Rendere unica la possibilità di scelta degli Item per singolo Artwork.
-28- Inizio e Fine Statici in Sequenza Visita.
+1- Durata fruizione deve essere un numero inseribile di minuti.
+2- Completare il menù a tendina delle lingue. Ce ne sono troppo poche.
+3- Eliminare il campo "Durata target".
+4- Semplice algoritmo durata lettura in base al numero di parole.
+5- Valuta a tendina. Ce ne sono troppo poche, da completare.
+6- Step di 0,5 o 1 nel prezzo e correggere 0.*
+7- Checkbox "gratuito" deve abilitare e disabilitare prezzo e valuta. Non muted, deve proprio rimuoverli dalla visualizzazione.
+8- Idem per sintesi tts e testo a schermo.
+9- Stile e Categoria hanno ancora i valori in inglese. Devono essere in italiano.
+10- Aggiungere nella pagina di composizione della visita, prima della sezione a due colonne di aggiunta delle tappe, una sezione con le informazioni generali della visita, modificabili e più estesi rispetto a quelli del modale di creazione rapido della pagina delle visite.
+13- wyswyg per descrizione artwork e item (descrizione a schermo).
+16- Rimuovere checkamark dal bottone "Salva visita".
+17- Nel modale dell'item, prezzo e valuta devono essere allineati orizzontalmente nella riga sotto a "gratuito", dal quale sono abilitati e disabilitati.
+18- Aggiungere ricerca avanzata deglle opere e degli item nella pagina di composizione di una visita.
+19- Rimuovere la voce "Già assegnato ad una tappa" nell'item dopo l'aggiunta, il checkmark già presente è sufficiente.
+23- Rendere la tipologia di una tappa (tappa principale, logistica, etc) NON modificabile. Rimuovere l'attuale tendina.
+24- Le aggiunte di immagini devono essere tramite upload, non tramite URL.
 
 NAVIGATOR
 1- BUG: bozza è visitabile da Visitatore1.

@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 
 const classificationSchema = new mongoose.Schema(
   {
-    fruitionLength: { type: String, enum: ['3s', '15s', '40s', '1min', '4min'] },
+    // Stringa '{n}min' a minuti interi (es. '4min'), generata dall'editor;
+    // niente enum chiuso — eventuali valori legacy in secondi restano leggibili.
+    fruitionLength: { type: String },
     targetDurationSeconds: { type: Number },
     languageCode: { type: String },
     languageRegister: { type: String, enum: ['infantile', 'elementare', 'medio', 'avanzato', 'specialistico'] },

@@ -3,7 +3,7 @@
 // (opera, registro), ma riusabile ovunque serva mostrare un item senza editarlo.
 import { openModal } from './modal.js';
 import { escapeHtml } from './ui.js';
-import { REGISTER_LABELS, LENGTH_LABELS } from '../constants.js';
+import { REGISTER_LABELS, fruitionLabel } from '../constants.js';
 
 /**
  * Card di sola lettura con i metadati e i testi di un item.
@@ -19,7 +19,7 @@ export function itemPreviewCard(item) {
 
   const badges = [
     { label: REGISTER_LABELS[cls.languageRegister] || cls.languageRegister, cls: 'bg-brand-light text-brand-dark' },
-    cls.fruitionLength && { label: LENGTH_LABELS[cls.fruitionLength] || cls.fruitionLength, cls: 'bg-stone-100 text-mute-600' },
+    cls.fruitionLength && { label: fruitionLabel(cls.fruitionLength), cls: 'bg-stone-100 text-mute-600' },
     { label: item.license || (item.isFree ? 'Gratuito' : 'Licenza non indicata'), cls: 'bg-stone-100 text-mute-600' },
   ].filter(Boolean);
 

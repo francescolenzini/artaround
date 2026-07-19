@@ -11,7 +11,8 @@ export type LanguageRegister = 'infantile' | 'elementare' | 'medio' | 'avanzato'
 
 /** Scala ordinata dei registri, dal più semplice al più specialistico. */
 export const REGISTER_ORDER: LanguageRegister[] = ['infantile', 'elementare', 'medio', 'avanzato', 'specialistico'];
-export type FruitionLength = '3s' | '15s' | '40s' | '1min' | '4min';
+/** Durata di fruizione: stringa `{n}s` o `{n}min` (es. '40s', '4min'), inserita in minuti nell'editor. */
+export type FruitionLength = string;
 export type StepType = 'main_item' | 'optional_item' | 'logistics_intro' | 'transition';
 
 // ===== OPENING HOURS =====
