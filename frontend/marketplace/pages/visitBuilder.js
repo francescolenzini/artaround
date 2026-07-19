@@ -15,12 +15,24 @@ import { STEP_TYPE, STEP_TYPE_LABELS, REGISTER_LABELS, clientId } from '../const
 let visit = null;
 let steps = [];
 let itemsById = {};
+let artList = [];
+let itemList = [];
+// Step già salvati sul backend: il loro tipo non è più modificabile.
+let persistedStepIds = new Set();
+let els = {};
+
+// Step logistici generati automaticamente alla creazione della visita
+// (apertura/chiusura): riconoscibili dal prefisso dell'id, non eliminabili.
+function isProtectedStep(step) {
+  return /^step-(intro|outro)-/.test(step.id || '');
+}
 
 export async function init({ params }) {
   const headerEl = document.getElementById('builder-header');
   const catalogEl = document.getElementById('builder-catalog');
   const stepsEl = document.getElementById('builder-steps');
   const toolsEl = document.getElementById('builder-step-tools');
+  els = { headerEl, catalogEl, stepsEl, toolsEl };
 
   headerEl.appendChild(spinnerBlock('Caricamento visita…'));
   catalogEl.appendChild(spinnerBlock());
@@ -33,17 +45,35 @@ export async function init({ params }) {
     ]);
     visit = v;
     steps = (v.steps || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
-    const artList = artRes.data || [];
-    const itemList = itemRes.data || [];
+    persistedStepIds = new Set(steps.map((s) => s.id).filter(Boolean));
+    artList = artRes.data || [];
+    itemList = itemRes.data || [];
     itemsById = Object.fromEntries(itemList.map((it) => [it.id, it]));
 
     renderHeader(headerEl);
-    renderTools(toolsEl, () => renderSteps(stepsEl));
-    renderCatalog(catalogEl, artList, itemList, () => renderSteps(stepsEl));
-    renderSteps(stepsEl);
+    renderTools(toolsEl);
+    rerenderAll();
   } catch (err) {
     headerEl.innerHTML = `<p class="text-sm text-red-600">${escapeHtml(err.message)}</p>`;
     catalogEl.innerHTML = '';
+  }
+}
+
+// Catalogo e sequenza vanno sempre ridisegnati insieme: lo stato "già in
+// visita" delle card del catalogo dipende dagli step correnti.
+function rerenderAll() {
+  renderCatalog(els.catalogEl);
+  renderSteps(els.stepsEl);
+}
+
+// Inserisce un nuovo step prima dello step di chiusura protetto, se presente
+// in coda, così la sequenza resta racchiusa tra apertura e chiusura.
+function addStep(step) {
+  const last = steps[steps.length - 1];
+  if (last && isProtectedStep(last)) {
+    steps.splice(steps.length - 1, 0, step);
+  } else {
+    steps.push(step);
   }
 }
 
@@ -67,15 +97,15 @@ function statusBadgeNode(status) {
   return span.firstChild;
 }
 
-function renderTools(toolsEl, rerender) {
+function renderTools(toolsEl) {
   toolsEl.innerHTML = '';
   const addLogistics = smallBtn('+ Logistica', () => {
-    steps.push(newStep('logistics_intro', 'Introduzione'));
-    rerender();
+    addStep(newStep('logistics_intro', 'Introduzione'));
+    rerenderAll();
   });
   const addTransition = smallBtn('+ Transizione', () => {
-    steps.push(newStep('transition', 'Spostamento'));
-    rerender();
+    addStep(newStep('transition', 'Spostamento'));
+    rerenderAll();
   });
   toolsEl.append(addLogistics, addTransition);
 }
@@ -95,7 +125,7 @@ function newStep(type, title, itemId) {
 
 // --- Catalogo (sinistra) ----------------------------------------------------
 
-function renderCatalog(catalogEl, artList, itemList, rerender) {
+function renderCatalog(catalogEl) {
   catalogEl.innerHTML = '';
   const byArtwork = {};
   for (const it of itemList) {
@@ -109,26 +139,33 @@ function renderCatalog(catalogEl, artList, itemList, rerender) {
     return;
   }
 
+  const usedItemIds = new Set(steps.map((s) => s.itemId).filter(Boolean));
+
   for (const a of withItems) {
     const group = document.createElement('div');
     group.className = 'mb-3';
     group.innerHTML = `<p class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-mute-400">${escapeHtml(a.title)}</p>`;
     for (const it of byArtwork[a.id]) {
+      const used = usedItemIds.has(it.id);
       const btn = document.createElement('button');
-      btn.className =
-        'mb-1 flex w-full items-center justify-between gap-2 rounded-lg border border-stone-200 px-3 py-2 text-left text-sm transition hover:border-brand hover:bg-brand-light';
+      btn.className = used
+        ? 'mb-1 flex w-full cursor-default items-center justify-between gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-left text-sm opacity-60'
+        : 'mb-1 flex w-full items-center justify-between gap-2 rounded-lg border border-stone-200 px-3 py-2 text-left text-sm transition hover:border-brand hover:bg-brand-light';
+      btn.disabled = used;
       const title = (it.content && it.content.title) || a.title;
       btn.innerHTML = `
         <span class="min-w-0">
           <span class="block truncate font-medium text-mute-600">${escapeHtml(title)}</span>
-          <span class="block text-xs text-mute-400">${escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '')}</span>
+          <span class="block text-xs text-mute-400">${used ? 'Già nella visita' : escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '')}</span>
         </span>
-        <span class="shrink-0 text-brand">${icons.plus}</span>`;
-      btn.addEventListener('click', () => {
-        steps.push(newStep('main_item', title, it.id));
-        rerender();
-        toast.success('Tappa aggiunta.');
-      });
+        <span class="shrink-0 ${used ? 'text-mute-400' : 'text-brand'}">${used ? icons.check : icons.arrowRight}</span>`;
+      if (!used) {
+        btn.addEventListener('click', () => {
+          addStep(newStep('main_item', title, it.id));
+          rerenderAll();
+          toast.success('Tappa aggiunta.');
+        });
+      }
       group.appendChild(btn);
     }
     catalogEl.appendChild(group);
@@ -146,20 +183,21 @@ function renderSteps(stepsEl) {
   }
 
   steps.forEach((step, idx) => {
+    const protectedStep = isProtectedStep(step);
     const card = document.createElement('div');
     card.className = 'rounded-xl border border-stone-200 bg-white p-4 shadow-sm';
 
     const top = document.createElement('div');
     top.className = 'flex items-start gap-3';
 
-    // Numero + frecce
+    // Numero + frecce (gli step protetti restano ancorati a inizio/fine)
     const ctrl = document.createElement('div');
     ctrl.className = 'flex flex-col items-center gap-1';
     ctrl.innerHTML = `<span class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand-dark">${idx + 1}</span>`;
     const up = iconButton(icons.arrowUp, () => move(idx, -1, stepsEl), { title: 'Sposta su' });
     const down = iconButton(icons.arrowDown, () => move(idx, 1, stepsEl), { title: 'Sposta giù' });
-    up.disabled = idx === 0;
-    down.disabled = idx === steps.length - 1;
+    up.disabled = protectedStep || idx === 0;
+    down.disabled = protectedStep || idx === steps.length - 1;
     up.classList.add('disabled:opacity-30');
     down.classList.add('disabled:opacity-30');
     ctrl.append(up, down);
@@ -172,26 +210,43 @@ function renderSteps(stepsEl) {
     const rowTop = document.createElement('div');
     rowTop.className = 'flex flex-wrap items-center gap-2';
 
-    const typeSel = document.createElement('select');
-    typeSel.className =
-      'rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-medium outline-none focus:border-brand';
-    for (const t of STEP_TYPE) {
-      const o = document.createElement('option');
-      o.value = t.value;
-      o.textContent = t.label;
-      if (t.value === step.type) o.selected = true;
-      typeSel.appendChild(o);
-    }
-    typeSel.addEventListener('change', (e) => {
-      step.type = e.target.value;
-      // Le tappe non-item non devono trascinarsi dietro un itemId.
-      const isItemType = step.type === 'main_item' || step.type === 'optional_item';
-      if (!isItemType && step.itemId) {
-        step.itemId = undefined;
-        renderSteps(stepsEl);
+    // Il tipo si sceglie solo finché lo step non è stato salvato: dopo il
+    // salvataggio diventa un'etichetta fissa.
+    if (persistedStepIds.has(step.id) || protectedStep) {
+      const typeBadge = document.createElement('span');
+      typeBadge.className =
+        'rounded-lg border border-stone-200 bg-stone-100 px-2.5 py-1.5 text-xs font-medium text-mute-600';
+      typeBadge.textContent = STEP_TYPE_LABELS[step.type] || step.type;
+      rowTop.appendChild(typeBadge);
+    } else {
+      const typeSel = document.createElement('select');
+      typeSel.className =
+        'rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-medium outline-none focus:border-brand';
+      for (const t of STEP_TYPE) {
+        const o = document.createElement('option');
+        o.value = t.value;
+        o.textContent = t.label;
+        if (t.value === step.type) o.selected = true;
+        typeSel.appendChild(o);
       }
-    });
-    rowTop.appendChild(typeSel);
+      typeSel.addEventListener('change', (e) => {
+        step.type = e.target.value;
+        // Le tappe non-item non devono trascinarsi dietro un itemId.
+        const isItemType = step.type === 'main_item' || step.type === 'optional_item';
+        if (!isItemType && step.itemId) {
+          step.itemId = undefined;
+          rerenderAll();
+        }
+      });
+      rowTop.appendChild(typeSel);
+    }
+
+    if (protectedStep) {
+      const lock = document.createElement('span');
+      lock.className = 'rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700';
+      lock.textContent = step.id.startsWith('step-intro') ? 'Apertura — non eliminabile' : 'Chiusura — non eliminabile';
+      rowTop.appendChild(lock);
+    }
 
     if (step.itemId) {
       const ref = document.createElement('span');
@@ -211,6 +266,15 @@ function renderSteps(stepsEl) {
     titleInput.addEventListener('input', (e) => (step.title = e.target.value));
     body.appendChild(titleInput);
 
+    const desc = document.createElement('textarea');
+    desc.rows = 2;
+    desc.value = step.description || '';
+    desc.placeholder = 'Testo/descrizione della tappa…';
+    desc.className =
+      'w-full resize-y rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20';
+    desc.addEventListener('input', (e) => (step.description = e.target.value));
+    body.appendChild(desc);
+
     const dir = document.createElement('textarea');
     dir.rows = 2;
     dir.value = step.directionsFromPrevious || '';
@@ -222,12 +286,14 @@ function renderSteps(stepsEl) {
 
     top.appendChild(body);
 
-    // Rimuovi
-    const remove = iconButton(icons.trash, () => {
-      steps.splice(idx, 1);
-      renderSteps(stepsEl);
-    }, { title: 'Rimuovi tappa', danger: true });
-    top.appendChild(remove);
+    // Rimuovi (con la X): non disponibile per gli step protetti
+    if (!protectedStep) {
+      const remove = iconButton(icons.x, () => {
+        steps.splice(idx, 1);
+        rerenderAll();
+      }, { title: 'Rimuovi tappa', danger: true });
+      top.appendChild(remove);
+    }
 
     card.appendChild(top);
     stepsEl.appendChild(card);
@@ -237,6 +303,8 @@ function renderSteps(stepsEl) {
 function move(idx, delta, stepsEl) {
   const target = idx + delta;
   if (target < 0 || target >= steps.length) return;
+  // Gli step protetti (apertura/chiusura) non si spostano né vengono scavalcati.
+  if (isProtectedStep(steps[idx]) || isProtectedStep(steps[target])) return;
   [steps[idx], steps[target]] = [steps[target], steps[idx]];
   renderSteps(stepsEl);
 }
@@ -254,6 +322,9 @@ async function save() {
   }));
   try {
     await visits.update(visit.id, { steps: payloadSteps });
+    // Da qui in poi gli step salvati hanno il tipo bloccato.
+    persistedStepIds = new Set(payloadSteps.map((s) => s.id));
+    rerenderAll();
     toast.success('Visita salvata.');
   } catch (err) {
     toast.error(err);

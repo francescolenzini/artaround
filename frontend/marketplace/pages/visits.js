@@ -15,12 +15,12 @@ import {
   escapeHtml,
   icons,
 } from '../components/ui.js';
-import { VISIT_STATUS } from '../constants.js';
+import { VISIT_STATUS, clientId } from '../constants.js';
 
-const state = { page: 1, search: '', status: '' };
+const state = { page: 1, search: '', status: '', audience: '' };
 
 export async function init() {
-  Object.assign(state, { page: 1, search: '', status: '' });
+  Object.assign(state, { page: 1, search: '', status: '', audience: '' });
 
   const headerEl = document.getElementById('visits-header');
   const toolbarEl = document.getElementById('visits-toolbar');
@@ -34,7 +34,7 @@ export async function init() {
     })
   );
 
-  const search = searchInput('Cerca per titolo…', (v) => {
+  const search = searchInput('Cerca per titolo, sottotitolo, descrizione…', (v) => {
     state.search = v;
     state.page = 1;
     load(tableEl);
@@ -44,7 +44,27 @@ export async function init() {
     state.page = 1;
     load(tableEl);
   });
-  toolbarEl.append(search.node, status.node);
+  const audience = filterSelect('Tutti i pubblici', [], (v) => {
+    state.audience = v;
+    state.page = 1;
+    load(tableEl);
+  });
+  toolbarEl.append(search.node, status.node, audience.node);
+
+  // Popola il filtro "pubblico" con i valori distinti già usati nelle visite
+  // del museo (stessa logica dei lookup categoria/stile dei contenuti).
+  visits
+    .list({ museumId: museumContext.id, pageSize: 200 })
+    .then((res) => {
+      const values = [...new Set((res.data || []).map((v) => v.targetAudience).filter(Boolean))].sort();
+      for (const val of values) {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val;
+        audience.select.appendChild(opt);
+      }
+    })
+    .catch(() => {});
 
   load(tableEl);
 }
@@ -61,14 +81,20 @@ async function load(tableEl) {
       sortOrder: 'asc',
       search: state.search,
       status: state.status,
+      targetAudience: state.audience,
     });
     renderTable(tableEl, {
       columns: [
         {
           label: 'Visita',
           render: (v) =>
-            `<div class="font-medium text-graphite">${escapeHtml(v.title)}</div>` +
-            (v.subtitle ? `<div class="text-xs text-mute-400">${escapeHtml(v.subtitle)}</div>` : ''),
+            '<div class="flex items-center gap-3">' +
+            (v.coverImage
+              ? `<img src="${escapeHtml(v.coverImage)}" alt="" class="h-10 w-14 shrink-0 rounded-lg border border-stone-200 object-cover">`
+              : '') +
+            `<div><div class="font-medium text-graphite">${escapeHtml(v.title)}</div>` +
+            (v.subtitle ? `<div class="text-xs text-mute-400">${escapeHtml(v.subtitle)}</div>` : '') +
+            '</div></div>',
         },
         { label: 'Pubblico', render: (v) => escapeHtml(v.targetAudience || '') },
         { label: 'Durata', render: (v) => (v.estimatedDurationMinutes ? `${v.estimatedDurationMinutes} min` : '') },
@@ -133,14 +159,22 @@ function visitActions(v, reload) {
 
 export function openVisitForm(visit) {
   const isNew = !visit;
-  const form = buildForm([
+  // In creazione lo stato è fisso a "bozza" e la descrizione si aggiunge
+  // solo in modifica: i relativi campi compaiono solo nel form di modifica.
+  const fields = [
     { name: 'title', label: 'Titolo', required: true, value: visit?.title },
     { name: 'subtitle', label: 'Sottotitolo', value: visit?.subtitle },
     { name: 'targetAudience', label: 'Pubblico target', colSpan: 1, value: visit?.targetAudience, placeholder: 'es. famiglie, esperti…' },
     { name: 'estimatedDurationMinutes', label: 'Durata stimata (min)', type: 'number', required: true, colSpan: 1, value: visit?.estimatedDurationMinutes, min: 0 },
-    { name: 'status', label: 'Stato', type: 'select', required: true, options: VISIT_STATUS, value: visit?.status || 'draft', colSpan: 1 },
-    { name: 'description', label: 'Descrizione', type: 'textarea', rows: 3, value: visit?.description },
-  ]);
+    { name: 'coverImage', label: 'Immagine di copertina (URL)', value: visit?.coverImage, placeholder: 'https://…' },
+  ];
+  if (!isNew) {
+    fields.push(
+      { name: 'status', label: 'Stato', type: 'select', required: true, options: VISIT_STATUS, value: visit.status || 'draft', colSpan: 1 },
+      { name: 'description', label: 'Descrizione', type: 'textarea', rows: 3, value: visit.description }
+    );
+  }
+  const form = buildForm(fields);
 
   openModal({
     title: isNew ? 'Nuova visita' : 'Modifica visita',
@@ -161,12 +195,18 @@ export function openVisitForm(visit) {
         subtitle: v.subtitle || undefined,
         targetAudience: v.targetAudience || undefined,
         estimatedDurationMinutes: v.estimatedDurationMinutes,
-        status: v.status,
-        description: v.description || undefined,
+        coverImage: v.coverImage || undefined,
+        status: isNew ? 'draft' : v.status,
+        description: isNew ? undefined : v.description || undefined,
       };
       if (isNew) {
         payload.museumId = museumContext.id;
-        payload.steps = [];
+        // Ogni visita nasce con due step logistici (apertura e chiusura): il
+        // builder li riconosce dal prefisso dell'id e non li rende eliminabili.
+        payload.steps = [
+          { id: clientId('step-intro'), type: 'logistics_intro', title: 'Benvenuto e introduzione', order: 1 },
+          { id: clientId('step-outro'), type: 'logistics_intro', title: 'Conclusione della visita', order: 2 },
+        ];
         const created = await visits.create(payload);
         toast.success('Visita creata. Aggiungi le tappe.');
         location.hash = `#/visits/${created.id}`;

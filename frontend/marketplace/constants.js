@@ -53,6 +53,23 @@ export const LANGUAGE_REGISTER = [
   { value: 'specialistico', label: 'Specialistico' },
 ];
 
+// Lingue dei contenuti (codice ISO 639-1 → nome leggibile per la UI).
+export const LANGUAGES = [
+  { value: 'it', label: 'Italiano' },
+  { value: 'en', label: 'Inglese' },
+  { value: 'fr', label: 'Francese' },
+  { value: 'de', label: 'Tedesco' },
+  { value: 'es', label: 'Spagnolo' },
+];
+
+// Valute supportate per il prezzo degli item.
+export const CURRENCIES = [
+  { value: 'EUR', label: 'EUR — Euro' },
+  { value: 'USD', label: 'USD — Dollaro USA' },
+  { value: 'GBP', label: 'GBP — Sterlina' },
+  { value: 'CHF', label: 'CHF — Franco svizzero' },
+];
+
 export const STEP_TYPE = [
   { value: 'logistics_intro', label: 'Introduzione / logistica' },
   { value: 'main_item', label: 'Tappa principale' },
@@ -64,6 +81,7 @@ export const ROLE_LABELS = Object.fromEntries(USER_ROLES.map((r) => [r.value, r.
 export const REGISTER_LABELS = Object.fromEntries(LANGUAGE_REGISTER.map((r) => [r.value, r.label]));
 export const LENGTH_LABELS = Object.fromEntries(FRUITION_LENGTH.map((r) => [r.value, r.label]));
 export const STEP_TYPE_LABELS = Object.fromEntries(STEP_TYPE.map((r) => [r.value, r.label]));
+export const LANGUAGE_LABELS = Object.fromEntries(LANGUAGES.map((r) => [r.value, r.label]));
 
 export function labelFor(list, value) {
   const found = list.find((o) => o.value === value);

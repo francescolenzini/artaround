@@ -39,10 +39,17 @@ export function statusBadge(status) {
   return badge(STATUS_LABELS[status] || status, STATUS_COLORS[status] || 'bg-stone-100 text-mute-600');
 }
 
+/** Prezzo in formato italiano (separatore decimale ","), es. "2,50". */
+export function formatPrice(value) {
+  if (value == null || isNaN(value)) return '';
+  return Number(value).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 /** Badge gratuito / a pagamento. */
 export function freeBadge(isFree, price) {
   if (isFree) return badge('Gratuito', 'bg-emerald-100 text-emerald-700');
-  const label = price && price.value != null ? `${price.value} ${price.currency || ''}`.trim() : 'A pagamento';
+  const label =
+    price && price.value != null ? `${formatPrice(price.value)} ${price.currency || ''}`.trim() : 'A pagamento';
   return badge(label, 'bg-stone-100 text-graphite');
 }
 
@@ -212,6 +219,11 @@ export const icons = {
   edit: '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>',
   trash:
     '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>',
+  check:
+    '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>',
+  arrowRight:
+    '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>',
+  x: '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>',
   arrowUp:
     '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>',
   arrowDown:
