@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 const { connectDb } = require('../config/db');
 
@@ -15,6 +17,7 @@ const ArtworkItem = require('../models/ArtworkItem');
 const Visit = require('../models/Visit');
 const Activity = require('../models/Activity');
 const ApiKey = require('../models/ApiKey');
+const Upload = require('../models/Upload');
 
 const UFFIZI_SLUG = 'galleria-degli-uffizi';
 const BOOTSTRAP_API_KEY = '8e4548cac10363c2c6b3eee94ded29428a4778dbc2005ed6843b998ebf878ec0';
@@ -412,6 +415,69 @@ async function seed() {
     artSacrificio,
     artGiuditta,
   ] = storedArtworks.map((artwork) => artwork.id);
+
+  // ── IMMAGINI OPERE ────────────────────────────────────────────────────────
+  // Riproduzioni in pubblico dominio scaricate da Wikimedia Commons in
+  // seed-assets/ (vedi fetch-seed-images.js). Il binario è upsertato nella
+  // collezione Upload per filename stabile (l'id upl-, e quindi l'URL, resta
+  // costante tra i run); il riferimento viene aggiunto ad assets[] solo se
+  // l'opera non ha già un asset immagine, così le sostituzioni fatte dal
+  // Marketplace dopo il seed iniziale non vengono mai sovrascritte.
+
+  const SEED_ASSETS_DIR = path.join(__dirname, 'seed-assets');
+  const MIME_BY_EXT = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
+  const artworkImages = [
+    [artVenere, 'uo-ufz-001-nascita-di-venere'],
+    [artPrimavera, 'uo-ufz-002-primavera'],
+    [artAnnunciazione, 'uo-ufz-003-annunciazione'],
+    [artAdorazione, 'uo-ufz-004-adorazione-dei-magi'],
+    [artTondoDoni, 'uo-ufz-005-tondo-doni'],
+    [artMadonna, 'uo-ufz-006-madonna-del-cardellino'],
+    [artLeoneX, 'uo-ufz-007-ritratto-di-leone-x'],
+    [artVenereUrbino, 'uo-ufz-008-venere-di-urbino'],
+    [artFlora, 'uo-ufz-009-flora'],
+    [artMedusa, 'uo-ufz-010-medusa'],
+    [artSacrificio, 'uo-ufz-011-sacrificio-di-isacco'],
+    [artGiuditta, 'uo-ufz-012-giuditta-e-oloferne'],
+  ];
+
+  const seedAssetFiles = fs.existsSync(SEED_ASSETS_DIR) ? fs.readdirSync(SEED_ASSETS_DIR) : [];
+  let seededImages = 0;
+  for (const [artworkId, basename] of artworkImages) {
+    const filename = seedAssetFiles.find((f) => f.startsWith(`${basename}.`));
+    if (!filename) {
+      console.warn(`  [seed] immagine mancante in seed-assets/, salto: ${basename}`);
+      continue;
+    }
+    const data = fs.readFileSync(path.join(SEED_ASSETS_DIR, filename));
+    await Upload.updateOne(
+      { filename },
+      {
+        $set: {
+          mimeType: MIME_BY_EXT[path.extname(filename).toLowerCase()],
+          size: data.length,
+          data,
+          uploaderId: usrAdmin,
+        },
+        $setOnInsert: { id: generateEntityId('upl') },
+      },
+      { upsert: true }
+    );
+    const upload = await Upload.findOne({ filename }).select('id').lean();
+    await Artwork.updateOne(
+      { id: artworkId, 'assets.type': { $ne: 'image' } },
+      {
+        $push: {
+          assets: {
+            type: 'image',
+            source: `/uploads/${upload.id}`,
+            description: 'Riproduzione in pubblico dominio (Wikimedia Commons)',
+          },
+        },
+      }
+    );
+    seededImages += 1;
+  }
 
   // ── ARTWORK ITEMS ─────────────────────────────────────────────────────────
 
@@ -1428,6 +1494,7 @@ async function seed() {
   console.log('  Museo:     Galleria degli Uffizi (' + musUffizi + ')');
   console.log('  Utenti:    5  (admin, autore1, autore2, visitatore1, visitatore2)');
   console.log('  Opere:     12');
+  console.log('  Immagini:  ' + seededImages + '/12 riproduzioni PD (Wikimedia Commons) su /uploads');
   console.log('  Items:     37 (elementare + avanzato per tutte; 5 registri completi per');
   console.log('             Venere, Primavera, Medusa e Giuditta; 2 candidati "medio" per Venere)');
   console.log('  Visite:    3  (Highlights 13 step, Rinascimento 11 step, Famiglie 11 step)');
