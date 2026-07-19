@@ -1,26 +1,44 @@
 // Visit builder: composizione delle tappe a due colonne.
 import { visits, artworks, items, museumContext } from '../api.js';
 import { toast } from '../components/toast.js';
+import { buildForm } from '../components/modal.js';
 import {
   pageHeader,
   primaryButton,
   statusBadge,
+  searchInput,
+  filterSelect,
   spinnerBlock,
   iconButton,
   escapeHtml,
   icons,
 } from '../components/ui.js';
 import { chooseItemWithPreview } from '../components/itemPreview.js';
-import { STEP_TYPE, STEP_TYPE_LABELS, REGISTER_LABELS, REGISTER_ORDER, clientId } from '../constants.js';
+import {
+  VISIT_STATUS,
+  LANGUAGE_REGISTER,
+  STEP_TYPE_LABELS,
+  REGISTER_LABELS,
+  REGISTER_ORDER,
+  clientId,
+} from '../constants.js';
 
 let visit = null;
 let steps = [];
 let itemsById = {};
 let artList = [];
 let itemList = [];
-// Step già salvati sul backend: il loro tipo non è più modificabile.
-let persistedStepIds = new Set();
+let infoForm = null;
 let els = {};
+
+// Filtri di ricerca del catalogo (colonna sinistra), tutti client-side sui
+// dati già caricati in init.
+const catalogFilters = { search: '', register: '', category: '', style: '' };
+
+// Tipo assegnato alle nuove tappe create cliccando un item dal catalogo.
+// È l'unico punto in cui si sceglie tra tappa principale e opzionale: dopo
+// la creazione il tipo dello step non è più modificabile.
+let newItemStepType = 'main_item';
 
 // Step logistici generati automaticamente alla creazione della visita
 // (apertura/chiusura): riconoscibili dal prefisso dell'id, non eliminabili.
@@ -30,10 +48,15 @@ function isProtectedStep(step) {
 
 export async function init({ params }) {
   const headerEl = document.getElementById('builder-header');
+  const infoEl = document.getElementById('builder-info');
+  const catalogToolsEl = document.getElementById('builder-catalog-tools');
   const catalogEl = document.getElementById('builder-catalog');
   const stepsEl = document.getElementById('builder-steps');
   const toolsEl = document.getElementById('builder-step-tools');
-  els = { headerEl, catalogEl, stepsEl, toolsEl };
+  els = { headerEl, infoEl, catalogToolsEl, catalogEl, stepsEl, toolsEl };
+
+  Object.assign(catalogFilters, { search: '', register: '', category: '', style: '' });
+  newItemStepType = 'main_item';
 
   headerEl.appendChild(spinnerBlock('Caricamento visita…'));
   catalogEl.appendChild(spinnerBlock());
@@ -46,12 +69,13 @@ export async function init({ params }) {
     ]);
     visit = v;
     steps = (v.steps || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
-    persistedStepIds = new Set(steps.map((s) => s.id).filter(Boolean));
     artList = artRes.data || [];
     itemList = itemRes.data || [];
     itemsById = Object.fromEntries(itemList.map((it) => [it.id, it]));
 
     renderHeader(headerEl);
+    renderInfo(infoEl);
+    renderCatalogTools(catalogToolsEl);
     renderTools(toolsEl);
     rerenderAll();
   } catch (err) {
@@ -86,7 +110,7 @@ function renderHeader(headerEl) {
   headerEl.appendChild(
     pageHeader({
       title: visit.title,
-      subtitle: `${visit.estimatedDurationMinutes || 0} min · ${(visit.steps || []).length} tappe iniziali`,
+      subtitle: `${visit.estimatedDurationMinutes || 0} min · ${steps.length} tappe`,
       actions: [statusBadgeNode(visit.status), saveBtn],
     })
   );
@@ -97,6 +121,59 @@ function statusBadgeNode(status) {
   span.innerHTML = statusBadge(status);
   return span.firstChild;
 }
+
+// --- Informazioni generali (sopra le due colonne) ----------------------------
+
+// Espone tutti i metadati del modello Visit modificabili dall'autore, non solo
+// quelli del modale rapido della lista visite. Museo e tappe restano fuori dal
+// form: il museo è il contesto corrente (le visite non si spostano tra musei),
+// le tappe si compongono sotto.
+function renderInfo(infoEl) {
+  infoEl.innerHTML = '';
+  const card = document.createElement('div');
+  card.className = 'rounded-2xl border border-stone-200 bg-white shadow-sm';
+  card.innerHTML = `
+    <div class="border-b border-stone-100 px-5 py-3">
+      <h3 class="text-sm font-semibold text-mute-600">Informazioni generali della visita</h3>
+      <p class="text-xs text-mute-400">I metadati mostrati ai visitatori: si salvano insieme alle tappe con “Salva visita”.</p>
+    </div>`;
+  infoForm = buildForm([
+    { name: 'title', label: 'Titolo', required: true, value: visit.title, colSpan: 1 },
+    { name: 'subtitle', label: 'Sottotitolo', value: visit.subtitle, colSpan: 1 },
+    {
+      name: 'museum',
+      label: 'Museo',
+      value: museumContext.get()?.name || visit.museumId,
+      colSpan: 1,
+      help: 'La visita appartiene al museo selezionato e non può essere spostata.',
+    },
+    { name: 'status', label: 'Stato', type: 'select', required: true, options: VISIT_STATUS, value: visit.status || 'draft', colSpan: 1 },
+    { name: 'targetAudience', label: 'Pubblico target', value: visit.targetAudience, placeholder: 'es. famiglie, esperti…', colSpan: 1 },
+    { name: 'estimatedDurationMinutes', label: 'Durata stimata (min)', type: 'number', required: true, min: 0, value: visit.estimatedDurationMinutes, colSpan: 1 },
+    {
+      name: 'slug',
+      label: 'Slug',
+      value: visit.slug,
+      placeholder: 'es. capolavori-in-un-ora',
+      colSpan: 1,
+      help: 'Identificativo leggibile della visita (facoltativo).',
+    },
+    { name: 'coverImage', label: 'Immagine di copertina (URL)', value: visit.coverImage, placeholder: 'https://…', colSpan: 1 },
+    { name: 'description', label: 'Descrizione', type: 'textarea', rows: 3, value: visit.description },
+  ]);
+  // Il museo è il contesto corrente, non un valore del form: disabled (non
+  // focusabile né selezionabile), non solo readonly. Niente cursore di
+  // divieto: è un'informazione di contesto, non un'azione negata.
+  infoForm.setDisabled('museum', true);
+  infoForm.node.querySelector('input:disabled')?.classList.remove('cursor-not-allowed');
+  const body = document.createElement('div');
+  body.className = 'p-5';
+  body.appendChild(infoForm.node);
+  card.appendChild(body);
+  infoEl.appendChild(card);
+}
+
+// --- Strumenti sequenza (destra) ---------------------------------------------
 
 function renderTools(toolsEl) {
   toolsEl.innerHTML = '';
@@ -144,8 +221,9 @@ function findStepForArtwork(artworkId) {
 }
 
 // Assegna un item allo slot del suo registro: riusa lo step esistente
-// dell'opera oppure ne crea uno nuovo; con più candidati per la coppia
-// (opera, registro) fa scegliere dalla preview.
+// dell'opera oppure ne crea uno nuovo (col tipo scelto nel toggle del
+// catalogo); con più candidati per la coppia (opera, registro) fa scegliere
+// dalla preview.
 async function assignItem(artwork, item) {
   const register = item.classification && item.classification.languageRegister;
   if (!register) {
@@ -171,13 +249,118 @@ async function assignItem(artwork, item) {
     existing.itemsByRegister = { ...(existing.itemsByRegister || {}), [register]: chosen.id };
     toast.success(`Registro "${REGISTER_LABELS[register] || register}" assegnato alla tappa esistente.`);
   } else {
-    addStep(newStep('main_item', artwork.title, { [register]: chosen.id }));
+    addStep(newStep(newItemStepType, artwork.title, { [register]: chosen.id }));
     toast.success('Tappa aggiunta.');
   }
   rerenderAll();
 }
 
 // --- Catalogo (sinistra) ----------------------------------------------------
+
+function distinctValues(values) {
+  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'it'));
+}
+
+// Ricerca avanzata del catalogo: testo libero + filtri sui metadati già
+// visibili nelle card (registro dell'item, categoria/stile dell'opera).
+function renderCatalogTools(toolsEl) {
+  toolsEl.innerHTML = '';
+
+  const search = searchInput('Cerca opera, artista, item, tag…', (v) => {
+    catalogFilters.search = v;
+    renderCatalog(els.catalogEl);
+  });
+  search.input.classList.remove('w-64');
+  search.input.classList.add('w-full');
+  toolsEl.appendChild(search.node);
+
+  const selRow = document.createElement('div');
+  selRow.className = 'grid grid-cols-2 gap-2';
+  const addFilter = (allLabel, options, key) => {
+    const f = filterSelect(allLabel, options, (v) => {
+      catalogFilters[key] = v;
+      renderCatalog(els.catalogEl);
+    });
+    f.select.classList.add('w-full');
+    selRow.appendChild(f.node);
+  };
+  addFilter('Tutti i registri', LANGUAGE_REGISTER, 'register');
+  addFilter(
+    'Tutte le categorie',
+    distinctValues(artList.map((a) => a.category)).map((v) => ({ value: v, label: v })),
+    'category'
+  );
+  addFilter(
+    'Tutti gli stili',
+    distinctValues(artList.map((a) => a.style)).map((v) => ({ value: v, label: v })),
+    'style'
+  );
+  toolsEl.appendChild(selRow);
+
+  // Toggle principale/opzionale: decide il tipo delle nuove tappe create dal
+  // catalogo, unico punto in cui il tipo di una tappa-item viene stabilito.
+  const segWrap = document.createElement('div');
+  segWrap.className = 'flex items-center justify-between gap-2 pt-1';
+  segWrap.title = 'Il tipo si sceglie qui, alla creazione della tappa: dopo non è più modificabile.';
+  const segLabel = document.createElement('span');
+  segLabel.className = 'text-xs text-mute-400';
+  segLabel.textContent = 'Aggiungi come:';
+  const seg = document.createElement('div');
+  seg.className = 'inline-flex rounded-lg border border-stone-300 bg-white p-0.5';
+  const segBtns = [];
+  const mkSegBtn = (value, label) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.value = value;
+    b.textContent = label;
+    b.addEventListener('click', () => {
+      newItemStepType = value;
+      syncSeg();
+    });
+    seg.appendChild(b);
+    segBtns.push(b);
+  };
+  const syncSeg = () => {
+    for (const b of segBtns) {
+      const active = b.dataset.value === newItemStepType;
+      b.className =
+        'rounded-md px-2.5 py-1 text-xs font-medium transition ' +
+        (active ? 'bg-brand text-white' : 'text-mute-600 hover:bg-stone-100');
+    }
+  };
+  mkSegBtn('main_item', 'Tappa principale');
+  mkSegBtn('optional_item', 'Tappa opzionale');
+  syncSeg();
+  segWrap.append(segLabel, seg);
+  toolsEl.appendChild(segWrap);
+}
+
+// Applica i filtri correnti: ritorna coppie [opera, item visibili]. Se il
+// testo cerca l'opera (titolo/artista/categoria/stile/tag) restano visibili
+// tutti i suoi item; altrimenti restano solo gli item il cui titolo combacia.
+function filteredCatalog(byArtwork) {
+  const q = catalogFilters.search.trim().toLowerCase();
+  const groups = [];
+  for (const a of artList) {
+    let its = byArtwork[a.id] || [];
+    if (!its.length) continue;
+    if (catalogFilters.category && (a.category || '') !== catalogFilters.category) continue;
+    if (catalogFilters.style && (a.style || '') !== catalogFilters.style) continue;
+    if (catalogFilters.register) {
+      its = its.filter((it) => it.classification && it.classification.languageRegister === catalogFilters.register);
+    }
+    if (q) {
+      const artworkMatch = [a.title, a.artist, a.category, a.style, ...(a.tags || [])].some(
+        (v) => v && String(v).toLowerCase().includes(q)
+      );
+      if (!artworkMatch) {
+        its = its.filter((it) => ((it.content && it.content.title) || '').toLowerCase().includes(q));
+      }
+    }
+    if (its.length) groups.push([a, its]);
+  }
+  return groups;
+}
 
 function renderCatalog(catalogEl) {
   catalogEl.innerHTML = '';
@@ -186,20 +369,26 @@ function renderCatalog(catalogEl) {
     (byArtwork[it.artworkId] = byArtwork[it.artworkId] || []).push(it);
   }
 
-  const withItems = artList.filter((a) => (byArtwork[a.id] || []).length);
-  if (!withItems.length) {
+  if (!artList.some((a) => (byArtwork[a.id] || []).length)) {
     catalogEl.innerHTML =
       '<p class="px-2 py-8 text-center text-sm text-mute-400">Nessun item disponibile in questo museo. Crea prima opere e item dalla sezione Contenuti.</p>';
     return;
   }
 
+  const groups = filteredCatalog(byArtwork);
+  if (!groups.length) {
+    catalogEl.innerHTML =
+      '<p class="px-2 py-8 text-center text-sm text-mute-400">Nessun risultato per la ricerca o i filtri correnti.</p>';
+    return;
+  }
+
   const usedItemIds = assignedItemIds();
 
-  for (const a of withItems) {
+  for (const [a, its] of groups) {
     const group = document.createElement('div');
     group.className = 'mb-3';
     group.innerHTML = `<p class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-mute-400">${escapeHtml(a.title)}</p>`;
-    for (const it of byArtwork[a.id]) {
+    for (const it of its) {
       const used = usedItemIds.has(it.id);
       const btn = document.createElement('button');
       btn.className = used
@@ -210,7 +399,7 @@ function renderCatalog(catalogEl) {
       btn.innerHTML = `
         <span class="min-w-0">
           <span class="block truncate font-medium text-mute-600">${escapeHtml(title)}</span>
-          <span class="block text-xs text-mute-400">${used ? 'Già assegnato a una tappa' : escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '')}</span>
+          <span class="block text-xs text-mute-400">${escapeHtml(REGISTER_LABELS[it.classification?.languageRegister] || '')}</span>
         </span>
         <span class="shrink-0 ${used ? 'text-mute-400' : 'text-brand'}">${used ? icons.check : icons.arrowRight}</span>`;
       if (!used) {
@@ -260,34 +449,14 @@ function renderSteps(stepsEl) {
     const rowTop = document.createElement('div');
     rowTop.className = 'flex flex-wrap items-center gap-2';
 
-    // Il tipo si sceglie solo finché lo step non è stato salvato: dopo il
-    // salvataggio diventa un'etichetta fissa.
-    if (persistedStepIds.has(step.id) || protectedStep) {
-      const typeBadge = document.createElement('span');
-      typeBadge.className =
-        'rounded-lg border border-stone-200 bg-stone-100 px-2.5 py-1.5 text-xs font-medium text-mute-600';
-      typeBadge.textContent = STEP_TYPE_LABELS[step.type] || step.type;
-      rowTop.appendChild(typeBadge);
-    } else {
-      const typeSel = document.createElement('select');
-      typeSel.className =
-        'rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-medium outline-none focus:border-brand';
-      for (const t of STEP_TYPE) {
-        const o = document.createElement('option');
-        o.value = t.value;
-        o.textContent = t.label;
-        if (t.value === step.type) o.selected = true;
-        typeSel.appendChild(o);
-      }
-      typeSel.addEventListener('change', (e) => {
-        step.type = e.target.value;
-        // Le tappe non-item non devono trascinarsi dietro item assegnati; il
-        // rerender mostra/nasconde anche la riga dei registri.
-        if (!isItemStep(step)) step.itemsByRegister = undefined;
-        rerenderAll();
-      });
-      rowTop.appendChild(typeSel);
-    }
+    // Il tipo è deciso alla creazione dello step (dal catalogo o dai pulsanti
+    // logistica/transizione) e da lì in poi è un'etichetta fissa.
+    const typeBadge = document.createElement('span');
+    typeBadge.className =
+      'rounded-lg border border-stone-200 bg-stone-100 px-2.5 py-1.5 text-xs font-medium text-mute-600';
+    typeBadge.textContent = STEP_TYPE_LABELS[step.type] || step.type;
+    typeBadge.title = 'Il tipo di tappa si definisce alla creazione e non è modificabile.';
+    rowTop.appendChild(typeBadge);
 
     if (protectedStep) {
       const lock = document.createElement('span');
@@ -389,6 +558,21 @@ function move(idx, delta, stepsEl) {
 }
 
 async function save() {
+  // Valida i metadati della sezione informazioni generali.
+  const info = infoForm.getValues();
+  infoForm.setFieldError('title', '');
+  infoForm.setFieldError('estimatedDurationMinutes', '');
+  if (!info.title) {
+    infoForm.setFieldError('title', 'Campo obbligatorio');
+    toast.error('Inserisci il titolo della visita.');
+    return;
+  }
+  if (info.estimatedDurationMinutes == null) {
+    infoForm.setFieldError('estimatedDurationMinutes', 'Campo obbligatorio');
+    toast.error('Inserisci la durata stimata.');
+    return;
+  }
+
   // Reindicizza order e valida i titoli.
   const payloadSteps = steps.map((s, i) => ({
     id: s.id || clientId('step'),
@@ -400,10 +584,21 @@ async function save() {
       s.itemsByRegister && Object.keys(s.itemsByRegister).length ? s.itemsByRegister : undefined,
     order: i + 1,
   }));
+  const payload = {
+    title: info.title,
+    subtitle: info.subtitle || undefined,
+    slug: info.slug || undefined,
+    description: info.description || undefined,
+    targetAudience: info.targetAudience || undefined,
+    coverImage: info.coverImage || undefined,
+    estimatedDurationMinutes: info.estimatedDurationMinutes,
+    status: info.status,
+    steps: payloadSteps,
+  };
   try {
-    await visits.update(visit.id, { steps: payloadSteps });
-    // Da qui in poi gli step salvati hanno il tipo bloccato.
-    persistedStepIds = new Set(payloadSteps.map((s) => s.id));
+    await visits.update(visit.id, payload);
+    Object.assign(visit, payload);
+    renderHeader(els.headerEl);
     rerenderAll();
     toast.success('Visita salvata.');
   } catch (err) {
