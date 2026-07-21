@@ -112,7 +112,7 @@ flowchart LR
 `docker-compose.dev.yml`: il Navigator è una SPA il cui JavaScript gira **nel
 browser**, quindi il suo `BACKEND_URL` dev'essere una porta **pubblicata
 sull'host** (`http://localhost:3002`) — il browser non può risolvere il nome
-di un servizio Docker. Il Editor invece fa da proxy **dentro il proprio
+di un servizio Docker. L'Editor invece fa da proxy **dentro il proprio
 container** (`serve.js`), quindi il suo `BACKEND_URL` è correttamente il nome
 del servizio sulla rete Docker (`http://backend:3001`). Scambiarli rompe
 silenziosamente l'uno o l'altro.
@@ -158,7 +158,7 @@ flowchart LR
     App --> Mongo
 ```
 
-Singola origine: né il Navigator né il Editor vedono mai la API key nel
+Singola origine: né il Navigator né l'Editor vedono mai la API key nel
 browser (a differenza delle rispettive modalità *standalone*, dove — per chi
 le esegue da sole senza questo repo — la chiave può essere necessaria lato
 client: vedi il README di ciascun submodule).

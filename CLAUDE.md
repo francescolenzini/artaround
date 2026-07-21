@@ -14,7 +14,7 @@ Sono requisiti del docente, non scelte di design discutibili. Violarli rende il 
 - **Navigator** (app smartphone): JS/TS **con framework** — qui React 19 + TypeScript + TanStack Router (Vite SPA).
 - **Editor** (app PC): JS/TS **senza framework SPA** — qui vanilla JS con ES Modules nativi, router basato su `location.hash`, Tailwind via CDN (nessun bundler/build step).
 - Deploy finale su **due container Docker del dipartimento** (codice + dati Mongo); le immagini Docker devono essere quelle fornite dal dipartimento, non immagini custom. **Non ancora iniziato** — è il prossimo passo a priorità più alta.
-- Entrambe le app restano **generiche** (multi-museo); solo il Navigator si personalizza per museo via due file di configurazione esterni in `frontend/navigator/public/` (`api.config.json`, `museum.config.json`) — non va costruita una UI per crearli, si dà per scontato che esistano già.
+- Entrambe le app restano **generiche** (multi-museo); solo il Navigator si personalizza per museo via due file di configurazione esterni in `services/navigator/app/public/` (`api.config.json`, `museum.config.json`) — non va costruita una UI per crearli, si dà per scontato che esistano già.
 
 ## Layout del repository
 
@@ -157,7 +157,7 @@ Storicamente il working tree accumula sessioni intere di lavoro prima di un comm
 
 Backend, Editor e Navigator sono completi e funzionanti. Quello che resta:
 
-1. **Deploy sui due container Docker del dipartimento** — priorità più alta, non ancora iniziato. Include: contattare i tecnici per le immagini fornite (una Node/Express, una Mongo — mai immagini custom), adattare il Navigator a una build statica servita da Nginx (non serve un processo Node SSR a runtime), e rendere configurabile l'URL del Editor nel bottone "Apri Editor" del Navigator (oggi hardcoded a `localhost:5174`, non valido fuori dev locale).
+1. **Deploy sui due container Docker del dipartimento** — priorità più alta, non ancora iniziato. Include: contattare i tecnici per le immagini fornite (una Node/Express, una Mongo — mai immagini custom), adattare il Navigator a una build statica servita da Nginx (non serve un processo Node SSR a runtime), e rendere configurabile l'URL dell'Editor nel bottone "Apri Editor" del Navigator (oggi hardcoded a `localhost:5174`, non valido fuori dev locale).
 2. **Bug noto**: overlap dei pin sulla mappa multi-piano del Navigator a 390px (`map.$visitId.tsx`) — il raggio dell'offset circolare (`RADIUS = 2.5%`) è troppo piccolo rispetto alla dimensione reale dei pin; le coordinate restano valide, va corretto solo il calcolo dell'offset.
 3. **`README.txt` di consegna**: file distinto da questo `README.md`, segue `docs/ReadmeTemplate2526-18-33.txt`. Va scritto solo al momento della sottomissione su Virtuale e dopo **non è più modificabile** — non toccarlo "di prova" prima del momento giusto.
 4. Gap di modello dichiarato non bloccante per 18-24: gli "item su contenuti associati" (stili, artisti, eventi storici non legati a un oggetto fisico specifico) non sono modellati — solo `Artwork` (oggetti fisici) ha `ArtworkItem` associati.

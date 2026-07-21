@@ -36,7 +36,7 @@ _ Al massimo 15 giorni dopo la data di sottomissione del file README_
 
 ## Locazione del progetto:
 
-* URI del editor:
+* URI dell'editor:
 * URI del navigator:
 * Altri URI rilevanti:
 

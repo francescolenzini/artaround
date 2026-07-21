@@ -35,7 +35,7 @@ la risoluzione dei moduli di Node risale la gerarchia di cartelle da lì, trova
 di primo livello (`/srv/node_modules/express`) serve solo per l'`express`
 usato direttamente da `server.js` come app esterna che monta il backend.
 
-## Cosa NON viene copiato del Editor
+## Cosa NON viene copiato dell'Editor
 
 Solo gli asset serviti (`index.html`, `app.js`, `api.js`, `constants.js`,
 `components/`, `pages/`, `styles/`). **Non** viene copiato `serve.js` (è il

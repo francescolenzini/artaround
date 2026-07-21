@@ -18,7 +18,7 @@
 
 
 
-**Dove si consiglia di orientare il lavoro primariamente? Consigli su come strutturarlo?** L’ideale è partire dal editor, facendo una interfaccia e-commerce tipica e a tabella, e poi iterativamente migliorare.
+**Dove si consiglia di orientare il lavoro primariamente? Consigli su come strutturarlo?** L’ideale è partire dall'editor, facendo una interfaccia e-commerce tipica e a tabella, e poi iterativamente migliorare.
 
 
 

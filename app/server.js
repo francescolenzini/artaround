@@ -23,7 +23,7 @@
  *      copiato in ./backend/ nell'immagine) e lo monta come sub-app Express:
  *      ZERO modifiche al codice del backend.
  *   2. Inietta `x-api-key` lato server su ogni richiesta priva dell'header:
- *      né il Navigator né il Editor la espongono mai nel browser.
+ *      né il Navigator né l'Editor la espongono mai nel browser.
  *   3. Serve gli statici di Navigator (build Vite) alla radice e quelli del
  *      Editor (vanilla JS) sotto /editor, con fallback SPA per il
  *      routing lato client di entrambi.
