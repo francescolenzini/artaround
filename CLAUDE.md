@@ -19,33 +19,52 @@ Sono requisiti del docente, non scelte di design discutibili. Violarli rende il 
 ## Layout del repository
 
 ```
-backend/
-  server.js              bootstrap, chiama buildApp() e avvia su env.port
-  src/
-    app.js                buildApp(): ordine middleware + mounting rotte
-    config/                env.js (config con default), db.js (connectDb)
-    middleware/             auth.js, requestLogger.js, errorHandler.js, asyncHandler.js, basicAuthDocs.js
-    models/                 Museum, Artwork, ArtworkItem, Visit, User, Activity, ApiKey, RequestLog
-    routes/                 un file per risorsa, sempre dietro requireApiKeyAndJwt
-    services/               pagination.js, tenant.js, ids.js, maskSensitive.js
-    scripts/                seed.js, apikey-cli.js
-    docs/openapi.js         spec OpenAPI 3.0.3 statica
-  tests/                  unit/ + integration/, mongodb-memory-server, vedi testUtils/
-  docker/                 docker-compose.yml + Dockerfile (solo DEV locale)
-frontend/
-  index.ts               contratto di tipi TS che specchia i modelli Mongoose (fonte di verità condivisa)
-  mockData.ts             dataset mock per prototipazione UI (più ricco del seed reale: 4 musei, 7 opere, 12 item, 5 visite)
-  navigator/              app smartphone — React 19 + TS + TanStack Router, Vite SPA
+artaround/  →  REPO UMBRELLA: orchestra i 3 submodule e la build di produzione
+  .gitmodules             definisce services/backend, services/navigator, services/marketplace
+  app/                    assemblaggio di PRODUZIONE (esclusivo dell'umbrella, non nei submodule)
+    server.js              Express: monta il backend, serve Navigator su / e Marketplace su /marketplace, inietta x-api-key lato server
+    package.json          unica dipendenza: express
+  docker/
+    prod/app.Dockerfile   multi-stage: build Navigator + assembla backend + Marketplace in un unico container
+    README.md             dettagli dell'immagine di produzione assemblata
+  docker-compose.dev.yml  SVILUPPO: 4 servizi (mongo, backend, navigator, marketplace) che riusano i Dockerfile dei submodule
+  docker-compose.prod.yml PRODUZIONE: 2 container (app assemblata + mongo)
+  .env.dev.example / .env.prod.example
+
+services/backend/  →  submodule (repo artaround-backend) — Node/Express/MongoDB
+  app/
+    server.js              bootstrap, chiama buildApp() e avvia su env.port
+    src/
+      app.js                buildApp(): ordine middleware + mounting rotte
+      config/                env.js (config con default), db.js (connectDb)
+      middleware/             auth.js, requestLogger.js, errorHandler.js, asyncHandler.js, basicAuthDocs.js
+      models/                 Museum, Artwork, ArtworkItem, Visit, User, Activity, ApiKey, RequestLog, Upload
+      routes/                 un file per risorsa, sempre dietro requireApiKeyAndJwt
+      services/               pagination.js, tenant.js, ids.js, maskSensitive.js
+      scripts/                seed.js, apikey-cli.js
+      docs/openapi.js         spec OpenAPI 3.0.3 statica
+    public/
+  tests/                  unit/ + integration/, mongodb-memory-server (require → ../app/src/...)
+  docker/                 Dockerfile (dev) + Dockerfile.prod + docker-compose*.yml
+  package.json, jest.config.js, README.md
+
+services/navigator/  →  submodule (repo artaround-navigator) — app smartphone, React 19 + TS + TanStack Router, Vite SPA
+  app/
     src/main.tsx           entry point Vite
     src/router.tsx          createRouter() + QueryClient nel context tipato del router
     src/lib/AppContext.tsx  STATO GLOBALE: carica api.config.json/museum.config.json, auth (JWT in localStorage),
                             risolve museumSlug→museumId via GET /museums?slug=..., visita/item correnti
-    src/routes/             file-based routing: __root.tsx (AppGate, blocca il render finché il bootstrap non finisce),
-                            login, visits, visit.$visitId, player.$visitId.$stepIndex, map.$visitId, visit-complete.$visitId
+    src/lib/types.ts        contratto di tipi TS che specchia i modelli del backend (fonte di verità dei tipi lato client)
+    src/routes/             file-based routing: __root.tsx (AppGate), login, visits, visit.$visitId,
+                            player.$visitId.$stepIndex, map.$visitId, visit-complete.$visitId
     src/lib/speech.ts        wrapper su window.speechSynthesis / window.SpeechRecognition (nessuna libreria esterna)
     src/components/Shell.tsx  componenti presentazionali condivisi (ErrorScreen, LoadingScreen, Modal, Toast)
-    public/api.config.json, public/museum.config.json   config esterna per museo (NON committare valori reali, vedi igiene git)
-  marketplace/            app PC — vanilla JS, ES Modules, Tailwind CDN, router hash-based
+    public/api.config.json, public/museum.config.json   config esterna per museo (NON committare valori reali)
+  docker/                 Dockerfile (dev) + Dockerfile.prod + nginx.conf + docker-entrypoint.d/
+  README.md
+
+services/marketplace/  →  submodule (repo artaround-marketplace) — app PC, vanilla JS, ES Modules, Tailwind CDN, router hash-based
+  app/
     serve.js                dev server statico + reverse proxy verso il backend (inietta x-api-key, evita CORS)
     api.js                  client HTTP centralizzato (auth, gestione 401 uniforme, resource() factory REST)
     app.js                  router hash-based + guard RBAC lato client (solo UX, la sicurezza vera è nel backend)
@@ -53,7 +72,11 @@ frontend/
     pages/                   museums, museumDetail, content (opere+item), artworkDetail, visits, visitBuilder, users
     constants.js             enum condivisi con il backend + label italiane per la UI
     serve.config.json       config locale (apiKey/backendUrl/porta) — NON committare, vedi serve.config.example.json
-docs/
+  tests/smoke-test.js
+  docker/                 Dockerfile (dev) + Dockerfile.prod + docker-compose*.yml
+  README.md
+
+docs/  (nell'umbrella)
   ARCHITECTURE.md          architettura tecnica dettagliata, aggiornata allo stato reale (backend+Navigator+Marketplace)
   architecture.puml        diagramma con legenda implementato/pianificato — NOTA: è più vecchio dei due .md sopra,
                             mostra ancora Navigator/Marketplace come "pianificati" mentre sono già implementati
@@ -64,14 +87,20 @@ docs/
   ReadmeTemplate2526-18-33.txt   template del README.txt di consegna (diverso da README.md!)
 ```
 
+**Ciclo di vita di un submodule**: modifica dentro `services/<nome>`, committa e fai push sul
+repo del componente, poi nell'umbrella aggiorna il puntatore con `git add services/<nome>` +
+commit. Dopo un clone: `git submodule update --init --recursive`. I file legacy condivisi
+`frontend/index.ts`/`mockData.ts` non esistono più: il contratto di tipi vive in
+`services/navigator/app/src/lib/types.ts`.
+
 ## Convenzioni di codice da seguire
 
-- **ID entità**: `generateEntityId(prefix)` in `backend/src/services/ids.js` → formato `{prefix}-{Date.now()}-{random 0-999}` (es. `mus-1712834400000-427`). Usa sempre questo helper, non generare ID a mano.
-- **Risposte paginate**: ogni endpoint lista usa `paginateQuery()` (`backend/src/services/pagination.js`) e ritorna sempre `{ data, pagination, sort, filters }`. Non reinventare paginazione custom per nuovi endpoint.
+- **ID entità**: `generateEntityId(prefix)` in `services/backend/app/src/services/ids.js` → formato `{prefix}-{Date.now()}-{random 0-999}` (es. `mus-1712834400000-427`). Usa sempre questo helper, non generare ID a mano.
+- **Risposte paginate**: ogni endpoint lista usa `paginateQuery()` (`services/backend/app/src/services/pagination.js`) e ritorna sempre `{ data, pagination, sort, filters }`. Non reinventare paginazione custom per nuovi endpoint.
 - **Errori**: gli handler async vanno avvolti in `asyncHandler()`; gli errori arrivano a `errorHandler` che risponde `{ error: { message, status } }`. Non fare try/catch manuali nelle route per poi rispondere in formati diversi.
-- **Multi-tenancy**: `canAccessMuseum(user, museumId)` e `scopedMuseumFilter(user)` in `backend/src/services/tenant.js` sono l'unico punto dove si decide se un `author` può vedere/modificare una risorsa del suo museo. Riusali per ogni nuova rotta scoped a museo, non duplicare la logica `role === 'super_admin' ? ... : ...` altrove.
+- **Multi-tenancy**: `canAccessMuseum(user, museumId)` e `scopedMuseumFilter(user)` in `services/backend/app/src/services/tenant.js` sono l'unico punto dove si decide se un `author` può vedere/modificare una risorsa del suo museo. Riusali per ogni nuova rotta scoped a museo, non duplicare la logica `role === 'super_admin' ? ... : ...` altrove.
 - **Auth**: `requireApiKeyAndJwt` è il middleware standard per le rotte protette; `requireRole('super_admin')` si applica in aggiunta dove serve. Le rotte `/auth/login` usano solo `requireApiKey` (niente JWT, è quello che lo emette).
-- **Dati sensibili nei log**: `sanitizeOutput()` in `backend/src/services/maskSensitive.js` maschera automaticamente `password`/`token`/`authorization`/`apikey`/etc. Se aggiungi nuovi campi sensibili (es. futuri secret per provider LLM), aggiungili a `SENSITIVE_KEYS`.
+- **Dati sensibili nei log**: `sanitizeOutput()` in `services/backend/app/src/services/maskSensitive.js` maschera automaticamente `password`/`token`/`authorization`/`apikey`/etc. Se aggiungi nuovi campi sensibili (es. futuri secret per provider LLM), aggiungili a `SENSITIVE_KEYS`.
 - **Modelli Mongoose**: tutti usano `versionKey: false` e `timestamps: true`. Segui lo stesso pattern per nuovi modelli.
 - **ID/riferimenti tra entità**: mai `ObjectId`/`populate`. Le relazioni (`museumId`, `artworkId`, `authorId`...) sono stringhe che puntano al campo `id` custom di un'altra collezione; risolvile con query manuali (`Model.find({...}).select('id')` poi `{$in: [...]}`), come già fanno tutte le route esistenti.
 - **Navigator (React)**: stato globale e bootstrap (config esterna, auth, risoluzione museo) vivono **solo** in `AppContext.tsx` — non duplicare fetch di config/auth in una route. Le route sotto `src/routes/` sono file-based (TanStack Router); il player usa `content.screenText` per lo schermo e `content.ttsText` per la sintesi vocale, sono testi diversi, non riusare l'uno per l'altro. TTS/STT sono Web Speech API native (`src/lib/speech.ts`) — non aggiungere librerie esterne per quello che il browser già offre gratis. I comandi vocali sono un vocabolario controllato per matching di sottostringa (non NLP): ogni nuovo comando vocale va aggiunto sia all'handler sia come chip/bottone equivalente nella UI (parità comando vocale ↔ bottone è un requisito del docente, non opzionale).
@@ -80,32 +109,36 @@ docs/
 ## Comandi utili
 
 ```bash
-# Backend
-cd backend
+# Setup dopo il clone dell'umbrella
+git submodule update --init --recursive   # popola services/backend|navigator|marketplace
+
+# --- Stack completo via Docker (dalla radice dell'umbrella) ---
+docker compose -f docker-compose.dev.yml up -d --build mongo backend
+docker compose -f docker-compose.dev.yml run --rm backend npm run seed   # stampa la API key
+API_KEY=<chiave> docker compose -f docker-compose.dev.yml up -d --build   # + navigator :5173, marketplace :5174
+#   Backend/Swagger : http://localhost:3002/docs   Navigator : :5173   Marketplace : :5174
+
+# --- Backend standalone (senza Docker) ---
+cd services/backend
 npm install
-npm run seed              # idempotente (upsert su slug): Uffizi, 5 utenti, 12 opere, 37 item, 3 visite
-npm run dev                # nodemon, hot reload — su Windows evita la porta 3001 (conflitto Docker Desktop),
-                            # usa PORT=3002 in .env se giri backend/Navigator/Marketplace tutti insieme in locale
+npm run seed               # idempotente (upsert su slug): Uffizi, utenti, opere, item, visite
+npm run dev                # nodemon (app/server.js); su Windows usa PORT=3002 in .env
 npm test                   # jest --runInBand (tutta la suite)
 npm run test:unit          # solo tests/unit
 npm run test:integration   # solo tests/integration
 npm run apikey -- generate --name=dev-key --createdBy=usr-1
-npm run apikey -- list
 
-cd backend/docker
-docker compose up --build  # API su :3001, Swagger su :3001/docs, Mongo su :27017 (solo DEV locale)
-
-# Navigator (richiede il backend attivo)
-cd frontend/navigator
-# crea public/api.config.json e public/museum.config.json (non versionati, vedi igiene git) con
+# --- Navigator standalone (richiede il backend attivo) ---
+cd services/navigator/app
+# crea public/api.config.json e public/museum.config.json (non versionati) con
 # {apiKey, baseUrl} e {museumSlug: "galleria-degli-uffizi", ...} — apiKey stampata da `npm run seed`
 npm install
 npm run dev                # Vite dev server, http://localhost:5173
 
-# Marketplace (richiede il backend attivo)
-cd frontend/marketplace
+# --- Marketplace standalone (richiede il backend attivo) ---
+cd services/marketplace/app
 # copia serve.config.example.json → serve.config.json e incolla apiKey/backendUrl reali
-node serve.js               # http://localhost:5174
+node serve.js              # http://localhost:5174
 ```
 
 ## Igiene git (committare spesso, senza rischi)
