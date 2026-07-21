@@ -1,269 +1,265 @@
-# ArtAround Backend
+# artaround
 
-Backend Node.js + Express + MongoDB derivato dai mock del frontend, con requisiti enterprise:
+Repo di orchestrazione del progetto **ArtAround** (Tecnologie Web, UniBO). Non
+contiene logica applicativa propria (a parte un piccolo script di assembly per
+la produzione, vedi sotto): il suo compito è tenere insieme i tre componenti,
+ciascuno un repo Git **autonomo** collegato come submodule, e fornire la
+dockerizzazione — sia per lo sviluppo che per il deploy finale sui due
+container del dipartimento.
 
-- data model completo per domini applicativi e infrastrutturali
-- autenticazione con APIKEY + JWT su endpoint API
-- multi tenant su singolo database (super_admin e museum_curator)
-- logging centralizzato su collection Mongo dedicata
-- documentazione OpenAPI 3.0.3 e UI Swagger protetta da Basic Authentication
-- esecuzione Docker in DEV con hot reload
+## I tre componenti (submodule)
 
-## Stack tecnologico
+| Cartella | Repo Git | Cosa fa | Stack |
+|---|---|---|---|
+| `services/backend` | `artaround-backend` | API (auth API key + JWT, RBAC, multi-tenant) | Node.js + Express + MongoDB |
+| `services/marketplace` | `artaround-marketplace` | App admin/curatore (musei, opere, visite) | Vanilla JS + HTML + CSS, Tailwind via CDN |
+| `services/navigator` | `artaround-navigator` | App del visitatore (visita guidata, player, mappa) | React 19 + TypeScript + TanStack Router + Vite |
 
-- Node.js 20
-- Express 4
-- MongoDB 7 + Mongoose
-- JWT (jsonwebtoken)
-- bcryptjs
-- Swagger UI Express
+Ognuno è un progetto **completamente autonomo**: ha il proprio `app/` (codice
+sorgente), il proprio `docker/` (Dockerfile + compose di sviluppo e
+produzione standalone) e un proprio README esaustivo. Questo repo li
+**consuma** com'è, senza duplicarne il codice — vedi "Come si intrecciano i
+submodule" più sotto.
 
-## Struttura progetto backend
-
-- `backend/server.js`: bootstrap server
-- `backend/src/app.js`: configurazione app Express
-- `backend/src/config`: configurazioni env/db
-- `backend/src/models`: schema Mongo (business + infrastruttura)
-- `backend/src/middleware`: auth, logging, error handling, Basic Auth Swagger
-- `backend/src/routes`: endpoint REST
-- `backend/src/docs/openapi.js`: specifica OpenAPI
-- `backend/src/scripts/seed.js`: seeding iniziale
-- `backend/src/scripts/apikey-cli.js`: gestione API key da console
-- `backend/docker/docker-compose.yml`: stack DEV con hot reload
-
-## Data model MongoDB
-
-### Collezioni business
-
-1. `museums`
-2. `users`
-3. `artworks`
-4. `artworkitems`
-5. `visits`
-6. `activities`
-
-### Collezioni infrastrutturali
-
-1. `apikeys`
-2. `requestlogs`
-
-### Note mapping dai mock FE
-
-- Il campo applicativo `id` (es. `mus-1`, `usr-2`) e mantenuto in ogni documento come chiave esterna leggibile.
-- `_id` Mongo rimane disponibile internamente.
-- Le relazioni tra entita usano gli `id` applicativi per coerenza con i mock frontend.
-
-## Sicurezza
-
-## 1) API key
-
-- Header richiesto: `x-api-key`
-- Le chiavi sono salvate solo come hash SHA-256 (`keyHash`) + prefisso per riconoscimento.
-- Stato chiave: `active | disabled`.
-- Gestione da console tramite script dedicato.
-
-## 2) JWT utente
-
-- Header richiesto: `Authorization: Bearer <token>`
-- Endpoint login: `POST /auth/login` (richiede gia API key valida)
-- JWT contiene `sub` (id utente) e ruolo.
-
-## 3) Swagger UI protetta
-
-- UI docs disponibile su `/docs`
-- Accesso consentito solo con Basic Authentication.
-- Credenziali configurabili via env: `SWAGGER_USER`, `SWAGGER_PASSWORD`.
-
-## Multi tenant (single database)
-
-- Tutti i tenant condividono lo stesso database MongoDB.
-- Ruoli:
-1. `super_admin`: accesso completo a tutti i dati.
-2. `museum_curator`: accesso solo ai musei in `assignedMuseumIds`.
-- I filtri tenant sono applicati lato API su listing e operazioni CRUD.
-
-## Logging centralizzato richieste
-
-Middleware globale salva un record su `requestlogs` per ogni richiesta:
-
-- utente che ha eseguito l'operazione (`userId`, `username`)
-- data creazione richiesta (`requestCreatedAt`)
-- data fine richiesta (`requestCompletedAt`)
-- tempo totale (`totalTimeMs`)
-- payload in ingresso (`requestPayload`) con masking dati sensibili
-- payload in uscita (`responsePayload`) con serializzazione sicura
-
-### Mascheramento dati sensibili
-
-Chiavi sensibili (`password`, `token`, `authorization`, `apikey`, ecc.) vengono salvate come stringa `masked-data`.
-
-### Gestione stream in output
-
-Se la risposta e un buffer/stream non viene persistito il contenuto completo:
-
-- per buffer: solo metadati (tipo e dimensione)
-- per stream/risposta non catturabile: metadato sintetico (`stream-or-empty`)
-
-## OpenAPI e documentazione endpoint
-
-Specifica completa in `backend/src/docs/openapi.js` (OpenAPI 3.0.3).
-
-Endpoint documentati:
-
-- `GET /health`
-- `POST /auth/login`
-- CRUD `museums`
-- CRUD `artworks`
-- CRUD `artwork-items`
-- CRUD `visits`
-- `GET/POST activities`
-- `GET/POST/PATCH users`
-- `GET/POST /api-keys` e `POST /api-keys/{prefix}/disable`
-- `GET /request-logs`
-
-Sicurezze OpenAPI configurate:
-
-- `ApiKeyAuth` (header `x-api-key`)
-- `BearerAuth` (JWT)
-
-## Paginazione server-side centralizzata
-
-Tutti gli endpoint lista implementano un layer unico di paginazione lato server.
-
-Endpoint lista coperti:
-
-- `GET /museums`
-- `GET /artworks`
-- `GET /artwork-items`
-- `GET /visits`
-- `GET /activities`
-- `GET /users`
-- `GET /api-keys`
-- `GET /request-logs`
-
-Parametri query supportati:
-
-- `page` (default: `1`)
-- `pageSize` (default: `20`)
-- `sortBy` (campo ordinabile specifico dell'endpoint)
-- `sortOrder` (`asc` | `desc`)
-- `q` (ricerca testuale sui campi configurati)
-- `filters` (JSON object opzionale per filtri aggiuntivi)
-- parametri query addizionali non riservati (trattati come filtri equality/in)
-
-Formato risposta lista:
-
-```json
-{
-	"data": [],
-	"pagination": {
-		"page": 1,
-		"pageSize": 20,
-		"totalItems": 0,
-		"totalPages": 1,
-		"hasNextPage": false,
-		"hasPreviousPage": false
-	},
-	"sort": {
-		"by": "createdAt",
-		"order": "desc"
-	},
-	"filters": {}
-}
+```
+artaround/
+├── app/                        # ESCLUSIVO di questo repo: script di assembly per la produzione
+│   ├── package.json             # unica dipendenza: express
+│   └── server.js                # monta backend + serve i due frontend + inietta x-api-key
+├── docker/
+│   ├── prod/
+│   │   └── app.Dockerfile       # multi-stage: build Navigator + assembla backend + Marketplace
+│   └── README.md                 # dettagli implementativi dell'immagine assemblata
+├── docker-compose.dev.yml       # orchestra i 4 servizi di sviluppo (riusa il Dockerfile di ciascun submodule)
+├── docker-compose.prod.yml      # i 2 container del dipartimento: app (assemblato) + mongo
+├── .dockerignore
+├── .gitignore
+├── .gitmodules
+├── docs/                         # specifiche del docente, architettura, knowledge base
+├── services/
+│   ├── backend/                  # submodule artaround-backend (app/, tests/, docker/, README.md)
+│   ├── marketplace/               # submodule artaround-marketplace (app/, tests/, docker/, README.md)
+│   └── navigator/                  # submodule artaround-navigator (app/, docker/, README.md)
+└── README.md                     # questo file
 ```
 
-## Avvio in locale (senza Docker)
+Nessun `.env.example` committato, per lo stesso motivo già documentato nei tre
+submodule: l'esecuzione è **sempre e solo via Docker**. `docker-compose.dev.yml`
+porta già i default di sviluppo scritti nel file stesso (`${VAR:-default}`);
+`docker-compose.prod.yml` richiede i segreti obbligatori esportati nella shell
+(o in un `.env` locale non versionato, letto automaticamente da Docker Compose
+se presente accanto al file) — vedi "Variabili d'ambiente" più sotto.
 
-Prerequisiti:
-
-- Node.js >= 20
-- MongoDB raggiungibile
-
-Passi:
-
-1. Copiare `.env.example` in `.env` e configurare valori.
-2. Installare dipendenze in `backend`.
-3. Eseguire seed dati.
-4. Avviare backend in dev.
-
-Comandi:
+## Primo avvio (clone + submodule)
 
 ```bash
-cd backend
-npm install
-npm run seed
-npm run dev
+git clone --recurse-submodules <url-di-artaround>
+# oppure, se già clonato senza submodule:
+git submodule update --init --recursive
 ```
 
-## Avvio Docker DEV con hot reload
+---
 
-Il progetto include compose in `backend/docker/docker-compose.yml` con:
+## Come si intrecciano i submodule
 
-- mount del sorgente su container
-- `nodemon --legacy-watch`
-- polling attivo per filesystem su Windows
-- MongoDB con healthcheck
+Questo repo **non copia** il codice dei tre submodule: li referenzia come
+cartelle Git a sé stanti (`services/<nome>`, ciascuna un checkout del proprio
+repo a un commit preciso) e li usa in due modi diversi a seconda dell'ambiente:
 
-Comandi:
+- **In sviluppo**, `docker-compose.dev.yml` builda ciascun servizio dal
+  **Dockerfile di sviluppo che il submodule stesso possiede**
+  (`services/<nome>/docker/Dockerfile`) — zero duplicazione. Il compose si
+  limita a cablare rete, porte e variabili tra i quattro servizi.
+- **In produzione**, `docker/prod/app.Dockerfile` (di questo repo) **assembla**
+  i build dei tre submodule in un solo container Node/Express, secondo il
+  vincolo di consegna (vedi sotto). Qui sì c'è del codice proprio di questo
+  repo — `app/server.js` — perché la composizione non è responsabilità di
+  nessuno dei tre singolarmente.
+
+### Il vincolo che guida la produzione
+
+`docs/knowledge-base.md` è netto: *"Deploy obbligatorio su due container
+Docker delle macchine del dipartimento — nessuna eccezione [...] in un docker
+c'è node/express/etc.; nell'altro c'è mongo e basta"*. `docs/ARCHITECTURE.md`
+aggiunge che la build statica del Navigator va *"servita da Nginx o
+equivalente"*. Non essendoci spazio per un terzo container Nginx,
+**l'equivalente è lo stesso processo Node** che espone anche le API — da qui
+`app/server.js`.
+
+---
+
+## Topologia di SVILUPPO
+
+```mermaid
+flowchart LR
+    Browser(["Browser (sul tuo host)"])
+
+    subgraph Docker["docker-compose.dev.yml — una rete Docker, 4 servizi"]
+        Nav["navigator :5173\n(Dockerfile del submodule)\nVite dev server + HMR"]
+        Mkt["marketplace :5174\n(Dockerfile del submodule)\nserve.js: statici + proxy"]
+        Back["backend :3002→3001, :9229\n(Dockerfile del submodule)\nExpress + nodemon"]
+        Mongo[("mongo :27017")]
+    end
+
+    Browser -- "http://localhost:5173" --> Nav
+    Browser -- "http://localhost:5174" --> Mkt
+    Nav -. "fetch DIRETTO dal browser\nNAVIGATOR_BACKEND_URL=http://localhost:3002" .-> Back
+    Mkt == "proxy server-side (dentro il container)\nMARKETPLACE_BACKEND_URL=http://backend:3001" ==> Back
+    Back --> Mongo
+```
+
+**L'asimmetria da non sbagliare mai**, ripetuta anche nei commenti di
+`docker-compose.dev.yml`: il Navigator è una SPA il cui JavaScript gira **nel
+browser**, quindi il suo `BACKEND_URL` dev'essere una porta **pubblicata
+sull'host** (`http://localhost:3002`) — il browser non può risolvere il nome
+di un servizio Docker. Il Marketplace invece fa da proxy **dentro il proprio
+container** (`serve.js`), quindi il suo `BACKEND_URL` è correttamente il nome
+del servizio sulla rete Docker (`http://backend:3001`). Scambiarli rompe
+silenziosamente l'uno o l'altro.
+
+### Avvio
 
 ```bash
-cd backend/docker
-docker compose up --build
+# 1) database + backend (nessun .env da preparare: i default di sviluppo
+#    sono già scritti in docker-compose.dev.yml)
+docker compose -f docker-compose.dev.yml up -d --build mongo backend
+
+# 2) seed -> stampa la API key di bootstrap
+docker compose -f docker-compose.dev.yml run --rm backend npm run seed
+
+# 3) frontend — passa la chiave stampata al comando (o esportala nella shell)
+API_KEY=<chiave-stampata> docker compose -f docker-compose.dev.yml up -d --build
 ```
 
-Servizi:
+- Navigator → <http://localhost:5173>
+- Marketplace → <http://localhost:5174>
+- Backend / Swagger → <http://localhost:3002/docs> (Basic Auth `swagger`/`swagger`)
 
-- API: `http://localhost:3001`
-- Swagger UI: `http://localhost:3001/docs`
-- MongoDB: `localhost:27017`
+Account demo (password `12345678`): `admin` (super_admin), `autore1`/`autore2`
+(author), `visitatore1`/`visitatore2` (visitor — solo Navigator).
 
-## Gestione API key da console
+---
 
-Da cartella `backend`:
+## Topologia di PRODUZIONE (2 container)
 
-Generazione:
+```mermaid
+flowchart LR
+    Browser(["Browser"])
+
+    subgraph C1["Container 1 — Node/Express (docker/prod/app.Dockerfile)"]
+        App["server.js\n/ → Navigator (statico)\n/marketplace → Marketplace (statico)\n/auth /museums /visits /... → backend.buildApp()\nx-api-key iniettata server-side"]
+    end
+
+    subgraph C2["Container 2 — Mongo"]
+        Mongo[("mongo:27017 — solo rete interna")]
+    end
+
+    Browser -- "http://host:8080/ (Navigator)\nhttp://host:8080/marketplace\nhttp://host:8080/docs" --> App
+    App --> Mongo
+```
+
+Singola origine: né il Navigator né il Marketplace vedono mai la API key nel
+browser (a differenza delle rispettive modalità *standalone*, dove — per chi
+le esegue da sole senza questo repo — la chiave può essere necessaria lato
+client: vedi il README di ciascun submodule).
+
+### Deploy locale / staging
 
 ```bash
-npm run apikey -- generate --name=dev-key --createdBy=usr-1
+git submodule update --init --recursive
+
+# segreti obbligatori: esportali nella shell (o mettili in un .env locale
+# NON versionato, accanto a questo file — Docker Compose lo legge da solo)
+export MONGO_PASSWORD=... JWT_SECRET=... SWAGGER_PASSWORD=...
+
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d mongo
+
+# seed una tantum -> stampa la API key
+docker compose -f docker-compose.prod.yml run --rm app npm run seed
+export APP_API_KEY=<chiave-stampata>
+
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-Disabilitazione:
+Verifica: <http://localhost:8080> (Navigator), `/marketplace`, `/health`, `/docs`.
+
+### Deploy sui container del dipartimento
+
+Vedi [`docker/README.md`](docker/README.md) per il dettaglio del layout
+dentro l'immagine e le istruzioni per sostituire le immagini base con quelle
+fornite dai tecnici (obbligatorie, nessuna immagine custom ammessa).
+
+Alla consegna: aggiorna nel `README.txt` del progetto i campi `URI del
+marketplace` e `URI del navigator` con gli URL pubblici assegnati.
+
+---
+
+## Mappa delle porte
+
+| Ambiente | Servizio | Host | Container | Note |
+|---|---|---|---|---|
+| Dev | Backend / Swagger | `3002` | `3001` | host 3002 evita il conflitto con Docker Desktop su :3001 |
+| Dev | Debugger Node | `9229` | `9229` | |
+| Dev | Navigator (Vite) | `5173` | `5173` | HMR |
+| Dev | Marketplace (`serve.js`) | `5174` | `5174` | proxy + iniezione x-api-key |
+| Dev | MongoDB | `27017` | `27017` | |
+| Prod | App (tutto) | `${APP_PORT:-8080}` | `3001` | Navigator `/`, Marketplace `/marketplace`, API `/…`, docs `/docs` |
+| Prod | MongoDB | — | `27017` | solo rete interna, non pubblicata |
+
+## Variabili d'ambiente
+
+Nessun file da copiare: in sviluppo i default bastano già; in produzione le
+variabili senza default (**obbligatorie**) vanno esportate nella shell (o in
+un `.env` locale non versionato) prima dei comandi `docker compose`.
+
+| Variabile | Dove | Sviluppo (default) | Produzione |
+|---|---|---|---|
+| `MONGO_USER` / `MONGO_PASSWORD` / `MONGO_DB` | entrambi | `artaround` / `artaround` / `artaround` | `MONGO_PASSWORD` **obbligatoria** |
+| `JWT_SECRET` | entrambi | `dev-jwt-secret-change-me` | **obbligatoria** |
+| `SWAGGER_USER` / `SWAGGER_PASSWORD` | entrambi | `swagger` / `swagger` | `SWAGGER_PASSWORD` **obbligatoria** |
+| `API_KEY` | solo dev | vuota finché non fai il seed | — |
+| `NAVIGATOR_BACKEND_URL` | solo dev | `http://localhost:3002` (porta host, letta dal browser) | — |
+| `MARKETPLACE_BACKEND_URL` | solo dev | `http://backend:3001` (rete Docker, server-side) | — |
+| `APP_API_KEY` | solo prod | — | **obbligatoria** (vuota = 401 su tutte le API) |
+| `NAVIGATOR_API_BASE_URL` | solo prod | — | fissa a `""` (same-origin, non modificarla) |
+| `APP_PORT` | solo prod | — | `8080` |
+| `MUSEUM_SLUG` | entrambi | `galleria-degli-uffizi` | `galleria-degli-uffizi` |
+
+## Ciclo di vita di un submodule
 
 ```bash
-npm run apikey -- disable --prefix=abcd1234 --disabledBy=usr-1
+# lavorare su un componente (es. backend)
+cd services/backend
+git checkout main && git pull
+# ... modifiche, commit, push sul repo artaround-backend ...
+
+# tornare al repo Main e aggiornare il puntatore al nuovo commit
+cd ../..
+git add services/backend
+git commit -m "bump artaround-backend"
 ```
 
-Lista:
+Ogni submodule ha il proprio README con le istruzioni di sviluppo/test/deploy
+**standalone** (senza questo repo): [`services/backend/README.md`](services/backend/README.md),
+[`services/marketplace/README.md`](services/marketplace/README.md),
+[`services/navigator/README.md`](services/navigator/README.md).
 
-```bash
-npm run apikey -- list
-```
+## Documentazione di progetto
 
-## Credenziali seed iniziali
+`docs/` contiene le specifiche del docente riassunte, l'architettura
+(`ARCHITECTURE.md`, `architecture.puml`), la knowledge base e le FAQ del
+corso — riferimento per i vincoli (stack ammessi, deploy, criteri di
+valutazione) citati in questo README.
 
-Utenti seed:
+## Troubleshooting
 
-- `arossi` (super_admin)
-- `mbianchi` (museum_curator)
-- `lverdi` (museum_curator)
-
-Password iniziale: `ChangeMe123!`
-
-Il seed stampa anche una API key bootstrap in console.
-
-## Header richiesti per le API protette
-
-- `x-api-key: <api-key-value>`
-- `Authorization: Bearer <jwt-token>`
-
-## Checklist requisiti richiesti
-
-1. Backend Node.js + Express + MongoDB: completato.
-2. Data model completo: completato.
-3. Swagger/OpenAPI completo: completato.
-4. Logging centralizzato con masking e timing: completato.
-5. Multi tenant single DB con super_admin/museum_curator: completato.
-6. Accesso endpoint via APIKEY + JWT: completato.
-7. Gestione API key da console: completato.
-8. Swagger UI protetta Basic Auth: completato.
-9. Docker DEV hot reload: completato.
+| Sintomo | Causa probabile | Rimedio |
+|---|---|---|
+| `services/backend` (o gli altri) vuoto, build fallisce | submodule non inizializzati | `git submodule update --init --recursive` |
+| Navigator: `Failed to fetch` / errore di rete al login | `NAVIGATOR_BACKEND_URL` punta a un nome di servizio Docker invece che a `localhost` | deve restare una porta pubblicata sull'host, mai `http://backend:...` |
+| Marketplace: `Backend non raggiungibile` | `MARKETPLACE_BACKEND_URL` errato o backend non healthy | verifica che punti a `http://backend:3001` (nome servizio) e che il backend sia partito |
+| Login fallisce con `Invalid API key` | `API_KEY`/`APP_API_KEY` mancante o vecchia | ri-esegui il seed, aggiorna la env, riavvia |
+| Navigator/Marketplace: 401 dopo il login (prod) | `APP_API_KEY` non impostata | impostala in `.env.prod` e riavvia `app` |
+| Porta 3001 occupata (Windows) | Docker Desktop la usa | in dev il backend è pubblicato su **3002** |
+| `docker compose config` dà errore di variabile mancante | in prod manca un segreto obbligatorio nella shell (o nel `.env` locale) | esporta `MONGO_PASSWORD`, `JWT_SECRET`, `SWAGGER_PASSWORD` prima del comando |

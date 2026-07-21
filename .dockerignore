@@ -1,0 +1,29 @@
+# Context di build di PRODUZIONE = radice del repo artaround.
+# Tieni il context piccolo: escludi tutto ciò che non serve nell'immagine finale.
+
+**/node_modules
+**/.git
+**/.gitignore
+**/*.log
+**/.DS_Store
+**/coverage
+**/dist
+**/.tanstack
+**/.vinxi
+**/.output
+
+# Documentazione e PDF pesanti: non servono a runtime
+docs
+
+# Vecchia dockerizzazione del backend (sostituita da questo setup)
+services/backend/docker
+
+# Test del backend: non necessari nell'immagine di produzione
+services/backend/tests
+
+# Segreti / config locali
+**/.env
+**/.env.*
+!**/.env.example
+services/marketplace/serve.config.json
+services/navigator/navigator/public/api.config.json

@@ -1,0 +1,9 @@
+[submodule "services/backend"]
+	path = services/backend
+	url = https://github.com/francescolenzini/artaround-backend.git
+[submodule "services/navigator"]
+	path = services/navigator
+	url = https://github.com/francescolenzini/artaround-navigator.git
+[submodule "services/marketplace"]
+	path = services/marketplace
+	url = https://github.com/francescolenzini/artaround-marketplace.git

@@ -1,0 +1,13 @@
+{
+  "name": "artaround-main",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Assembla artaround-backend + artaround-navigator (Navigator) + artaround-marketplace (Marketplace) in un unico processo Node/Express, per il deploy sui due container Docker del dipartimento.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

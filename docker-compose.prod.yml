@@ -1,0 +1,85 @@
+# =============================================================================
+# artaround — Ambiente di PRODUZIONE (2 container: app Node/Express + Mongo)
+# -----------------------------------------------------------------------------
+# Riproduce localmente la topologia richiesta dal dipartimento:
+#   app    : un solo processo Node che assembla API + Navigator + Marketplace
+#   mongo  : database (immagine ufficiale)
+#
+# Prerequisito: submodule inizializzati
+#   git submodule update --init --recursive
+#
+# Nessun file .env committato: i segreti obbligatori (MONGO_PASSWORD, JWT_SECRET,
+# SWAGGER_PASSWORD, ...) si passano esportandoli nella shell prima dei comandi
+# (o in un .env locale non versionato — docker compose lo legge da solo se
+# presente accanto a questo file, senza bisogno di --env-file).
+#
+# Deploy (locale/staging):
+#   1) export MONGO_PASSWORD=... JWT_SECRET=... SWAGGER_PASSWORD=...
+#   2) docker compose -f docker-compose.prod.yml build
+#   3) docker compose -f docker-compose.prod.yml up -d mongo
+#   4) # seed una tantum -> stampa la API key:
+#      docker compose -f docker-compose.prod.yml run --rm app npm run seed
+#      # poi: export APP_API_KEY=<chiave-stampata>
+#   5) docker compose -f docker-compose.prod.yml up -d
+#
+# App:  http://localhost:${APP_PORT:-8080}         (Navigator)
+#       http://localhost:${APP_PORT:-8080}/marketplace
+#       http://localhost:${APP_PORT:-8080}/docs
+# =============================================================================
+
+name: artaround
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/prod/app.Dockerfile
+    image: artaround-app:prod
+    container_name: artaround-app
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      MONGO_URI: mongodb://${MONGO_USER:-artaround}:${MONGO_PASSWORD:?serve MONGO_PASSWORD}@mongo:27017/${MONGO_DB:-artaround}?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:?serve JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      SWAGGER_USER: ${SWAGGER_USER:-swagger}
+      SWAGGER_PASSWORD: ${SWAGGER_PASSWORD:?serve SWAGGER_PASSWORD}
+      # API key applicativa iniettata server-side (i frontend non la espongono).
+      APP_API_KEY: ${APP_API_KEY:-}
+      # baseUrl del Navigator: vuoto = stessa origine dell'app (tutto assemblato qui).
+      NAVIGATOR_API_BASE_URL: ""
+      MUSEUM_SLUG: ${MUSEUM_SLUG:-galleria-degli-uffizi}
+    ports:
+      - "${APP_PORT:-8080}:3001"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    container_name: artaround-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-artaround}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?serve MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-artaround}
+    volumes:
+      - mongo_data:/data/db
+    # Non pubblicata sull'host in produzione: raggiungibile solo dalla rete interna.
+    expose:
+      - "27017"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          echo 'db.adminCommand({ ping: 1 })' | mongosh --quiet
+          -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD
+          --authenticationDatabase admin localhost:27017/admin
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

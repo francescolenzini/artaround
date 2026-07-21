@@ -2,11 +2,12 @@ node_modules/
 .DS_Store
 *.log
 
-# Config con API key / secret — non versionare
-frontend/marketplace/serve.config.json
-frontend/navigator/public/api.config.json
-backend/.env
+# Config con API key / secret — non versionare.
+# I file di config dei componenti vivono ora nei rispettivi submodule (services/*)
+# e sono ignorati dai loro .gitignore. Qui si copre solo l'ambiente dell'umbrella.
 .env
+.env.dev
+.env.prod
 
 # Export JSON di staging/debug generati dall'API — non versionare
 /museum.json
