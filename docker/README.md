@@ -7,7 +7,7 @@ topologia, vedi il [README principale](../README.md).
 ## Perché l'assembly vive qui e non in un submodule
 
 Nessuno dei tre submodule applicativi (`artaround-backend`,
-`artaround-marketplace`/Marketplace, `artaround-navigator`/Navigator) sa di essere,
+`artaround-editor`/Editor, `artaround-navigator`/Navigator) sa di essere,
 in produzione, composto insieme agli altri due in un solo processo. Ognuno
 resta un progetto autonomo con la propria singola responsabilità (vedi il
 README di ciascuno). La composizione è un problema che appartiene solo a
@@ -25,7 +25,7 @@ vivono qui, non in `services/backend`.
 │   └── src/                     # da services/backend/app/src/ — invariato
 └── frontends/
     ├── navigator/                # build statica Vite (da services/navigator/app, stage navigator-build)
-    └── marketplace/              # statici vanilla (da services/marketplace/app, solo i file serviti)
+    └── editor/              # statici vanilla (da services/editor/app, solo i file serviti)
 ```
 
 `server.js` fa `require('./backend/src/app')` e `require('./backend/src/config/env')`:
@@ -35,7 +35,7 @@ la risoluzione dei moduli di Node risale la gerarchia di cartelle da lì, trova
 di primo livello (`/srv/node_modules/express`) serve solo per l'`express`
 usato direttamente da `server.js` come app esterna che monta il backend.
 
-## Cosa NON viene copiato del Marketplace
+## Cosa NON viene copiato del Editor
 
 Solo gli asset serviti (`index.html`, `app.js`, `api.js`, `constants.js`,
 `components/`, `pages/`, `styles/`). **Non** viene copiato `serve.js` (è il

@@ -2,7 +2,7 @@
 # artaround — Ambiente di PRODUZIONE (2 container: app Node/Express + Mongo)
 # -----------------------------------------------------------------------------
 # Riproduce localmente la topologia richiesta dal dipartimento:
-#   app    : un solo processo Node che assembla API + Navigator + Marketplace
+#   app    : un solo processo Node che assembla API + Navigator + Editor
 #   mongo  : database (immagine ufficiale)
 #
 # Prerequisito: submodule inizializzati
@@ -23,7 +23,7 @@
 #   5) docker compose -f docker-compose.prod.yml up -d
 #
 # App:  http://localhost:${APP_PORT:-8080}         (Navigator)
-#       http://localhost:${APP_PORT:-8080}/marketplace
+#       http://localhost:${APP_PORT:-8080}/editor
 #       http://localhost:${APP_PORT:-8080}/docs
 # =============================================================================
 

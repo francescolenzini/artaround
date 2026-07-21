@@ -4,6 +4,6 @@
 [submodule "services/navigator"]
 	path = services/navigator
 	url = https://github.com/francescolenzini/artaround-navigator.git
-[submodule "services/marketplace"]
-	path = services/marketplace
-	url = https://github.com/francescolenzini/artaround-marketplace.git
+[submodule "services/editor"]
+	path = services/editor
+	url = https://github.com/francescolenzini/artaround-editor.git

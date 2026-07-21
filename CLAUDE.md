@@ -4,7 +4,7 @@ Guida per Claude Code su questo repository. Per il contesto completo (specifiche
 
 ## Cos'è questo progetto
 
-ArtAround è un progetto del corso di Tecnologie Web (UniBO), livello **18-24, individuale**. Suite di tre applicazioni: backend Node/Express/MongoDB comune, **Navigator** (React, smartphone, durante la visita) e **Marketplace/Editor** (vanilla JS, PC, prima della visita). Tutte e tre sono **implementate e funzionanti end-to-end**: backend completo con test, Marketplace completo, Navigator completo (login → elenco visite → player con TTS/comandi vocali → mappa multi-piano → fine visita). Non fidarti della sola struttura di questo file per capire lo stato di avanzamento: verifica sempre `docs/knowledge-base.md` §5 (aggiornato più di frequente) e lo stato reale dei file, perché questa sezione può disallinearsi durante lo sviluppo.
+ArtAround è un progetto del corso di Tecnologie Web (UniBO), livello **18-24, individuale**. Suite di tre applicazioni: backend Node/Express/MongoDB comune, **Navigator** (React, smartphone, durante la visita) e **Editor** (vanilla JS, PC, prima della visita). Tutte e tre sono **implementate e funzionanti end-to-end**: backend completo con test, Editor completo, Navigator completo (login → elenco visite → player con TTS/comandi vocali → mappa multi-piano → fine visita). Non fidarti della sola struttura di questo file per capire lo stato di avanzamento: verifica sempre `docs/knowledge-base.md` §5 (aggiornato più di frequente) e lo stato reale dei file, perché questa sezione può disallinearsi durante lo sviluppo.
 
 ## Vincoli hard — non violare per nessun motivo
 
@@ -12,7 +12,7 @@ Sono requisiti del docente, non scelte di design discutibili. Violarli rende il 
 
 - **Backend**: solo Node.js + Express + MongoDB + vanilla JS/TS. Mai PHP/Python/Java/Ruby/MySQL/Deno.
 - **Navigator** (app smartphone): JS/TS **con framework** — qui React 19 + TypeScript + TanStack Router (Vite SPA).
-- **Marketplace/Editor** (app PC): JS/TS **senza framework SPA** — qui vanilla JS con ES Modules nativi, router basato su `location.hash`, Tailwind via CDN (nessun bundler/build step).
+- **Editor** (app PC): JS/TS **senza framework SPA** — qui vanilla JS con ES Modules nativi, router basato su `location.hash`, Tailwind via CDN (nessun bundler/build step).
 - Deploy finale su **due container Docker del dipartimento** (codice + dati Mongo); le immagini Docker devono essere quelle fornite dal dipartimento, non immagini custom. **Non ancora iniziato** — è il prossimo passo a priorità più alta.
 - Entrambe le app restano **generiche** (multi-museo); solo il Navigator si personalizza per museo via due file di configurazione esterni in `frontend/navigator/public/` (`api.config.json`, `museum.config.json`) — non va costruita una UI per crearli, si dà per scontato che esistano già.
 
@@ -20,14 +20,14 @@ Sono requisiti del docente, non scelte di design discutibili. Violarli rende il 
 
 ```
 artaround/  →  REPO UMBRELLA: orchestra i 3 submodule e la build di produzione
-  .gitmodules             definisce services/backend, services/navigator, services/marketplace
+  .gitmodules             definisce services/backend, services/navigator, services/editor
   app/                    assemblaggio di PRODUZIONE (esclusivo dell'umbrella, non nei submodule)
-    server.js              Express: monta il backend, serve Navigator su / e Marketplace su /marketplace, inietta x-api-key lato server
+    server.js              Express: monta il backend, serve Navigator su / e Editor su /editor, inietta x-api-key lato server
     package.json          unica dipendenza: express
   docker/
-    prod/app.Dockerfile   multi-stage: build Navigator + assembla backend + Marketplace in un unico container
+    prod/app.Dockerfile   multi-stage: build Navigator + assembla backend + Editor in un unico container
     README.md             dettagli dell'immagine di produzione assemblata
-  docker-compose.dev.yml  SVILUPPO: 4 servizi (mongo, backend, navigator, marketplace) che riusano i Dockerfile dei submodule
+  docker-compose.dev.yml  SVILUPPO: 4 servizi (mongo, backend, navigator, editor) che riusano i Dockerfile dei submodule
   docker-compose.prod.yml PRODUZIONE: 2 container (app assemblata + mongo)
   .env.dev.example / .env.prod.example
 
@@ -63,7 +63,7 @@ services/navigator/  →  submodule (repo artaround-navigator) — app smartphon
   docker/                 Dockerfile (dev) + Dockerfile.prod + nginx.conf + docker-entrypoint.d/
   README.md
 
-services/marketplace/  →  submodule (repo artaround-marketplace) — app PC, vanilla JS, ES Modules, Tailwind CDN, router hash-based
+services/editor/  →  submodule (repo artaround-editor) — app PC, vanilla JS, ES Modules, Tailwind CDN, router hash-based
   app/
     serve.js                dev server statico + reverse proxy verso il backend (inietta x-api-key, evita CORS)
     api.js                  client HTTP centralizzato (auth, gestione 401 uniforme, resource() factory REST)
@@ -77,9 +77,9 @@ services/marketplace/  →  submodule (repo artaround-marketplace) — app PC, v
   README.md
 
 docs/  (nell'umbrella)
-  ARCHITECTURE.md          architettura tecnica dettagliata, aggiornata allo stato reale (backend+Navigator+Marketplace)
+  ARCHITECTURE.md          architettura tecnica dettagliata, aggiornata allo stato reale (backend+Navigator+Editor)
   architecture.puml        diagramma con legenda implementato/pianificato — NOTA: è più vecchio dei due .md sopra,
-                            mostra ancora Navigator/Marketplace come "pianificati" mentre sono già implementati
+                            mostra ancora Navigator/Editor come "pianificati" mentre sono già implementati
   knowledge-base.md        specifiche del docente condensate, gap, requisiti di consegna
   claude-project-instructions.md   istruzioni per il Claude Project companion (claude.ai)
   25 Progetto 2526.pdf     slide originali del docente (fonte di verità per le specifiche)
@@ -104,19 +104,19 @@ commit. Dopo un clone: `git submodule update --init --recursive`. I file legacy 
 - **Modelli Mongoose**: tutti usano `versionKey: false` e `timestamps: true`. Segui lo stesso pattern per nuovi modelli.
 - **ID/riferimenti tra entità**: mai `ObjectId`/`populate`. Le relazioni (`museumId`, `artworkId`, `authorId`...) sono stringhe che puntano al campo `id` custom di un'altra collezione; risolvile con query manuali (`Model.find({...}).select('id')` poi `{$in: [...]}`), come già fanno tutte le route esistenti.
 - **Navigator (React)**: stato globale e bootstrap (config esterna, auth, risoluzione museo) vivono **solo** in `AppContext.tsx` — non duplicare fetch di config/auth in una route. Le route sotto `src/routes/` sono file-based (TanStack Router); il player usa `content.screenText` per lo schermo e `content.ttsText` per la sintesi vocale, sono testi diversi, non riusare l'uno per l'altro. TTS/STT sono Web Speech API native (`src/lib/speech.ts`) — non aggiungere librerie esterne per quello che il browser già offre gratis. I comandi vocali sono un vocabolario controllato per matching di sottostringa (non NLP): ogni nuovo comando vocale va aggiunto sia all'handler sia come chip/bottone equivalente nella UI (parità comando vocale ↔ bottone è un requisito del docente, non opzionale).
-- **Marketplace (vanilla JS)**: niente framework SPA, niente build step — riusa `buildForm()` (form dichiarativo da array di campi) e `renderTable()` (`components/modal.js`, `components/table.js`) invece di scrivere HTML a mano per nuove pagine CRUD. Le guardie di ruolo/museo nel router (`app.js`) sono solo UX: non fidarti di quelle per la sicurezza, la fonte di verità è sempre il backend. La API key non deve mai comparire nel codice client-side: la inietta `serve.js` lato proxy.
+- **Editor (vanilla JS)**: niente framework SPA, niente build step — riusa `buildForm()` (form dichiarativo da array di campi) e `renderTable()` (`components/modal.js`, `components/table.js`) invece di scrivere HTML a mano per nuove pagine CRUD. Le guardie di ruolo/museo nel router (`app.js`) sono solo UX: non fidarti di quelle per la sicurezza, la fonte di verità è sempre il backend. La API key non deve mai comparire nel codice client-side: la inietta `serve.js` lato proxy.
 
 ## Comandi utili
 
 ```bash
 # Setup dopo il clone dell'umbrella
-git submodule update --init --recursive   # popola services/backend|navigator|marketplace
+git submodule update --init --recursive   # popola services/backend|navigator|editor
 
 # --- Stack completo via Docker (dalla radice dell'umbrella) ---
 docker compose -f docker-compose.dev.yml up -d --build mongo backend
 docker compose -f docker-compose.dev.yml run --rm backend npm run seed   # stampa la API key
-API_KEY=<chiave> docker compose -f docker-compose.dev.yml up -d --build   # + navigator :5173, marketplace :5174
-#   Backend/Swagger : http://localhost:3002/docs   Navigator : :5173   Marketplace : :5174
+API_KEY=<chiave> docker compose -f docker-compose.dev.yml up -d --build   # + navigator :5173, editor :5174
+#   Backend/Swagger : http://localhost:3002/docs   Navigator : :5173   Editor : :5174
 
 # --- Backend standalone (senza Docker) ---
 cd services/backend
@@ -135,8 +135,8 @@ cd services/navigator/app
 npm install
 npm run dev                # Vite dev server, http://localhost:5173
 
-# --- Marketplace standalone (richiede il backend attivo) ---
-cd services/marketplace/app
+# --- Editor standalone (richiede il backend attivo) ---
+cd services/editor/app
 # copia serve.config.example.json → serve.config.json e incolla apiKey/backendUrl reali
 node serve.js              # http://localhost:5174
 ```
@@ -155,9 +155,9 @@ Storicamente il working tree accumula sessioni intere di lavoro prima di un comm
 
 ## Gap noti / prossimi passi (vedi `docs/knowledge-base.md` §5-§6 per i dettagli aggiornati)
 
-Backend, Marketplace e Navigator sono completi e funzionanti. Quello che resta:
+Backend, Editor e Navigator sono completi e funzionanti. Quello che resta:
 
-1. **Deploy sui due container Docker del dipartimento** — priorità più alta, non ancora iniziato. Include: contattare i tecnici per le immagini fornite (una Node/Express, una Mongo — mai immagini custom), adattare il Navigator a una build statica servita da Nginx (non serve un processo Node SSR a runtime), e rendere configurabile l'URL del Marketplace nel bottone "Apri Marketplace" del Navigator (oggi hardcoded a `localhost:5174`, non valido fuori dev locale).
+1. **Deploy sui due container Docker del dipartimento** — priorità più alta, non ancora iniziato. Include: contattare i tecnici per le immagini fornite (una Node/Express, una Mongo — mai immagini custom), adattare il Navigator a una build statica servita da Nginx (non serve un processo Node SSR a runtime), e rendere configurabile l'URL del Editor nel bottone "Apri Editor" del Navigator (oggi hardcoded a `localhost:5174`, non valido fuori dev locale).
 2. **Bug noto**: overlap dei pin sulla mappa multi-piano del Navigator a 390px (`map.$visitId.tsx`) — il raggio dell'offset circolare (`RADIUS = 2.5%`) è troppo piccolo rispetto alla dimensione reale dei pin; le coordinate restano valide, va corretto solo il calcolo dell'offset.
 3. **`README.txt` di consegna**: file distinto da questo `README.md`, segue `docs/ReadmeTemplate2526-18-33.txt`. Va scritto solo al momento della sottomissione su Virtuale e dopo **non è più modificabile** — non toccarlo "di prova" prima del momento giusto.
 4. Gap di modello dichiarato non bloccante per 18-24: gli "item su contenuti associati" (stili, artisti, eventi storici non legati a un oggetto fisico specifico) non sono modellati — solo `Artwork` (oggetti fisici) ha `ArtworkItem` associati.

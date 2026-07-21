@@ -4,7 +4,7 @@
 # Assembla i tre submodule in un unico processo Node che serve:
 #   - le API             (services/backend, "solo API", invariato)
 #   - il Navigator        (services/navigator, build statica Vite)
-#   - il Marketplace       (services/marketplace, statici vanilla)
+#   - l'Editor        (services/editor, statici vanilla)
 # Il container #2 è Mongo (immagine ufficiale, nessun Dockerfile custom).
 #
 # Context di build: la RADICE di questo repo (artaround), con i submodule
@@ -46,20 +46,20 @@ RUN cd backend && (if [ -f package-lock.json ]; then npm ci --omit=dev; else npm
 COPY services/backend/app/ ./backend/
 
 # --- Frontend statici serviti dal processo Node ---
-RUN mkdir -p frontends/navigator frontends/marketplace
+RUN mkdir -p frontends/navigator frontends/editor
 
 # Navigator: build statica dallo stage precedente
 COPY --from=navigator-build /nav/dist/ ./frontends/navigator/
 
-# Marketplace: solo gli asset serviti (niente serve.js/config/smoke-test/tests)
-COPY services/marketplace/app/index.html \
-     services/marketplace/app/app.js \
-     services/marketplace/app/api.js \
-     services/marketplace/app/constants.js \
-     ./frontends/marketplace/
-COPY services/marketplace/app/components/ ./frontends/marketplace/components/
-COPY services/marketplace/app/pages/      ./frontends/marketplace/pages/
-COPY services/marketplace/app/styles/     ./frontends/marketplace/styles/
+# Editor: solo gli asset serviti (niente serve.js/config/smoke-test/tests)
+COPY services/editor/app/index.html \
+     services/editor/app/app.js \
+     services/editor/app/api.js \
+     services/editor/app/constants.js \
+     ./frontends/editor/
+COPY services/editor/app/components/ ./frontends/editor/components/
+COPY services/editor/app/pages/      ./frontends/editor/pages/
+COPY services/editor/app/styles/     ./frontends/editor/styles/
 
 EXPOSE 3001
 USER node

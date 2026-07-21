@@ -32,8 +32,8 @@ package "ArtAround Navigator (smartphone)\n[IMPLEMENTATO - React 19 + TanStack R
   [UI a bottoni equivalente] as NavA11y
 }
 
-' ── Frontend Marketplace/Editor (implementato) ──
-package "ArtAround Marketplace/Editor (PC)\n[IMPLEMENTATO - vanilla JS, router hash-based, no framework SPA]" as MKT {
+' ── Frontend Editor (implementato) ──
+package "ArtAround Editor (PC)\n[IMPLEMENTATO - vanilla JS, router hash-based, no framework SPA]" as MKT {
   [Musei (lista + dettaglio)] as MktSelect
   [Visit Builder\n(catalogo + sequenza step)] as MktVisitEditor
   [Contenuti: opere + item\n(licenza/prezzo/pubblicazione)] as MktContent
@@ -107,7 +107,7 @@ package "Docker Compose (DEV locale) [ESISTENTE]" as DOCKER {
 }
 
 package "Deploy finale [PIANIFICATO]\n2 container dipartimento UniBO" as DEPT <<planned>> {
-  node "Container 1: app/i Node.js\n(backend + Navigator + Marketplace build)" as DeptApp <<planned>>
+  node "Container 1: app/i Node.js\n(backend + Navigator + Editor build)" as DeptApp <<planned>>
   node "Container 2: MongoDB" as DeptMongo <<planned>>
 }
 

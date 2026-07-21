@@ -25,5 +25,5 @@ services/backend/tests
 **/.env
 **/.env.*
 !**/.env.example
-services/marketplace/serve.config.json
+services/editor/serve.config.json
 services/navigator/navigator/public/api.config.json

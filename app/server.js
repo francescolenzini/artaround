@@ -14,7 +14,7 @@
  * dominio di alcuna delle tre app:
  *   - artaround-backend  resta a singola responsabilità: "solo API"
  *     (services/backend/app/server.js), senza sapere nulla dei frontend.
- *   - artaround-marketplace (Marketplace) e artaround-navigator (Navigator) restano
+ *   - artaround-editor (Editor) e artaround-navigator (Navigator) restano
  *     applicazioni client generiche, ignare di essere servite da un backend
  *     Express esterno invece che dai propri dev server (serve.js / vite).
  *
@@ -23,14 +23,14 @@
  *      copiato in ./backend/ nell'immagine) e lo monta come sub-app Express:
  *      ZERO modifiche al codice del backend.
  *   2. Inietta `x-api-key` lato server su ogni richiesta priva dell'header:
- *      né il Navigator né il Marketplace la espongono mai nel browser.
+ *      né il Navigator né il Editor la espongono mai nel browser.
  *   3. Serve gli statici di Navigator (build Vite) alla radice e quelli del
- *      Marketplace (vanilla JS) sotto /marketplace, con fallback SPA per il
+ *      Editor (vanilla JS) sotto /editor, con fallback SPA per il
  *      routing lato client di entrambi.
  *
  * Percorsi serviti (singola origine):
  *   /              Navigator (fallback SPA su index.html)
- *   /marketplace   Marketplace/Editor (fallback su index.html, routing hash)
+ *   /editor   Editor (fallback su index.html, routing hash)
  *   /auth /museums /artworks /artwork-items /visits /activities /users
  *   /api-keys /request-logs /health /docs   -> backend (buildApp)
  *
@@ -53,7 +53,7 @@ const env = require('./backend/src/config/env');
 
 const FRONTENDS_DIR = path.join(__dirname, 'frontends');
 const NAV_DIR = path.join(FRONTENDS_DIR, 'navigator');
-const MKT_DIR = path.join(FRONTENDS_DIR, 'marketplace');
+const MKT_DIR = path.join(FRONTENDS_DIR, 'editor');
 
 const APP_API_KEY = process.env.APP_API_KEY || '';
 const NAV_BASE_URL = process.env.NAVIGATOR_API_BASE_URL || ''; // "" => stessa origine
@@ -120,7 +120,7 @@ async function start() {
 
   // 2) Asset statici dei frontend.
   app.use(
-    '/marketplace',
+    '/editor',
     express.static(MKT_DIR, { index: 'index.html', extensions: ['html'] })
   );
   app.use(express.static(NAV_DIR, { index: false }));
@@ -129,7 +129,7 @@ async function start() {
   app.use(backend);
 
   // 4) Fallback SPA: le rotte non-API tornano l'index del frontend giusto.
-  app.get('/marketplace/*', (_req, res) => {
+  app.get('/editor/*', (_req, res) => {
     res.sendFile(path.join(MKT_DIR, 'index.html'));
   });
   app.get('*', (_req, res) => {
@@ -141,7 +141,7 @@ async function start() {
   app.listen(env.port, () => {
     console.log(`ArtAround (produzione, assemblato) in ascolto su :${env.port}`);
     console.log('  Navigator    ->  /');
-    console.log('  Marketplace  ->  /marketplace');
+    console.log('  Editor  ->  /editor');
     console.log('  API + docs   ->  /auth, /museums, ... , /docs');
   });
 }

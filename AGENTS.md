@@ -4,7 +4,7 @@ Guida per Codex su questo repository. Per il contesto completo (specifiche del d
 
 ## Cos'è questo progetto
 
-ArtAround è un progetto del corso di Tecnologie Web (UniBO). Suite di app per visite museali personalizzate: **Navigator** (smartphone, durante la visita) e **Marketplace/Editor** (PC, prima della visita), appoggiate a un backend Node/Express/MongoDB comune. Il backend è avanzato; **nessuna delle due app frontend esiste ancora** (solo contratto di tipi in `frontend/index.ts` + mock in `frontend/mockData.ts`).
+ArtAround è un progetto del corso di Tecnologie Web (UniBO). Suite di app per visite museali personalizzate: **Navigator** (smartphone, durante la visita) e **Editor** (PC, prima della visita), appoggiate a un backend Node/Express/MongoDB comune. Il backend è avanzato; **nessuna delle due app frontend esiste ancora** (solo contratto di tipi in `frontend/index.ts` + mock in `frontend/mockData.ts`).
 
 ## Vincoli hard
 
@@ -12,7 +12,7 @@ Sono requisiti del docente, non scelte di design discutibili. Violarli rende il 
 
 - **Backend**: solo Node.js + Express + MongoDB + vanilla JS/TS. Mai PHP/Python/Java/Ruby/MySQL/Deno.
 - **Navigator** (app smartphone, da creare): JS/TS **con framework** (React/Vue/Angular/Svelte).
-- **Marketplace/Editor** (app PC, da creare): JS/TS **senza framework SPA** — solo vanilla JS/TS (ok Web Components, Alpine, HTMX).
+- **Editor** (app PC, da creare): JS/TS **senza framework SPA** — solo vanilla JS/TS (ok Web Components, Alpine, HTMX).
 - Deploy finale su **due container Docker del dipartimento** (codice + dati Mongo); le immagini Docker devono essere quelle fornite dal dipartimento, non immagini custom.
 - Entrambe le app restano **generiche** (multi-museo); solo il Navigator si personalizza per museo via file di configurazione esterno (non va costruita una UI per crearlo).
 
@@ -83,9 +83,9 @@ docker compose up --build  # API su :3001, Swagger su :3001/docs, Mongo su :2701
 
 ## Prossimi passi (vedi `docs/knowledge-base.md` §5 per i dettagli)
 
-1. **Creare le due app frontend** (Navigator framework-based, Marketplace vanilla JS) — al momento non esistono, solo i tipi.
+1. **Creare le due app frontend** (Navigator framework-based, Editor vanilla JS) — al momento non esistono, solo i tipi.
 2. **Espandere `seed.js`** per arrivare ai minimi di consegna: museo reale popolato, 3 visite ≥10 opere ciascuna sullo stesso museo, account `autore1`/`autore2`/`visitatore1`/`visitatore2` (password `12345678`). Il seed e il mock dataset attuali sono entrambi sotto questi minimi e con naming diverso.
-3. **Modello ruoli marketplace**: `super_admin`/`museum_curator` non coprono i concetti di "autore" (crea contenuti) e "visitatore" (fruisce contenuti) richiesti dalle specifiche — da progettare prima di costruire login/onboarding del marketplace.
+3. **Modello ruoli editor**: `super_admin`/`museum_curator` non coprono i concetti di "autore" (crea contenuti) e "visitatore" (fruisce contenuti) richiesti dalle specifiche — da progettare prima di costruire login/onboarding del editor.
 4. **`README.txt` di consegna**: file distinto da questo `README.md`, segue `docs/ReadmeTemplate2526-18-33.txt`. Va scritto solo al momento della sottomissione su Virtuale e dopo **non è più modificabile** — non toccarlo "di prova" prima del momento giusto.
 5. Estensioni 18-27 (sync/insegnante) e 18-33 (geo/QR + LLM) non iniziate — vedi `docs/knowledge-base.md` per i requisiti esatti prima di cominciare.
 

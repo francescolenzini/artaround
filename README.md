@@ -12,7 +12,7 @@ container del dipartimento.
 | Cartella | Repo Git | Cosa fa | Stack |
 |---|---|---|---|
 | `services/backend` | `artaround-backend` | API (auth API key + JWT, RBAC, multi-tenant) | Node.js + Express + MongoDB |
-| `services/marketplace` | `artaround-marketplace` | App admin/curatore (musei, opere, visite) | Vanilla JS + HTML + CSS, Tailwind via CDN |
+| `services/editor` | `artaround-editor` | App admin/curatore (musei, opere, visite) | Vanilla JS + HTML + CSS, Tailwind via CDN |
 | `services/navigator` | `artaround-navigator` | App del visitatore (visita guidata, player, mappa) | React 19 + TypeScript + TanStack Router + Vite |
 
 Ognuno è un progetto **completamente autonomo**: ha il proprio `app/` (codice
@@ -28,7 +28,7 @@ artaround/
 │   └── server.js                # monta backend + serve i due frontend + inietta x-api-key
 ├── docker/
 │   ├── prod/
-│   │   └── app.Dockerfile       # multi-stage: build Navigator + assembla backend + Marketplace
+│   │   └── app.Dockerfile       # multi-stage: build Navigator + assembla backend + Editor
 │   └── README.md                 # dettagli implementativi dell'immagine assemblata
 ├── docker-compose.dev.yml       # orchestra i 4 servizi di sviluppo (riusa il Dockerfile di ciascun submodule)
 ├── docker-compose.prod.yml      # i 2 container del dipartimento: app (assemblato) + mongo
@@ -38,7 +38,7 @@ artaround/
 ├── docs/                         # specifiche del docente, architettura, knowledge base
 ├── services/
 │   ├── backend/                  # submodule artaround-backend (app/, tests/, docker/, README.md)
-│   ├── marketplace/               # submodule artaround-marketplace (app/, tests/, docker/, README.md)
+│   ├── editor/               # submodule artaround-editor (app/, tests/, docker/, README.md)
 │   └── navigator/                  # submodule artaround-navigator (app/, docker/, README.md)
 └── README.md                     # questo file
 ```
@@ -96,7 +96,7 @@ flowchart LR
 
     subgraph Docker["docker-compose.dev.yml — una rete Docker, 4 servizi"]
         Nav["navigator :5173\n(Dockerfile del submodule)\nVite dev server + HMR"]
-        Mkt["marketplace :5174\n(Dockerfile del submodule)\nserve.js: statici + proxy"]
+        Mkt["editor :5174\n(Dockerfile del submodule)\nserve.js: statici + proxy"]
         Back["backend :3002→3001, :9229\n(Dockerfile del submodule)\nExpress + nodemon"]
         Mongo[("mongo :27017")]
     end
@@ -104,7 +104,7 @@ flowchart LR
     Browser -- "http://localhost:5173" --> Nav
     Browser -- "http://localhost:5174" --> Mkt
     Nav -. "fetch DIRETTO dal browser\nNAVIGATOR_BACKEND_URL=http://localhost:3002" .-> Back
-    Mkt == "proxy server-side (dentro il container)\nMARKETPLACE_BACKEND_URL=http://backend:3001" ==> Back
+    Mkt == "proxy server-side (dentro il container)\nEDITOR_BACKEND_URL=http://backend:3001" ==> Back
     Back --> Mongo
 ```
 
@@ -112,7 +112,7 @@ flowchart LR
 `docker-compose.dev.yml`: il Navigator è una SPA il cui JavaScript gira **nel
 browser**, quindi il suo `BACKEND_URL` dev'essere una porta **pubblicata
 sull'host** (`http://localhost:3002`) — il browser non può risolvere il nome
-di un servizio Docker. Il Marketplace invece fa da proxy **dentro il proprio
+di un servizio Docker. Il Editor invece fa da proxy **dentro il proprio
 container** (`serve.js`), quindi il suo `BACKEND_URL` è correttamente il nome
 del servizio sulla rete Docker (`http://backend:3001`). Scambiarli rompe
 silenziosamente l'uno o l'altro.
@@ -132,7 +132,7 @@ API_KEY=<chiave-stampata> docker compose -f docker-compose.dev.yml up -d --build
 ```
 
 - Navigator → <http://localhost:5173>
-- Marketplace → <http://localhost:5174>
+- Editor → <http://localhost:5174>
 - Backend / Swagger → <http://localhost:3002/docs> (Basic Auth `swagger`/`swagger`)
 
 Account demo (password `12345678`): `admin` (super_admin), `autore1`/`autore2`
@@ -147,18 +147,18 @@ flowchart LR
     Browser(["Browser"])
 
     subgraph C1["Container 1 — Node/Express (docker/prod/app.Dockerfile)"]
-        App["server.js\n/ → Navigator (statico)\n/marketplace → Marketplace (statico)\n/auth /museums /visits /... → backend.buildApp()\nx-api-key iniettata server-side"]
+        App["server.js\n/ → Navigator (statico)\n/editor → Editor (statico)\n/auth /museums /visits /... → backend.buildApp()\nx-api-key iniettata server-side"]
     end
 
     subgraph C2["Container 2 — Mongo"]
         Mongo[("mongo:27017 — solo rete interna")]
     end
 
-    Browser -- "http://host:8080/ (Navigator)\nhttp://host:8080/marketplace\nhttp://host:8080/docs" --> App
+    Browser -- "http://host:8080/ (Navigator)\nhttp://host:8080/editor\nhttp://host:8080/docs" --> App
     App --> Mongo
 ```
 
-Singola origine: né il Navigator né il Marketplace vedono mai la API key nel
+Singola origine: né il Navigator né il Editor vedono mai la API key nel
 browser (a differenza delle rispettive modalità *standalone*, dove — per chi
 le esegue da sole senza questo repo — la chiave può essere necessaria lato
 client: vedi il README di ciascun submodule).
@@ -182,7 +182,7 @@ export APP_API_KEY=<chiave-stampata>
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-Verifica: <http://localhost:8080> (Navigator), `/marketplace`, `/health`, `/docs`.
+Verifica: <http://localhost:8080> (Navigator), `/editor`, `/health`, `/docs`.
 
 ### Deploy sui container del dipartimento
 
@@ -191,7 +191,7 @@ dentro l'immagine e le istruzioni per sostituire le immagini base con quelle
 fornite dai tecnici (obbligatorie, nessuna immagine custom ammessa).
 
 Alla consegna: aggiorna nel `README.txt` del progetto i campi `URI del
-marketplace` e `URI del navigator` con gli URL pubblici assegnati.
+editor` e `URI del navigator` con gli URL pubblici assegnati.
 
 ---
 
@@ -202,9 +202,9 @@ marketplace` e `URI del navigator` con gli URL pubblici assegnati.
 | Dev | Backend / Swagger | `3002` | `3001` | host 3002 evita il conflitto con Docker Desktop su :3001 |
 | Dev | Debugger Node | `9229` | `9229` | |
 | Dev | Navigator (Vite) | `5173` | `5173` | HMR |
-| Dev | Marketplace (`serve.js`) | `5174` | `5174` | proxy + iniezione x-api-key |
+| Dev | Editor (`serve.js`) | `5174` | `5174` | proxy + iniezione x-api-key |
 | Dev | MongoDB | `27017` | `27017` | |
-| Prod | App (tutto) | `${APP_PORT:-8080}` | `3001` | Navigator `/`, Marketplace `/marketplace`, API `/…`, docs `/docs` |
+| Prod | App (tutto) | `${APP_PORT:-8080}` | `3001` | Navigator `/`, Editor `/editor`, API `/…`, docs `/docs` |
 | Prod | MongoDB | — | `27017` | solo rete interna, non pubblicata |
 
 ## Variabili d'ambiente
@@ -220,7 +220,7 @@ un `.env` locale non versionato) prima dei comandi `docker compose`.
 | `SWAGGER_USER` / `SWAGGER_PASSWORD` | entrambi | `swagger` / `swagger` | `SWAGGER_PASSWORD` **obbligatoria** |
 | `API_KEY` | solo dev | vuota finché non fai il seed | — |
 | `NAVIGATOR_BACKEND_URL` | solo dev | `http://localhost:3002` (porta host, letta dal browser) | — |
-| `MARKETPLACE_BACKEND_URL` | solo dev | `http://backend:3001` (rete Docker, server-side) | — |
+| `EDITOR_BACKEND_URL` | solo dev | `http://backend:3001` (rete Docker, server-side) | — |
 | `APP_API_KEY` | solo prod | — | **obbligatoria** (vuota = 401 su tutte le API) |
 | `NAVIGATOR_API_BASE_URL` | solo prod | — | fissa a `""` (same-origin, non modificarla) |
 | `APP_PORT` | solo prod | — | `8080` |
@@ -242,7 +242,7 @@ git commit -m "bump artaround-backend"
 
 Ogni submodule ha il proprio README con le istruzioni di sviluppo/test/deploy
 **standalone** (senza questo repo): [`services/backend/README.md`](services/backend/README.md),
-[`services/marketplace/README.md`](services/marketplace/README.md),
+[`services/editor/README.md`](services/editor/README.md),
 [`services/navigator/README.md`](services/navigator/README.md).
 
 ## Documentazione di progetto
@@ -258,8 +258,8 @@ valutazione) citati in questo README.
 |---|---|---|
 | `services/backend` (o gli altri) vuoto, build fallisce | submodule non inizializzati | `git submodule update --init --recursive` |
 | Navigator: `Failed to fetch` / errore di rete al login | `NAVIGATOR_BACKEND_URL` punta a un nome di servizio Docker invece che a `localhost` | deve restare una porta pubblicata sull'host, mai `http://backend:...` |
-| Marketplace: `Backend non raggiungibile` | `MARKETPLACE_BACKEND_URL` errato o backend non healthy | verifica che punti a `http://backend:3001` (nome servizio) e che il backend sia partito |
+| Editor: `Backend non raggiungibile` | `EDITOR_BACKEND_URL` errato o backend non healthy | verifica che punti a `http://backend:3001` (nome servizio) e che il backend sia partito |
 | Login fallisce con `Invalid API key` | `API_KEY`/`APP_API_KEY` mancante o vecchia | ri-esegui il seed, aggiorna la env, riavvia |
-| Navigator/Marketplace: 401 dopo il login (prod) | `APP_API_KEY` non impostata | impostala in `.env.prod` e riavvia `app` |
+| Navigator/Editor: 401 dopo il login (prod) | `APP_API_KEY` non impostata | impostala in `.env.prod` e riavvia `app` |
 | Porta 3001 occupata (Windows) | Docker Desktop la usa | in dev il backend è pubblicato su **3002** |
 | `docker compose config` dà errore di variabile mancante | in prod manca un segreto obbligatorio nella shell (o nel `.env` locale) | esporta `MONGO_PASSWORD`, `JWT_SECRET`, `SWAGGER_PASSWORD` prima del comando |

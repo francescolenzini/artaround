@@ -19,7 +19,7 @@ Prima di proporre una soluzione tecnica, verificala contro questi vincoli hard (
 
 - Backend: solo Node.js + Express + MongoDB + vanilla JS/TS. Mai PHP/Python/Java/Ruby/MySQL/Deno o altro stack server-side.
 - ArtAround Navigator (app smartphone): JS/TS **con un framework** (React/Vue/Angular/Svelte).
-- ArtAround Marketplace/Editor (app PC): JS/TS **senza framework SPA** (vanilla, ok Web Components/Alpine/HTMX).
+- ArtAround Editor (app PC): JS/TS **senza framework SPA** (vanilla, ok Web Components/Alpine/HTMX).
 - Deploy finale: due container Docker del dipartimento (non è negoziabile, va tenuto a mente quando si propongono dipendenze o servizi esterni).
 - Entrambe le app restano generiche, multi-museo; solo il Navigator si personalizza per museo via file di configurazione.
 
@@ -45,4 +45,4 @@ Non dare per scontato il livello a cui punta l'utente: se non è chiaro dal cont
 
 ## Mantenimento
 
-Se durante la conversazione emergono decisioni architetturali importanti (es. scelta del framework per il Navigator, modello di ruoli marketplace, provider LLM scelto), suggerisci all'utente di farle aggiornare in `docs/knowledge-base.md` tramite Claude Code, così che restino disponibili anche in conversazioni future di questo Project.
+Se durante la conversazione emergono decisioni architetturali importanti (es. scelta del framework per il Navigator, modello di ruoli editor, provider LLM scelto), suggerisci all'utente di farle aggiornare in `docs/knowledge-base.md` tramite Claude Code, così che restino disponibili anche in conversazioni future di questo Project.

@@ -36,7 +36,7 @@ _ Al massimo 15 giorni dopo la data di sottomissione del file README_
 
 ## Locazione del progetto:
 
-* URI del marketplace:
+* URI del editor:
 * URI del navigator:
 * Altri URI rilevanti:
 
@@ -52,7 +52,7 @@ _Inserire qui il linguaggio utilizzato, il o i framework utilizzati e ogni pacch
 
 #### Server-side
 
-#### Applicazione marketplace
+#### Applicazione editor
 
 #### Applicazione navigator
 

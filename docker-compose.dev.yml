@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 # 4 servizi, ciascuno buildato dal proprio Dockerfile DI SVILUPPO già presente
 # nel rispettivo submodule (nessuna duplicazione qui): mongo, backend,
-# marketplace, navigator, tutti sulla stessa rete Docker di questo compose.
+# editor, navigator, tutti sulla stessa rete Docker di questo compose.
 #
 # Prerequisito: submodule inizializzati
 #   git submodule update --init --recursive
@@ -19,7 +19,7 @@
 # URL:
 #   Backend/Swagger : http://localhost:3002/docs
 #   Navigator       : http://localhost:5173
-#   Marketplace     : http://localhost:5174
+#   Editor     : http://localhost:5174
 # =============================================================================
 
 name: artaround
@@ -77,22 +77,22 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # Riusa il Dockerfile DI SVILUPPO del submodule marketplace: zero duplicazione.
-  marketplace:
+  # Riusa il Dockerfile DI SVILUPPO del submodule editor: zero duplicazione.
+  editor:
     build:
-      context: ./services/marketplace
+      context: ./services/editor
       dockerfile: docker/Dockerfile
-    image: artaround-marketplace:dev
-    container_name: artaround-marketplace-dev
+    image: artaround-editor:dev
+    container_name: artaround-editor-dev
     environment:
       # serve.js gira DENTRO il container: raggiunge il backend via rete Docker
       # (nome del servizio "backend"), non via localhost.
-      BACKEND_URL: ${MARKETPLACE_BACKEND_URL:-http://backend:3001}
+      BACKEND_URL: ${EDITOR_BACKEND_URL:-http://backend:3001}
       API_KEY: ${API_KEY:-}
     ports:
       - "5174:5174"
     volumes:
-      - ./services/marketplace:/app
+      - ./services/editor:/app
     depends_on:
       - backend
     restart: unless-stopped
