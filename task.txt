@@ -1,0 +1,13 @@
+NAVIGATOR
+2- Rivedere casi di errore. X
+3- Rendere possibile tornare alla pagina di panoramica della visita tramite il pulsante "Back". X
+4- Direttiva PWA. X
+5- Modificare velocità lettura e aggiungere barra progresso.
+7- Trasformare le pill da testi a icone standard. X
+8- Considerare imagearea per mappa. X
+10- La descrizione testuale a schermo deve cambiare selezionando una delle opzioni. X
+11- I tasti devono essere visibili solo se esiste l'item corrispondente e sull'item ci deve essere la possibilità di essere classificato
+12- Idem per tasto TTS.
+
+BACKEND
+1- fallback GET immagine di copertina Visita -> immagine di copertina Museo
