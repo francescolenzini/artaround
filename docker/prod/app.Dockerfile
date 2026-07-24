@@ -42,7 +42,7 @@ COPY app/server.js ./
 
 # --- Backend: solo dipendenze di produzione + sorgente (invariato) ---
 COPY services/backend/app/package*.json ./backend/
-RUN sh -c 'cd backend && if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi'
+RUN cd backend && (if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi)
 COPY services/backend/app/ ./backend/
 
 # --- Frontend statici serviti dal processo Node ---
