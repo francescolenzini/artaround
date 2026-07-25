@@ -2,7 +2,7 @@
 
 > Riassunto delle specifiche del docente, stato di avanzamento e gap aperti.
 > Per l'architettura tecnica (as-built) vedi `ARCHITECTURE.md`.
-> Aggiornato il 2026-07-04: redesign UI Navigator completato e verificato (5 schermate, token system "Galleria Bianca rivisitata"). Bug aperto: overlap pin mappa a 390px.
+> Aggiornato il 2026-07-25: implementato l'handoff "Galleria Bianca" (§5f) — sistema di navigazione contestuale, microfono come gesto primario, mappa come overlay globale. Chiuso il bug di overlap dei pin mappa.
 > Aggiornato il 2026-07-18: riallineati `CLAUDE.md`, `docs/ARCHITECTURE.md` e `docs/architecture.puml` allo stato reale — erano rimasti disallineati a livelli diversi (`CLAUDE.md` dichiarava ancora i due frontend "da creare"; `ARCHITECTURE.md` descriveva nel Navigator un gap già chiuso dal redesign UI del 2026-07-03; `architecture.puml` mostrava Navigator e Editor come "pianificati"). Nessun cambiamento funzionale al codice, solo documentazione. Questo file (`knowledge-base.md`) era già quello aggiornato correttamente ed è stato usato come riferimento per correggere gli altri tre.
 > Aggiornato il 2026-07-19: upload immagini implementato da zero (storage MongoDB, non filesystem — vedi §5d); form Editor corretti su una serie di problemi di usabilità (§5e); seed popolato con 12 immagini reali di pubblico dominio per le opere. Gap aperto emerso e annotato: nessun gating di acquisto reale dietro `isFree`/`price` (§2). Prossimi passi aggiornati (§10): Navigator non mostra ancora le immagini caricate, e le visite non hanno immagine di copertina.
 
@@ -142,7 +142,7 @@ Email: `<username>@artaround.it`.
 
 **Storia della migrazione SPA**: il progetto era stato generato da Lovable con il template `tanstack_start_ts_current` (TanStack Start + Nitro, SSR pensato per l'ambiente sandbox Lovable). Fuori da Lovable il dev server crashava al boot perché il wrapper `@lovable.dev/vite-tanstack-config` non si inizializzava. Migrato a SPA pura il 2026-06-29: rimosso il layer SSR/Nitro, creato un entry point Vite standard. File rimossi: `src/server.ts`, `src/start.ts`. File aggiunti: `index.html`, `src/main.tsx`. Deploy finale: build statica (`dist/`) servita da Nginx o equivalente — non serve un processo Node SSR a runtime.
 
-**Schermate funzionanti**: `/login`, `/visits`, `/visit/:visitId`, `/player/:visitId/:stepIndex`, `/map/:visitId`.
+**Schermate funzionanti**: `/login`, `/visits`, `/visit/:visitId`, `/player/:visitId/:stepIndex`, `/map/:visitId`, `/map` (pianta del museo senza visita attiva), `/visit-complete/:visitId`.
 
 **Risoluzione del museo — via slug, non ID statico**. `museum.config.json` usa `museumSlug` (non più `museumId`). Il Navigator risolve lo slug nell'ID reale del museo all'avvio chiamando `GET /museums?slug=...` in `AppContext.tsx`, prima di esporre il museo al resto dell'app (gate di bootstrap in `__root.tsx`). Questo rende il Navigator indipendente dall'ID fisico nel database, coerente col criterio di valutazione "generalità".
 
@@ -158,7 +158,7 @@ Email: `<username>@artaround.it`.
 | D23 | 2 | 83.5 | 82.7 | Flora, Venere di Urbino (Tiziano) |
 | E4  | 2 | 73.6 | 19.2 | Medusa, Sacrificio di Isacco, Giuditta e Oloferne (Caravaggio/Artemisia) |
 
-**Rendering pin** (`map.$visitId.tsx`): un pin per `VisitStep`, separati da offset circolare calcolato dinamicamente lato frontend. Le coordinate nel seed restano identiche per sala; l'offset (`RADIUS = 2.5%`) è solo visivo. Algoritmo: step raggruppati per `(x, y, floor)`, poi `offset = RADIUS × cos/sin((2π/N) × idx)`. I pin sono figli di un `div.relative` che wrappa strettamente l'`<img>` della mappa — non del container `flex` esterno — così `top: y%` è calcolato rispetto all'altezza dell'immagine e non del viewport.
+**Rendering pin** (`components/MapView.tsx`, condiviso da `/map/:visitId` e `/map`): un pin per `VisitStep`, separati da offset circolare calcolato dinamicamente lato frontend. Le coordinate nel seed restano identiche per sala; l'offset è solo visivo. Algoritmo: step raggruppati per `(x, y, floor)`, poi `offset = raggio × cos/sin((2π/N) × idx)`. **Il raggio è in pixel, non in percentuale** (`max(22, 18N/π)`) e viene applicato dentro la `transform` del pin: in percentuale dipendeva dalla larghezza della mappa e restava più piccolo del pin stesso — è la correzione del bug di overlap a 390px. I pin sono figli di un `div.relative` che wrappa strettamente l'`<img>` della mappa — non del container `flex` esterno — così `top: y%` è calcolato rispetto all'altezza dell'immagine e non del viewport.
 
 **Fix noti applicati durante lo sviluppo**:
 - **404 su `GET /artwork-items/:id`**: l'endpoint singolo non esiste nel backend (solo `PUT`/`DELETE` per id). Corretto a `GET /artwork-items?id=...` (singolo nel player, batch con CSV di id nella schermata dettaglio visita, via `ListResponse<ArtworkItem>`).
@@ -168,8 +168,8 @@ Email: `<username>@artaround.it`.
 
 **Gap noti rimasti**:
 - ~~UI/palette considerata sotto lo standard atteso dal docente~~ → **Redesign completato (2026-07-03)**: 5 schermate implementate sul token system "Galleria Bianca rivisitata" (§5c), verificate a 390px contro i mockup Claude Design con screenshot headless. Deviazioni accettate rispetto ai mockup (tutte per dati/logica mancanti, non per scelta di stile): niente login ospite/codice biglietto, niente bottom nav "Account", niente barra "in riproduzione" con tempi reali (limite Web Speech API — sostituita con chip Ascolta/Stop), niente attribuzione pittore su Player. Nota terminologica: l'`autore` richiesto dalla spec come metadato item è già coperto da `creatorId` su `ArtworkItem` — da non confondere con l'attribuzione del pittore (vive su `Artwork`, non su `ArtworkItem`; fallback "non disponibile" già accettato per 18-24).
-- **Bug aperto — sovrapposizione pin mappa a 390px**: `RADIUS = 2.5%` nell'offset circolare produce solo ~9px di separazione contro pin da 36px, causando overlap nei cluster su mobile. Coordinate pin restano valide; da correggere solo il calcolo dell'offset.
-- Bottone "Apri Editor" funzionante ma punta a un URL hardcoded (`http://localhost:5174`) — da rendere robusto/configurabile in vista del deploy sui container del dipartimento, dove le porte saranno diverse.
+- ~~**Bug — sovrapposizione pin mappa a 390px**~~ → **corretto il 2026-07-25**: l'offset circolare è passato da percentuale a pixel dentro la `transform` (vedi "Rendering pin" sopra). Le coordinate del seed non sono state toccate.
+- Link "Apri Editor" (ora nel menu account, §5f): l'URL arriva da `marketplaceUrl` in `museum.config.json`, quindi è già configurabile per museo; è il **file di esempio locale** a puntare a `http://localhost:5174`. In fase di deploy sui container del dipartimento va scritto l'URL reale in quel file, non nel codice.
 
 ---
 
@@ -185,6 +185,32 @@ Player: comandi vocali equivalenti in strip orizzontale scorrevole
 con indicatore di posizione, invece di grid statica.
 
 Implementazione: i token vivono in `services/navigator/app/src/styles.css` — palette brand come custom properties `--palette-*` (oklch, equivalenti esatti degli hex sopra) mappate sui token semantici shadcn/Tailwind (`--background`, `--primary`, ...). I componenti usano solo i token semantici: un tema alternativo (es. alto contrasto) si aggiunge ridefinendo le sole `--palette-*` in una classe tema, senza toccare i componenti.
+
+Neutri di supporto aggiunti con l'handoff (§5f), stessa logica: `--palette-whisper` #F7F5F0 (superficie tenue della barra player), `--palette-line` #E2E0D9 (bordo dei controlli, distinto dal riempimento "pietra" che coincide con `--border`), `--palette-faint` #9A9A92 (terzo livello di testo) → token semantici `--surface-muted`, `--line`, `--foreground-subtle` → utility `bg-surface-muted`, `border-line`, `text-foreground-subtle`.
+
+---
+
+## 5f. Navigator — sistema di navigazione "Galleria Bianca" (2026-07-25)
+
+Secondo livello dell'handoff di design (progetto Claude Design `80c56614-7914-4349-a42f-680a9f9154d6`, file `ArtAround Navigator - Handoff.dc.html` + `design_handoff_schermate/README.md`, letti via DesignSync). Il primo livello — i token di §5c — era già applicato; questo round riguarda navigazione e gerarchia delle schermate.
+
+**Tre regole al posto di una tab bar** (`components/Nav.tsx`):
+1. **Indietro sempre in alto a sinistra**, senza contenitore, con etichetta che nomina la destinazione (`BackLink`). È l'unico significante di "indietro" dell'app.
+2. **Mappa come overlay globale** (`MapPill`): pill flottante in basso a destra fuori dalla visita, pill nera nell'header dentro il player (dove una flottante coprirebbe i comandi). La chiusura usa `history.back()` e l'etichetta arriva dal search param `from` (`lib/mapSearch.ts`): `from=player&step=N` → "Torna a Tappa 0N".
+3. **Account = iniziali nell'header** con popover (`AccountMenu`): nome, badge ruolo, "Apri Editor ↗", "Esci". Nessuna route, nessuno stato globale nuovo. Etichette ruolo: `super_admin` → Admin, `author` → Autore (stessa parola dell'Editor, per non avere due nomi dello stesso ruolo nella suite), `visitor` → Visitatore.
+
+**Player** (`player.$visitId.$stepIndex.tsx`): shell ad altezza fissa (`h-[100dvh]`, scroll confinato al `<main>`) così microfono e comandi non finiscono mai sotto la piega. Il **microfono è il gesto primario**: cerchio da 68px fra Precedente e Prossimo, unico elemento pieno d'accento della schermata. In ascolto il racconto va in **pausa** (non stop) e riprende da solo se il comando non ha toccato l'audio; la barra player diventa grafite con "Sto ascoltando…", i comandi diventano una griglia di quelli davvero disponibili per la tappa, e un box mostra l'ultimo comando riconosciuto con il suo effetto.
+
+**Nuovo comando vocale**: "troppo complicato" (→ registro più semplice), presente sia nell'handler sia come chip, come richiede la parità comando vocale ↔ bottone.
+
+**Sessione**: `AppContext` ora persiste anche l'utente (`artaround_user` in `localStorage`), altrimenti nome e ruolo sparivano dal popover al primo reload pur restando valida la sessione. Il backend è stato esteso di conseguenza: `POST /auth/login` restituisce anche `fullName` (modifica additiva in `authRoutes.js`).
+
+**Scelte consapevoli diverse dai mockup**:
+- **Riga sala ("SALE 10–14")**: omessa. Non esiste un campo sala nel modello — `VisitStep` ha solo `mapCoords.floor`. Implementabile in futuro aggiungendo `room?: string` a `VisitStep` nel backend, il campo corrispondente nel `visitBuilder` dell'Editor e il valore nel seed; finché quel dato non c'è, inventarlo lato client sarebbe hard-coding su un museo specifico.
+- **Timer audio ("02:14 / 03:40")**: non implementato. `speechSynthesis` non espone né durata né posizione dell'utterance: la barra mostra l'equalizzatore e lo stato, senza numeri inventati.
+- **Caret "▾" accanto al nome del museo**: rimosso. Suggerirebbe un selettore di museo che non esiste (il Navigator è mono-museo per configurazione).
+- **"Apri Editor" nel popover account**: i mockup mostrano solo "Esci", ma il link esisteva già nell'header della home e toglierlo avrebbe eliminato una funzionalità.
+- **Card visita**: lasciate come erano, su richiesta esplicita (i mockup proponevano thumbnail 62px e meta "N opere · M min").
 
 ---
 
@@ -275,8 +301,8 @@ Più: fino a 2 punti aggiuntivi a discrezione del docente per scelte creative e 
 
 ## 10. Prossimi passi (in ordine di priorità)
 
-1. ~~**Redesign UI Navigator**~~ → completato (2026-07-03); resta solo il fix overlap pin mappa (§5b).
-2. **Navigator: mostrare le immagini delle opere** — `Artwork.assets[]` è popolato e servito (§5d), ma nessuna schermata del Navigator lo consuma ancora. Serve prefissare l'URL relativo `/uploads/upl-…` col `baseUrl` di `api.config.json`.
-3. **Immagine di copertina per le visite** — non implementata. Da valutare: nuovo campo `coverImage` su `Visit`, riuso dello stesso storage upload (§5d), esposizione nell'Editor (form informazioni generali visita, §5e) e nel Navigator (lista visite).
-4. **Deploy sui container del dipartimento** — priorità attiva. Include: fix bottone "Apri Editor" (URL hardcoded `localhost:5174`); contattare i tecnici per le immagini Docker; adattare Navigator (build statica) e backend al setup reale.
+1. ~~**Redesign UI Navigator**~~ → completato: token (2026-07-03, §5c) e sistema di navigazione dell'handoff (2026-07-25, §5f). Chiuso anche il fix overlap pin mappa.
+2. ~~**Navigator: immagini delle opere e copertine visita**~~ → fatto: la lista visite usa `Visit.coverImage` e il player la miniatura da `Artwork.assets[]`, entrambe risolte con `toAbsoluteUrl(baseUrl, …)`.
+3. **Deploy sui container del dipartimento** — priorità attiva. Include: scrivere il `marketplaceUrl` reale in `museum.config.json` (§5b); contattare i tecnici per le immagini Docker; adattare Navigator (build statica) e backend al setup reale.
+4. **Campo sala su `VisitStep`** (opzionale, migliora l'orientamento in sala) — `room?: string` nel modello backend + campo nel `visitBuilder` dell'Editor + valore nel seed; solo dopo si può mostrare la riga sala prevista dai mockup nel player e nella card mappa (§5f).
 5. **`README.txt` di consegna** — da scrivere al momento della sottomissione su Virtuale, seguendo `docs/ReadmeTemplate2526-18-33.txt`, non più modificabile dopo l'invio.

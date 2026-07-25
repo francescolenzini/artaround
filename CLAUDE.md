@@ -56,9 +56,13 @@ services/navigator/  →  submodule (repo artaround-navigator) — app smartphon
                             risolve museumSlug→museumId via GET /museums?slug=..., visita/item correnti
     src/lib/types.ts        contratto di tipi TS che specchia i modelli del backend (fonte di verità dei tipi lato client)
     src/routes/             file-based routing: __root.tsx (AppGate), login, visits, visit.$visitId,
-                            player.$visitId.$stepIndex, map.$visitId, visit-complete.$visitId
+                            player.$visitId.$stepIndex, map.$visitId, map.index (mappa senza visita),
+                            visit-complete.$visitId
     src/lib/speech.ts        wrapper su window.speechSynthesis / window.SpeechRecognition (nessuna libreria esterna)
+    src/lib/mapSearch.ts     search param `from`/`step` della mappa → etichetta dell'indietro
     src/components/Shell.tsx  componenti presentazionali condivisi (ErrorScreen, LoadingScreen, Modal, Toast)
+    src/components/Nav.tsx    BackLink, MapPill, AccountMenu — le tre regole di navigazione (niente tab bar)
+    src/components/MapView.tsx  corpo della mappa, condiviso dalle due route /map
     public/api.config.json, public/museum.config.json   config esterna per museo (NON committare valori reali)
   docker/                 Dockerfile (dev) + Dockerfile.prod + nginx.conf + docker-entrypoint.d/
   README.md
@@ -103,6 +107,7 @@ commit. Dopo un clone: `git submodule update --init --recursive`. I file legacy 
 - **Dati sensibili nei log**: `sanitizeOutput()` in `services/backend/app/src/services/maskSensitive.js` maschera automaticamente `password`/`token`/`authorization`/`apikey`/etc. Se aggiungi nuovi campi sensibili (es. futuri secret per provider LLM), aggiungili a `SENSITIVE_KEYS`.
 - **Modelli Mongoose**: tutti usano `versionKey: false` e `timestamps: true`. Segui lo stesso pattern per nuovi modelli.
 - **ID/riferimenti tra entità**: mai `ObjectId`/`populate`. Le relazioni (`museumId`, `artworkId`, `authorId`...) sono stringhe che puntano al campo `id` custom di un'altra collezione; risolvile con query manuali (`Model.find({...}).select('id')` poi `{$in: [...]}`), come già fanno tutte le route esistenti.
+- **Navigator — navigazione**: niente tab bar. Tre regole non negoziabili, implementate in `components/Nav.tsx` (dettaglio in `docs/knowledge-base.md` §5f): indietro **solo** in alto a sinistra con etichetta che nomina la destinazione (`BackLink`); mappa come overlay globale (`MapPill`, chiusura con `history.back()` ed etichetta dal search param `from`); account come popover sulle iniziali nell'header (`AccountMenu`), mai una route. Se aggiungi una schermata, riusa questi tre componenti invece di inventare un altro modo di tornare indietro.
 - **Navigator (React)**: stato globale e bootstrap (config esterna, auth, risoluzione museo) vivono **solo** in `AppContext.tsx` — non duplicare fetch di config/auth in una route. Le route sotto `src/routes/` sono file-based (TanStack Router); il player usa `content.screenText` per lo schermo e `content.ttsText` per la sintesi vocale, sono testi diversi, non riusare l'uno per l'altro. TTS/STT sono Web Speech API native (`src/lib/speech.ts`) — non aggiungere librerie esterne per quello che il browser già offre gratis. I comandi vocali sono un vocabolario controllato per matching di sottostringa (non NLP): ogni nuovo comando vocale va aggiunto sia all'handler sia come chip/bottone equivalente nella UI (parità comando vocale ↔ bottone è un requisito del docente, non opzionale).
 - **Editor (vanilla JS)**: niente framework SPA, niente build step — riusa `buildForm()` (form dichiarativo da array di campi) e `renderTable()` (`components/modal.js`, `components/table.js`) invece di scrivere HTML a mano per nuove pagine CRUD. Le guardie di ruolo/museo nel router (`app.js`) sono solo UX: non fidarti di quelle per la sicurezza, la fonte di verità è sempre il backend. La API key non deve mai comparire nel codice client-side: la inietta `serve.js` lato proxy.
 
@@ -158,7 +163,7 @@ Storicamente il working tree accumula sessioni intere di lavoro prima di un comm
 Backend, Editor e Navigator sono completi e funzionanti. Quello che resta:
 
 1. **Deploy sui due container Docker del dipartimento** — priorità più alta, non ancora iniziato. Include: contattare i tecnici per le immagini fornite (una Node/Express, una Mongo — mai immagini custom), adattare il Navigator a una build statica servita da Nginx (non serve un processo Node SSR a runtime), e rendere configurabile l'URL dell'Editor nel bottone "Apri Editor" del Navigator (oggi hardcoded a `localhost:5174`, non valido fuori dev locale).
-2. **Bug noto**: overlap dei pin sulla mappa multi-piano del Navigator a 390px (`map.$visitId.tsx`) — il raggio dell'offset circolare (`RADIUS = 2.5%`) è troppo piccolo rispetto alla dimensione reale dei pin; le coordinate restano valide, va corretto solo il calcolo dell'offset.
+2. **Campo sala su `VisitStep`** (non bloccante): i mockup del Navigator prevedono la sala per ogni tappa, ma nel modello esiste solo `mapCoords.floor`. Serve `room?: string` sul backend + campo nel `visitBuilder` dell'Editor + valore nel seed; finché quel dato non c'è, la riga sala resta omessa (non va inventata lato client). Vedi `docs/knowledge-base.md` §5f.
 3. **`README.txt` di consegna**: file distinto da questo `README.md`, segue `docs/ReadmeTemplate2526-18-33.txt`. Va scritto solo al momento della sottomissione su Virtuale e dopo **non è più modificabile** — non toccarlo "di prova" prima del momento giusto.
 4. Gap di modello dichiarato non bloccante per 18-24: gli "item su contenuti associati" (stili, artisti, eventi storici non legati a un oggetto fisico specifico) non sono modellati — solo `Artwork` (oggetti fisici) ha `ArtworkItem` associati.
 5. Estensioni 18-27 (sync/insegnante) e 18-33 (geo/QR + LLM) **non in scope** per questo progetto (target dichiarato: 18-24) — vedi `docs/knowledge-base.md` §4 per i requisiti esatti se lo scope dovesse cambiare.
