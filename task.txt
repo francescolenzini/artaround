@@ -9,5 +9,10 @@ DELEGATI
 TODO
 1- Le icone avatar vanno mostrate nell'Editor?
 2- La mappa dove si inserisce nell'Editor? B
-3- Da esporre la durata stimata della visita nel Navigator.
-4- Le note logistiche sono violazioni di design. Da rimuovere. Al loro posto forse degli extra? Far valutare a Claude.
+3- Nella pagina di riepilogo visita troviamo "logistica", ma non "tappa" e "transizione". Cambiare anche colori.
+4- Cambiare note logistiche.
+5- Aggiustare pulsanti prossimo/precedente.
+6- Nota "parla" da sostituire con qualcosa del tipo "chiedi a voce".
+7- Le pill logistiche devono entrare in una riga senza scorrimento. I comandi vanno accorpati a due a due.
+8- Icona user con menù agganciato da tenere nell'header ovunque.
+10- Il "tocca per mettere in pausa" lagga. Legge almeno un'altra parola prima di fermarsi. Inoltre non ha più l'opzione di stop (il reset). Da rimettere e aggiustare il layout di conseguenza.
