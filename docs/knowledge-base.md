@@ -2,6 +2,7 @@
 
 > Riassunto delle specifiche del docente, stato di avanzamento e gap aperti.
 > Per l'architettura tecnica (as-built) vedi `ARCHITECTURE.md`.
+> Aggiornato il 2026-07-27: chiusi i task delegati (§5h). Gestione errori rifatta in entrambi i frontend (niente più JSON grezzo a schermo); mappa con zoom/pan via `lib/useMapZoomPan.ts`; chip logistici con icona accanto all'etichetta; "Apri Editor" limitato ai ruoli che possono entrarci; `app/public` ora servito davvero dal backend. **Direttiva PWA scartata** con motivazione, vedi §5h.
 > Aggiornato il 2026-07-26: separati i **due assi di adattamento dell'item** — registro linguistico e durata (§5g). `VisitStep.itemsByRegister` → `itemIds`; "dimmi di più" e "troppo semplice" non sono più sinonimi. Seed portato a 56 item con griglia registro × durata sulle opere vetrina.
 > Aggiornato il 2026-07-25: implementato l'handoff "Galleria Bianca" (§5f) — sistema di navigazione contestuale, microfono come gesto primario, mappa come overlay globale. Chiuso il bug di overlap dei pin mappa.
 > Aggiornato il 2026-07-18: riallineati `CLAUDE.md`, `docs/ARCHITECTURE.md` e `docs/architecture.puml` allo stato reale — erano rimasti disallineati a livelli diversi (`CLAUDE.md` dichiarava ancora i due frontend "da creare"; `ARCHITECTURE.md` descriveva nel Navigator un gap già chiuso dal redesign UI del 2026-07-03; `architecture.puml` mostrava Navigator e Editor come "pianificati"). Nessun cambiamento funzionale al codice, solo documentazione. Questo file (`knowledge-base.md`) era già quello aggiornato correttamente ed è stato usato come riferimento per correggere gli altri tre.
@@ -253,6 +254,40 @@ Le slide del docente sono esplicite sul punto: un item è caratterizzato "almeno
 - `GET /artwork-items` ora forza `status: 'published'` per il ruolo `visitor`, come già fa `/visits`. Prima il player chiedeva un id alla volta, già scelto dall'autore; ora carica in blocco tutte le varianti della tappa, quindi una bozza potrebbe arrivare al visitatore. `status` è anche fra gli `ignoreFilterFields` per quel ruolo, altrimenti un `?status=draft` esplicito scavalcherebbe il `baseFilter` (paginateQuery applica i query param **dopo**).
 - Il catalogo del visit builder scorre le pagine invece di chiedere `pageSize: 200`: il backend taglia a 100 senza segnalarlo, e con 56 item il margine si era dimezzato.
 - `services/backend/app/src/scripts/migrate-visit-items.js` (`npm run migrate:visit-items`), one-shot e idempotente, converte le visite scritte a mano che un re-seed non ricrea.
+
+---
+
+## 5h. Chiusura dei task delegati (2026-07-27)
+
+Cinque task erano stati delegati in parallelo (`task.txt`). Riepilogo di come sono stati chiusi, con le decisioni che vale la pena ricordare.
+
+**Gestione errori — fatto.** `apiFetch` del Navigator lanciava `Error("401: {\"error\":{...}}")`: il body del backend finiva tale e quale sotto gli occhi del visitatore. Aggiunti `ApiError`, `friendlyMessage(status)`, `readError`, `getErrorMessage` in `lib/api.ts`; gli errori di rete diventano status 0 invece di propagare il `TypeError` di `fetch`. Il login sovrascrive i testi generici dove sarebbero fuorvianti ("sessione scaduta" non ha senso quando la sessione non è mai iniziata).
+
+Stessa logica nell'Editor (`app/api.js`), con una **differenza deliberata**: là i 4xx conservano il messaggio del backend, perché chi compila un form deve sapere quale campo non va; i 5xx no. Il motivo per cui i 5xx vanno resi generici lato client è che `middleware/errorHandler.js` **non li sanitizza**: un errore Mongoose non gestito arriverebbe a schermo con il suo dettaglio interno. Se un domani si sanitizza lato server, questo ripiego si può togliere.
+
+**Back alla panoramica visita — già coperto.** Il `BackLink` del player va a `/visit/$visitId` con etichetta "Torna alla visita" e ferma il TTS. Un tasto Home separato sarebbe stato un quarto modo di tornare indietro fuori dalle tre regole di §5f: scartato.
+
+**Pill → icone — fatto come icona + testo.** I cinque chip logistici del player hanno ora il pittogramma **accanto** all'etichetta, non al posto. `BackLink` e `MapPill` restano invariati: l'indietro deve nominare la destinazione a schermo, non solo in `aria-label`, altrimenti chi vede lo schermo non sa dove sta tornando prima di toccare. Qui si usa `lucide-react` (già in dipendenza) invece dei glifi disegnati a mano tipo `MicGlyph`/`MapGlyph`: cinque pittogrammi distinti non si rendono decentemente con i soli bordi CSS.
+
+**Imagearea per la mappa — fatto.** `lib/useMapZoomPan.ts`: pan a un dito, pinch a due attorno al punto medio, doppio-tap, rotellina, più i bottoni +/−/adatta come equivalente per chi non usa i gesti. Solo Pointer Events, nessuna dipendenza.
+
+Due dettagli che rendono la cosa corretta e che è facile sbagliare rifacendola:
+- Immagine e pin stanno **nello stesso stage** trasformato (`translate() scale()`, origine `0 0`). I pin sono posizionati in percentuale dentro lo stage, quindi restano allineati alla pianta a ogni zoom senza ricalcoli.
+- Il counter-scale `1/scale` del pin va messo **prima** delle traslazioni: così anche il centraggio e l'offset anti-sovrapposizione restano in pixel di schermo invece di crescere con la pianta. Lo spread resta quello in pixel di `layoutPins` — in percentuale della mappa dipenderebbe dalla larghezza dell'immagine, che è il bug già chiuso a suo tempo.
+
+L'hook vive in `lib/` e non nella route perché `MapView` è condivisa fra `/map/$visitId` e `/map`: la pianta senza visita eredita lo stesso comportamento.
+
+**Direttiva PWA — non accolta.** Motivazione, perché la decisione non venga rifatta a caso:
+- **Non è un requisito.** "PWA", "service worker", "manifest", "installabile", "offline" non compaiono né nelle specifiche né nelle FAQ del docente, e la base 18-24 (§4) non la include.
+- **Il beneficio non è garantito**: l'installabilità richiede un contesto sicuro (HTTPS o `localhost`). Se i container del dipartimento espongono HTTP semplice, il service worker non si registra e `beforeinstallprompt` non scatta mai — in sede di valutazione la feature resterebbe invisibile.
+- **Nessun vantaggio offline** da un service worker che fa solo pass-through senza cache, che è il minimo per l'installabilità.
+- Introdurre a ridosso della consegna una tecnologia non richiesta è rischio senza ritorno certo.
+
+Da riconsiderare **dopo** la consegna se il deploy risulterà in HTTPS e si vorrà il supporto offline vero — che avrebbe senso, visto che la visita avviene sempre in presenza e la connettività dentro un museo è quello che è.
+
+**Fuori dai cinque task, emersi strada facendo:**
+- `Nav.tsx` — "Apri Editor" era legato alla sola presenza di `marketplaceUrl` in configurazione, quindi un `visitor` vedeva una voce che l'Editor rifiuta con 403. Ora allowlist su `super_admin`/`author`.
+- `backend/app/src/app.js` — il README dichiarava in due punti che `app/public` è servito da `express.static` e che `/up.html` è la pagina di stato, ma il middleware non c'era mai stato: rispondeva 404. Montato prima del `requestLogger`, così gli asset non sporcano i log. Serve in fase di deploy: `/health` risponde JSON e `/docs` sta dietro Basic Auth, questa è l'unica verifica leggibile a colpo d'occhio dal browser.
 
 ---
 
