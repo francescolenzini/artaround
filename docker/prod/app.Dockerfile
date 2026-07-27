@@ -41,7 +41,11 @@ RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit
 COPY app/server.js ./
 
 # --- Backend: solo dipendenze di produzione + sorgente (invariato) ---
-COPY services/backend/app/package*.json ./backend/
+# Il manifest del backend sta nella RADICE del submodule, non in app/: dentro
+# app/ ci sono solo server.js, src/ e public/. Puntare ad app/package*.json fa
+# sì che la COPY non trovi nulla, la cartella ./backend/ non venga creata e il
+# passo successivo fallisca con "can't cd to backend".
+COPY services/backend/package*.json ./backend/
 RUN cd backend && (if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi)
 COPY services/backend/app/ ./backend/
 

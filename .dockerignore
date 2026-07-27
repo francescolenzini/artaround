@@ -25,5 +25,9 @@ services/backend/tests
 **/.env
 **/.env.*
 !**/.env.example
-services/editor/serve.config.json
-services/navigator/navigator/public/api.config.json
+services/editor/app/serve.config.json
+# Il segreto del Navigator sta in services/navigator/app/public/: il path
+# precedente (services/navigator/navigator/...) non esisteva, quindi Vite lo
+# copiava in dist/ e la chiave finiva in un layer dell'immagine. A runtime
+# server.js lo rigenera comunque con apiKey vuota (ensureNavigatorConfig).
+services/navigator/app/public/api.config.json
