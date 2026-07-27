@@ -27,7 +27,10 @@
 #       http://localhost:${APP_PORT:-8080}/docs
 # =============================================================================
 
-name: artaround
+# Progetto Docker distinto da quello di sviluppo (vedi docker-compose.dev.yml):
+# nomi separati = volumi separati, quindi i dati di staging non finiscono mai
+# nel Mongo di sviluppo e viceversa.
+name: artaround-prod
 
 services:
   app:

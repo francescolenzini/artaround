@@ -22,7 +22,10 @@
 #   Editor     : http://localhost:5174
 # =============================================================================
 
-name: artaround
+# Progetto Docker distinto da quello di produzione: con lo stesso nome i due
+# compose si contendono container e volumi, e un `down --remove-orphans`
+# sull'uno rimuove i container dell'altro, che considera estranei al file.
+name: artaround-dev
 
 services:
   mongo:
