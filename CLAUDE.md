@@ -108,7 +108,8 @@ commit. Dopo un clone: `git submodule update --init --recursive`. I file legacy 
 - **Modelli Mongoose**: tutti usano `versionKey: false` e `timestamps: true`. Segui lo stesso pattern per nuovi modelli.
 - **ID/riferimenti tra entità**: mai `ObjectId`/`populate`. Le relazioni (`museumId`, `artworkId`, `authorId`...) sono stringhe che puntano al campo `id` custom di un'altra collezione; risolvile con query manuali (`Model.find({...}).select('id')` poi `{$in: [...]}`), come già fanno tutte le route esistenti.
 - **Navigator — navigazione**: niente tab bar. Tre regole non negoziabili, implementate in `components/Nav.tsx` (dettaglio in `docs/knowledge-base.md` §5f): indietro **solo** in alto a sinistra con etichetta che nomina la destinazione (`BackLink`); mappa come overlay globale (`MapPill`, chiusura con `history.back()` ed etichetta dal search param `from`); account come popover sulle iniziali nell'header (`AccountMenu`), mai una route. Se aggiungi una schermata, riusa questi tre componenti invece di inventare un altro modo di tornare indietro.
-- **Navigator (React)**: stato globale e bootstrap (config esterna, auth, risoluzione museo) vivono **solo** in `AppContext.tsx` — non duplicare fetch di config/auth in una route. Le route sotto `src/routes/` sono file-based (TanStack Router); il player usa `content.screenText` per lo schermo e `content.ttsText` per la sintesi vocale, sono testi diversi, non riusare l'uno per l'altro. TTS/STT sono Web Speech API native (`src/lib/speech.ts`) — non aggiungere librerie esterne per quello che il browser già offre gratis. I comandi vocali sono un vocabolario controllato per matching di sottostringa (non NLP): ogni nuovo comando vocale va aggiunto sia all'handler sia come chip/bottone equivalente nella UI (parità comando vocale ↔ bottone è un requisito del docente, non opzionale).
+- **Navigator (React)**: stato globale e bootstrap (config esterna, auth, risoluzione museo) vivono **solo** in `AppContext.tsx` — non duplicare fetch di config/auth in una route. Le route sotto `src/routes/` sono file-based (TanStack Router); il player usa `content.screenText` per lo schermo e `content.ttsText` per la sintesi vocale, sono testi diversi, non riusare l'uno per l'altro. TTS/STT sono Web Speech API native (`src/lib/speech.ts`) — non aggiungere librerie esterne per quello che il browser già offre gratis. I comandi vocali sono un vocabolario controllato per matching di sottostringa (non NLP): ogni nuovo comando vocale va aggiunto sia all'handler sia come chip/bottone equivalente nella UI (parità comando vocale ↔ bottone è un requisito del docente, non opzionale). Il matching è first-match-wins su sottostringa, quindi **l'ordine dei rami in `handleVoice` conta**: `"troppo semplice"` va prima di `"più semplice"`, che altrimenti lo intercetta.
+- **Navigator — i due assi dell'item**: un item varia su **due** dimensioni indipendenti, registro linguistico e durata (`classification.languageRegister` / `classification.fruitionLength`). `"troppo semplice"`/`"non capisco"` muovono il registro, `"dimmi di più"`/`"dimmi di meno"` la durata: non sono sinonimi e non devono ridiventarlo. Tutta la selezione della variante vive in **`src/lib/itemVariants.ts`** (`buildGrid`/`resolveVariant`/`neighbour`, modulo puro con test in `itemVariants.test.ts`, `npm test`) — una route non deve mai scegliere un item da sé. `VisitStep.itemIds` è una lista piatta: registro e durata si leggono dagli item, non dallo step, e non vanno duplicati lì. Dettaglio e razionale in `docs/knowledge-base.md` §5g.
 - **Editor (vanilla JS)**: niente framework SPA, niente build step — riusa `buildForm()` (form dichiarativo da array di campi) e `renderTable()` (`components/modal.js`, `components/table.js`) invece di scrivere HTML a mano per nuove pagine CRUD. Le guardie di ruolo/museo nel router (`app.js`) sono solo UX: non fidarti di quelle per la sicurezza, la fonte di verità è sempre il backend. La API key non deve mai comparire nel codice client-side: la inietta `serve.js` lato proxy.
 
 ## Comandi utili
@@ -133,12 +134,16 @@ npm run test:unit          # solo tests/unit
 npm run test:integration   # solo tests/integration
 npm run apikey -- generate --name=dev-key --createdBy=usr-1
 
+# Migrazione one-shot delle visite scritte a mano (itemsByRegister -> itemIds)
+npm run migrate:visit-items
+
 # --- Navigator standalone (richiede il backend attivo) ---
 cd services/navigator/app
 # crea public/api.config.json e public/museum.config.json (non versionati) con
 # {apiKey, baseUrl} e {museumSlug: "galleria-degli-uffizi", ...} — apiKey stampata da `npm run seed`
 npm install
 npm run dev                # Vite dev server, http://localhost:5173
+npm test                   # vitest run (moduli puri: lib/itemVariants.ts)
 
 # --- Editor standalone (richiede il backend attivo) ---
 cd services/editor/app

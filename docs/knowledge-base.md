@@ -2,6 +2,7 @@
 
 > Riassunto delle specifiche del docente, stato di avanzamento e gap aperti.
 > Per l'architettura tecnica (as-built) vedi `ARCHITECTURE.md`.
+> Aggiornato il 2026-07-26: separati i **due assi di adattamento dell'item** — registro linguistico e durata (§5g). `VisitStep.itemsByRegister` → `itemIds`; "dimmi di più" e "troppo semplice" non sono più sinonimi. Seed portato a 56 item con griglia registro × durata sulle opere vetrina.
 > Aggiornato il 2026-07-25: implementato l'handoff "Galleria Bianca" (§5f) — sistema di navigazione contestuale, microfono come gesto primario, mappa come overlay globale. Chiuso il bug di overlap dei pin mappa.
 > Aggiornato il 2026-07-18: riallineati `CLAUDE.md`, `docs/ARCHITECTURE.md` e `docs/architecture.puml` allo stato reale — erano rimasti disallineati a livelli diversi (`CLAUDE.md` dichiarava ancora i due frontend "da creare"; `ARCHITECTURE.md` descriveva nel Navigator un gap già chiuso dal redesign UI del 2026-07-03; `architecture.puml` mostrava Navigator e Editor come "pianificati"). Nessun cambiamento funzionale al codice, solo documentazione. Questo file (`knowledge-base.md`) era già quello aggiornato correttamente ed è stato usato come riferimento per correggere gli altri tre.
 > Aggiornato il 2026-07-19: upload immagini implementato da zero (storage MongoDB, non filesystem — vedi §5d); form Editor corretti su una serie di problemi di usabilità (§5e); seed popolato con 12 immagini reali di pubblico dominio per le opere. Gap aperto emerso e annotato: nessun gating di acquisto reale dietro `isFree`/`price` (§2). Prossimi passi aggiornati (§10): Navigator non mostra ancora le immagini caricate, e le visite non hanno immagine di copertina.
@@ -32,10 +33,10 @@ Le specifiche del docente fissano un modello a due strutture dati, **prima** di 
 
 | Concetto spec | Implementazione | Note |
 |---|---|---|
-| Item | `ArtworkItem` | `classification.fruitionLength`, `classification.languageRegister`, `license`, `creatorId` coprono lunghezza/registro/autore/licenza richiesti |
+| Item | `ArtworkItem` | `classification.fruitionLength`, `classification.languageRegister`, `license`, `creatorId` coprono lunghezza/registro/autore/licenza richiesti. **Lunghezza e registro sono due assi indipendenti** e dal 2026-07-26 lo sono anche a runtime, non solo come metadati editoriali (§5g) |
 | Oggetto descritto dall'item | `Artwork` | Item e oggetto sono separati in due collezioni (`ArtworkItem.artworkId → Artwork.id`), coerente con "item multipli per lo stesso oggetto" |
 | Visit | `Visit` | `steps[]` = sequenza di tappe + logistica |
-| Item multipli per lo stesso oggetto nella visita | `VisitStep.itemsByRegister` | Mappa `{ registro → ArtworkItem.id }`, al massimo un item per registro per tappa (una tappa = un'opera); sostituisce il vecchio `itemId` singolo (2026-07-19). Il player Navigator cambia registro con "non capisco"/"troppo semplice" navigando la scala infantile→specialistico |
+| Item multipli per lo stesso oggetto nella visita | `VisitStep.itemIds` | Lista piatta delle varianti disponibili per la tappa (una tappa = un'opera). Registro e durata di ciascuna si leggono da `ArtworkItem.classification`, quindi non sono duplicati nello step e non possono divergere. Sostituisce `itemsByRegister` (2026-07-26), che essendo una mappa a chiavi fisse ammetteva **un solo item per registro** e rendeva la lunghezza inutilizzabile come dimensione di scelta. Vedi §5g |
 | Indicazioni logistiche tra item | `VisitStep.directionsFromPrevious` | Step di tipo `transition`/`logistics_intro` per le indicazioni non legate a un item specifico |
 | Posizione fisica dell'item nella visita | `VisitStep.mapCoords` | `{ x, y, floor }` — percentuali sull'immagine della mappa di piano (aggiunto 2026-06-30) |
 | Item su contenuti associati (stili, artisti, eventi) | **Non modellato** | `Artwork` rappresenta solo oggetti fisici del museo; non c'è un'entità per "contenuto associato" non legato a un oggetto specifico — **gap aperto, non bloccante per 18-24** |
@@ -99,7 +100,7 @@ Non in scope per questo progetto. Prevede QR code o geolocalizzazione per la loc
 ### Cosa esiste ed è solido
 
 - **Backend** Express/Mongoose completo: 6 entità di dominio + 2 infrastrutturali, auth dual-layer (API key + JWT), RBAC a tre ruoli `super_admin`/`author`/`visitor` (il `visitor` è di sola lettura — le scritture su musei/opere/item/visite passano dalla guardia unica `requireContentEditor` in `backend/src/middleware/auth.js`), multi-tenancy single-DB, paginazione server-side centralizzata, logging richieste con masking, Swagger protetto da Basic Auth, suite di test (unit + integration) con mongodb-memory-server, script seed e CLI api-key.
-- **Seed conforme ai requisiti di consegna E idempotente** (`backend/src/scripts/seed.js`): museo reale Galleria degli Uffizi, 12 opere, 24 item (2 per opera: `elementare` 1min + `avanzato` 4min), 3 visite con 10-13 step ciascuna (tutte con `mapCoords` sugli step `main_item`), 5 utenti con credenziali corrette. Reso idempotente il 2026-06-30: il museo viene cercato per `slug: "galleria-degli-uffizi"` e riusato se esiste (upsert), così `npm run seed` può essere rieseguito quante volte serve senza generare un nuovo `museumId` casuale e senza duplicare entità a cascata (utenti, opere, item, visite).
+- **Seed conforme ai requisiti di consegna E idempotente** (`backend/src/scripts/seed.js`): museo reale Galleria degli Uffizi, 12 opere, **56 item** su griglia registro × durata (§5g: 2 per le opere minori, 8-10 per Venere/Primavera/Medusa/Giuditta), 3 visite con 10-13 step ciascuna (tutte con `mapCoords` sugli step `main_item`), 5 utenti con credenziali corrette. Reso idempotente il 2026-06-30: il museo viene cercato per `slug: "galleria-degli-uffizi"` e riusato se esiste (upsert), così `npm run seed` può essere rieseguito quante volte serve senza generare un nuovo `museumId` casuale e senza duplicare entità a cascata (utenti, opere, item, visite).
 - **Bug requestLogger fixato** (`backend/src/middleware/requestLogger.js`): `sanitizeOutput()` ora è avvolta in `safeSanitize()` con try/catch — un errore di logging non propaga più HTTP 500 sulle scritture.
 - **CORS abilitato** (`app.use(cors())` in `backend/src/app.js`) per consentire le chiamate dal Navigator/Editor in sviluppo locale (porte diverse = origin diverse per il browser).
 - **Editor completato** (`services/editor/app/`, vanilla JS + HTML + Tailwind CDN, zero framework SPA): dev server proxy Node (`serve.js`) su porta **5174**, client HTTP (`api.js`), router hash-based, CRUD completo su musei/opere/item/visite/utenti, visit builder a due colonne, guard per ruolo e museo. 43/43 check di integrazione passati.
@@ -181,12 +182,14 @@ Grafite #1A1A18, Muto #6E6E68, Vermiglio #D2452B (accento).
 Tipografia: Figtree (display) + Instrument Sans (testo).
 Elemento firma: indice numerico grande (tappa/sala reali).
 Layout: mobile-first ~390px, testo-primo, controlli ≥44px.
-Player: comandi vocali equivalenti in strip orizzontale scorrevole
-con indicatore di posizione, invece di grid statica.
+Player: comandi vocali secondari in una tendina richiudibile sopra la riga
+di navigazione (§5f), invece di un carosello sempre visibile.
 
 Implementazione: i token vivono in `services/navigator/app/src/styles.css` — palette brand come custom properties `--palette-*` (oklch, equivalenti esatti degli hex sopra) mappate sui token semantici shadcn/Tailwind (`--background`, `--primary`, ...). I componenti usano solo i token semantici: un tema alternativo (es. alto contrasto) si aggiunge ridefinendo le sole `--palette-*` in una classe tema, senza toccare i componenti.
 
 Neutri di supporto aggiunti con l'handoff (§5f), stessa logica: `--palette-whisper` #F7F5F0 (superficie tenue della barra player), `--palette-line` #E2E0D9 (bordo dei controlli, distinto dal riempimento "pietra" che coincide con `--border`), `--palette-faint` #9A9A92 (terzo livello di testo) → token semantici `--surface-muted`, `--line`, `--foreground-subtle` → utility `bg-surface-muted`, `border-line`, `text-foreground-subtle`.
+
+Velo e ombre degli overlay (aggiunti col redesign della tendina, §5f), derivati dalla grafite con `color-mix` invece di essere `rgba` hard-coded nei componenti: `--scrim` (grafite 32%) → `bg-scrim`, `--shadow-tint`/`--shadow-tint-strong` → `--shadow-sheet` (ombra verso l'alto, tendina dei comandi) e `--shadow-popover` (verso il basso, popover account e Modal) → utility `shadow-sheet`, `shadow-popover`. Il velo sta al 32% e non più basso perché sotto il ~25% risulta più chiaro della pietra dei controlli e non si legge come velo. Anche questi seguono da soli un tema alternativo, perché puntano a `--palette-graphite`.
 
 ---
 
@@ -201,7 +204,13 @@ Secondo livello dell'handoff di design (progetto Claude Design `80c56614-7914-43
 
 **Player** (`player.$visitId.$stepIndex.tsx`): shell ad altezza fissa (`h-[100dvh]`, scroll confinato al `<main>`) così microfono e comandi non finiscono mai sotto la piega. Il **microfono è il gesto primario**: cerchio da 68px fra Precedente e Prossimo, unico elemento pieno d'accento della schermata. In ascolto il racconto va in **pausa** (non stop) e riprende da solo se il comando non ha toccato l'audio; la barra player diventa grafite con "Sto ascoltando…", i comandi diventano una griglia di quelli davvero disponibili per la tappa, e un box mostra l'ultimo comando riconosciuto con il suo effetto.
 
-**Nuovo comando vocale**: "troppo complicato" (→ registro più semplice), presente sia nell'handler sia come chip, come richiede la parità comando vocale ↔ bottone.
+**Nuovo comando vocale**: "troppo complicato" (→ registro più semplice), presente sia nell'handler sia come chip, come richiede la parità comando vocale ↔ bottone. *(Aggiornato 2026-07-26, §5g: i chip sono ora quattro, uno per direzione di ciascun asse — "troppo complicato" resta come sinonimo vocale di "non capisco", non come sesto chip.)*
+
+**Tendina dei comandi secondari** (`components/CommandSheet.tsx`, 2026-07-26): i 6 comandi vocali/chip e il pannello "Info del museo" sono raccolti in un pannello richiudibile che emerge da dietro una maniglia etichettata ("Comandi e info del museo") appena sopra la riga Precedente/Microfono/Prossimo, invece di restare sempre espansi in un carosello a due alla volta *(dal 2026-07-26 sono quattro comandi di variante più autore/stile, raggruppati per asse in tre sezioni etichettate — §5g)*. Motivazione: il footer eccedeva lo spazio disponibile e tagliava silenziosamente contenuto (scroll nascosto), comprimendo il testo dell'opera che il design system dichiara protagonista. Deroga controllata a "Comandi sempre visibili e ampi · nessun menu nascosto" (`ArtAround Design System.pdf`, banda 3): restano sempre visibili i comandi **primari** (Ascolta/Pausa, Stop, Precedente, Microfono, Prossimo); solo i **secondari** (registro, autore/stile, logistica) finiscono nella tendina, dietro una maniglia etichettata a parole (non un glifo muto) — non è un menu nascosto, è una sezione dichiarata e richiudibile. La parità comando vocale ↔ bottone non è intaccata: `handleVoice` non dipende dalla visibilità dei chip. Comportamento: apre/chiude con tap o swipe sulla maniglia, con scrim e `Escape`; si chiude automaticamente quando si apre il microfono; un comando vocale **non riconosciuto** apre la tendina oltre al Toast (mostra il vocabolario nel momento in cui serve); i chip di registro eseguono e chiudono (l'esito va mostrato a schermo), i chip autore/stile/logistica eseguono e restano aperti (aprono un Modal, si può fare un'altra domanda). Stato persistito per sessione (`sessionStorage`, chiave `artaround.player.commandsOpen`), default chiuso.
+
+**Resa della tendina** (redesign 2026-07-26, secondo giro): il pannello è una fascia **a filo dei bordi della shell** con bordo superiore **squadrato**, staccata dal contenuto solo da un filo `border-line` e dall'ombra `shadow-sheet`. Un raggio lasciava due angoli trasparenti affacciati sul velo, che si leggevano come un difetto di rendering; il padding orizzontale è passato dal `<footer>` ai suoi figli, così la fascia non rientra più di 20px per lato. Il `<footer>` è `bg-card` e il suo filo superiore diventa trasparente a tendina aperta (colore condizionale, non presenza, per non spostare tutto di 1px): pannello → maniglia → riga di navigazione devono leggersi come **una sola superficie continua**, e senza fondo opaco il velo traspariva da sotto il footer. Il velo è `absolute inset-0` **dentro la shell** `max-w-md` (già `overflow-hidden`) e non `fixed` sul viewport — su schermi larghi oscurava anche le bande fuori dalla colonna del telefono, ed era questo a farlo sembrare artificiale; `CommandSheet` lo monta lì con un portale (prop `scrimContainer`) per tenere dentro un solo componente tutta la logica di chiusura. Stesso velo (`bg-scrim` + `backdrop-blur-[3px]`) per popover account e Modal: aperto dalla tendina il Modal ci si sovrappone, e i due veli sommandosi danno la profondità dove il nero pieno di prima faceva uno stacco brusco a metà del gesto.
+
+**Comandi non disponibili**: distinti per **superficie** e non sbiadendo l'etichetta — disponibile = pieno `bg-secondary` con testo grafite semibold, non disponibile = solo contorno (`bg-card` + `border-line`) con testo `text-muted-foreground` (5.2:1, AA). L'etichetta resta pienamente leggibile perché insegnare il vocabolario vocale è metà del senso della tendina, anche quando il comando ora non si applica. Soprattutto: non sono più `disabled` ma `aria-disabled`, e **restano tappabili**. `disabled` bloccava `onClick` e con esso il Toast esplicativo che `goToRegister`/`showAuthor`/`showStyle` emettono già da soli ("Non c'è una versione più semplice per questa tappa"), rendendolo raggiungibile **solo parlando**: una rottura della parità comando vocale ↔ bottone, dato che `handleVoice` non ha mai consultato lo stato del bottone. Al tocco di un comando non disponibile la tendina **resta aperta**, così il Toast si legge nel suo contesto. È la stessa logica delle pill logistica, già sempre tappabili anche quando il museo non ha quell'informazione.
 
 **Sessione**: `AppContext` ora persiste anche l'utente (`artaround_user` in `localStorage`), altrimenti nome e ruolo sparivano dal popover al primo reload pur restando valida la sessione. Il backend è stato esteso di conseguenza: `POST /auth/login` restituisce anche `fullName` (modifica additiva in `authRoutes.js`).
 
@@ -211,6 +220,39 @@ Secondo livello dell'handoff di design (progetto Claude Design `80c56614-7914-43
 - **Caret "▾" accanto al nome del museo**: rimosso. Suggerirebbe un selettore di museo che non esiste (il Navigator è mono-museo per configurazione).
 - **"Apri Editor" nel popover account**: i mockup mostrano solo "Esci", ma il link esisteva già nell'header della home e toglierlo avrebbe eliminato una funzionalità.
 - **Card visita**: lasciate come erano, su richiesta esplicita (i mockup proponevano thumbnail 62px e meta "N opere · M min").
+
+---
+
+## 5g. Due assi di adattamento: registro × durata (2026-07-26)
+
+**Il problema.** Nel player `"Dimmi di più"` e `"Troppo semplice"` facevano **la stessa identica cosa**, e così `"Dimmi di meno"` / `"Troppo complicato"`: sei chip per quattro azioni, di cui solo due distinte. Non era un difetto della UI ma del modello dati. `VisitStep.itemsByRegister` era una mappa a cinque chiavi fisse `registro → un solo item`: esisteva **una sola scala navigabile**, e i due comandi non avevano altro posto dove andare.
+
+Le slide del docente sono esplicite sul punto: un item è caratterizzato "almeno" da **lunghezza** (3s/15s/1min/4min) **e** da **linguaggio** (infantile/elementare/medio/specialistico), e le quattro slide-esempio "ArtAround : Item" sono letteralmente una **matrice tono × durata** sulla stessa opera. Il vocabolario dei comandi tiene le due coppie separate, e l'estensione 18-33 parla di creare item "di livello **o** linguaggio non disponibili" — di nuovo due cose.
+
+`classification.fruitionLength` esisteva già nel modello, l'Editor lo raccoglieva, e **nessuno lo usava per scegliere un contenuto**. Il seed rendeva la cosa invisibile perché lunghezza e registro erano correlati 1:1 (`elementare`=1min, `avanzato`=4min): erano la stessa variabile travestita da due.
+
+**La soluzione.**
+
+- `VisitStep.itemsByRegister` → `VisitStep.itemIds`, lista piatta. Registro e durata di ogni variante si leggono dall'item, non dalla chiave dello step: un dato solo, in un posto solo.
+- L'**asse registro** resta la scala ordinale fissa dell'enum. L'**asse durata** non ha scala predefinita: i gradini sono i minuti che l'autore ha davvero caricato per quella tappa. Nessuna soglia "breve/medio/lungo" hard-coded — una tappa con 1/2/4 min ha tre gradini, una con 1 e 4 ne ha due.
+- Tutta la selezione vive in `services/navigator/app/src/lib/itemVariants.ts` (modulo puro, 25 test in `itemVariants.test.ts`): `buildGrid`, `resolveVariant`, `neighbour`. Il player si limita a chiedere "spostati di uno su questo asse".
+
+**I due assi non sono simmetrici, ed è deliberato:**
+
+- Sul **registro** il gradino va sempre onorato — è "chi sono io". Se il registro di destinazione non ha la durata corrente si prende la sua più vicina: meglio un racconto un po' più lungo del previsto che un rifiuto.
+- Sulla **durata** si resta dentro lo stesso registro. Rispondere a "dimmi di più" con un testo specialistico sarebbe esattamente la confusione fra i due assi che la feature esiste per togliere: se non c'è una versione più lunga in quel registro, la risposta corretta è "non c'è". Il Toast lo dice nominando l'asse e suggerendo l'altro comando (*"In registro Avanzato non c'è una versione più lunga — prova «troppo semplice»"*), perché è il momento in cui l'utente sta imparando che gli assi sono due.
+
+**Riscontro a schermo.** Sotto il titolo dell'opera una riga sempre visibile mostra la posizione sui due assi (`Racconto: Medio · Durata: ≈2 min · 10 versioni disponibili`), con le stesse due etichette dei gruppi di comandi nella tendina. Senza, i due comandi cambierebbero entrambi il testo e resterebbe all'utente indovinare cosa sia successo. La preferenza `{registro, durata}` è persistita in `sessionStorage` (prima il registro si perdeva a ogni reload).
+
+**Griglia irregolare per scelta.** Regola editoriale del seed sulle 4 opere vetrina: elementare e medio coprono 1/2/4 min, avanzato 2/4 min, infantile solo 1min e specialistico solo 4min — nessun autore scrive una scheda specialistica lampo né un racconto per bambini di quattro minuti. Le altre 8 opere restano a due varianti. Il ripiego alla cella più vicina è quindi il caso **normale**, non la gestione di un errore. Seed: **56 item** (erano 37).
+
+**Editor.** Il visit builder mostra la stessa griglia che il player naviga: una riga per registro, un chip per durata, in grigio i registri con una sola durata (lì "dimmi di più" non avrà risposta). Cade il vincolo "un item per registro": l'unico conflitto reale è la cella già occupata — stesso registro **e** stessa durata — e lì `chooseItemWithPreview` fa scegliere quale versione tenere, che è il suo nuovo scopo.
+
+**Modifiche collaterali, fatte perché la feature le rendeva rilevanti:**
+
+- `GET /artwork-items` ora forza `status: 'published'` per il ruolo `visitor`, come già fa `/visits`. Prima il player chiedeva un id alla volta, già scelto dall'autore; ora carica in blocco tutte le varianti della tappa, quindi una bozza potrebbe arrivare al visitatore. `status` è anche fra gli `ignoreFilterFields` per quel ruolo, altrimenti un `?status=draft` esplicito scavalcherebbe il `baseFilter` (paginateQuery applica i query param **dopo**).
+- Il catalogo del visit builder scorre le pagine invece di chiedere `pageSize: 200`: il backend taglia a 100 senza segnalarlo, e con 56 item il margine si era dimezzato.
+- `services/backend/app/src/scripts/migrate-visit-items.js` (`npm run migrate:visit-items`), one-shot e idempotente, converte le visite scritte a mano che un re-seed non ricrea.
 
 ---
 
@@ -248,7 +290,7 @@ Sessione di correzioni sul componente condiviso `buildForm` (`components/modal.j
 
 Dalla sezione "Requisiti di progetto" e "La consegna" delle slide:
 
-- [x] Database già popolato al momento della presentazione, con un **museo reale** (Galleria degli Uffizi) e contenuti non superficiali (12 opere con immagine, 24 item, testi generati con LLM)
+- [x] Database già popolato al momento della presentazione, con un **museo reale** (Galleria degli Uffizi) e contenuti non superficiali (12 opere con immagine, 56 item su griglia registro × durata, testi generati con LLM)
 - [x] Account editor: `autore1`, `autore2`, `visitatore1`, `visitatore2` — password `12345678` per tutti; `admin` con stessa password
 - [x] Almeno **3 visite** sullo stesso museo, **≥10 opere ciascuna**, differenziate per contenuti/livello di conoscenza
 - [x] Navigator funzionante end-to-end (login, selezione visita, player con TTS e comandi vocali/bottoni, mappa multi-piano)

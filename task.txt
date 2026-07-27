@@ -4,15 +4,17 @@ DELEGATI
 - Direttiva PWA.
 - Trasformare le pill da testi a icone standard.
 - Considerare imagearea per mappa.
-- La descrizione testuale a schermo deve cambiare selezionando una delle opzioni.
+- [FATTO] La descrizione testuale a schermo deve cambiare selezionando una delle
+  opzioni. Chiuso con i due assi registro × durata: "dimmi di più" e "troppo
+  semplice" ora portano a testi diversi, e una riga sotto il titolo mostra su
+  quale variante ci si trova. Vedi docs/knowledge-base.md §5g.
 
 TODO
-1- Le icone avatar vanno mostrate nell'Editor?
+1- Le icone avatar vanno mostrate nell'Editor? B
 2- La mappa dove si inserisce nell'Editor? B
-3- Nella pagina di riepilogo visita troviamo "logistica", ma non "tappa" e "transizione". Cambiare anche colori.
-4- Cambiare note logistiche.
-5- Aggiustare pulsanti prossimo/precedente.
-6- Nota "parla" da sostituire con qualcosa del tipo "chiedi a voce".
-7- Le pill logistiche devono entrare in una riga senza scorrimento. I comandi vanno accorpati a due a due.
-8- Icona user con menù agganciato da tenere nell'header ovunque.
-10- Il "tocca per mettere in pausa" lagga. Legge almeno un'altra parola prima di fermarsi. Inoltre non ha più l'opzione di stop (il reset). Da rimettere e aggiustare il layout di conseguenza.
+12- Come vengono segnalati autore etc. Forse meglio a schermo nella textarea centrale. B
+19- Eliminazione utente? B
+20- Durata stimata visita dovrebbe essere calcolata a partire dagli item.
+21- Spacing freccetta Editor.
+22- Sala oltre a data nell'Editor (Artwork).
+23- Autore come primo campo sotto al titolo dell'Opera (Editor).
