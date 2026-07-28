@@ -34,12 +34,12 @@ Le specifiche del docente fissano un modello a due strutture dati, **prima** di 
 
 | Concetto spec | Implementazione | Note |
 |---|---|---|
-| Item | `ArtworkItem` | `classification.fruitionLength`, `classification.languageRegister`, `license`, `creatorId` coprono lunghezza/registro/autore/licenza richiesti. **Lunghezza e registro sono due assi indipendenti** e dal 2026-07-26 lo sono anche a runtime, non solo come metadati editoriali (§5g) |
-| Oggetto descritto dall'item | `Artwork` | Item e oggetto sono separati in due collezioni (`ArtworkItem.artworkId → Artwork.id`), coerente con "item multipli per lo stesso oggetto" |
+| Item | `ArtworkItem` | `classification.fruitionLength`, `classification.languageRegister`, `license`, `creatorId` coprono lunghezza/registro/autore/licenza richiesti. `creatorId` è immutabile, viene risolto come autore solo nell'Editor e non è esposto al Navigator. **Lunghezza e registro sono due assi indipendenti** e dal 2026-07-26 lo sono anche a runtime, non solo come metadati editoriali (§5g) |
+| Oggetto descritto dall'item | `Artwork` | Item e oggetto sono separati in due collezioni (`ArtworkItem.artworkId → Artwork.id`), coerente con "item multipli per lo stesso oggetto". `Artwork.location` contiene sala/collocazione e punto percentuale della mappa |
 | Visit | `Visit` | `steps[]` = sequenza di tappe + logistica |
-| Item multipli per lo stesso oggetto nella visita | `VisitStep.itemIds` | Lista piatta delle varianti disponibili per la tappa (una tappa = un'opera). Registro e durata di ciascuna si leggono da `ArtworkItem.classification`, quindi non sono duplicati nello step e non possono divergere. Sostituisce `itemsByRegister` (2026-07-26), che essendo una mappa a chiavi fisse ammetteva **un solo item per registro** e rendeva la lunghezza inutilizzabile come dimensione di scelta. Vedi §5g |
+| Item multipli per lo stesso oggetto nella visita | `VisitStep.artworkId` + `itemIds` | La tappa riferisce esplicitamente l'opera e la lista piatta delle sue varianti. Registro e durata si leggono da `ArtworkItem.classification`, quindi non sono duplicati nello step e non possono divergere. |
 | Indicazioni logistiche tra item | `VisitStep.directionsFromPrevious` | Step di tipo `transition`/`logistics_intro` per le indicazioni non legate a un item specifico |
-| Posizione fisica dell'item nella visita | `VisitStep.mapCoords` | `{ x, y, floor }` — percentuali sull'immagine della mappa di piano (aggiunto 2026-06-30) |
+| Posizione fisica dell'opera | `Artwork.location` | `{ label, floor, x, y }`: fonte unica della sala e del pin. `GET /visits/:id` restituisce `mapLocation` derivata, senza duplicarla nella tappa. |
 | Item su contenuti associati (stili, artisti, eventi) | **Non modellato** | `Artwork` rappresenta solo oggetti fisici del museo; non c'è un'entità per "contenuto associato" non legato a un oggetto specifico — **gap aperto, non bloccante per 18-24** |
 | Pubblicazione: licenza/prezzo/adozioni/vendite | **Parzialmente modellato** | `isFree`/`price`/`license` esistono come metadati editoriali su `ArtworkItem`, ma non c'è alcun gating applicativo: le route backend li usano solo per ordinamento/filtro, non per limitare l'accesso al contenuto. Qualunque visitatore autenticato legge integralmente anche i contenuti "a pagamento" — **gap aperto, non bloccante per 18-24** (prezzo/licenza restano validi come dato editoriale in vetrina) |
 
@@ -101,7 +101,7 @@ Non in scope per questo progetto. Prevede QR code o geolocalizzazione per la loc
 ### Cosa esiste ed è solido
 
 - **Backend** Express/Mongoose completo: 6 entità di dominio + 2 infrastrutturali, auth dual-layer (API key + JWT), RBAC a tre ruoli `super_admin`/`author`/`visitor` (il `visitor` è di sola lettura — le scritture su musei/opere/item/visite passano dalla guardia unica `requireContentEditor` in `backend/src/middleware/auth.js`), multi-tenancy single-DB, paginazione server-side centralizzata, logging richieste con masking, Swagger protetto da Basic Auth, suite di test (unit + integration) con mongodb-memory-server, script seed e CLI api-key.
-- **Seed conforme ai requisiti di consegna E idempotente** (`backend/src/scripts/seed.js`): museo reale Galleria degli Uffizi, 12 opere, **56 item** su griglia registro × durata (§5g: 2 per le opere minori, 8-10 per Venere/Primavera/Medusa/Giuditta), 3 visite con 10-13 step ciascuna (tutte con `mapCoords` sugli step `main_item`), 5 utenti con credenziali corrette. Reso idempotente il 2026-06-30: il museo viene cercato per `slug: "galleria-degli-uffizi"` e riusato se esiste (upsert), così `npm run seed` può essere rieseguito quante volte serve senza generare un nuovo `museumId` casuale e senza duplicare entità a cascata (utenti, opere, item, visite).
+- **Seed conforme ai requisiti di consegna E idempotente** (`backend/src/scripts/seed.js`): museo reale Galleria degli Uffizi, 12 opere con collocazione, **56 item** su griglia registro × durata (§5g: 2 per le opere minori, 8-10 per Venere/Primavera/Medusa/Giuditta), 3 visite con 10-13 step ciascuna (tutte le tappe-opera hanno `artworkId`), 5 utenti con credenziali corrette. Reso idempotente il 2026-06-30: il museo viene cercato per `slug: "galleria-degli-uffizi"` e riusato se esiste (upsert), così `npm run seed` può essere rieseguito quante volte serve senza generare un nuovo `museumId` casuale e senza duplicare entità a cascata (utenti, opere, item, visite).
 - **Bug requestLogger fixato** (`backend/src/middleware/requestLogger.js`): `sanitizeOutput()` ora è avvolta in `safeSanitize()` con try/catch — un errore di logging non propaga più HTTP 500 sulle scritture.
 - **CORS abilitato** (`app.use(cors())` in `backend/src/app.js`) per consentire le chiamate dal Navigator/Editor in sviluppo locale (porte diverse = origin diverse per il browser).
 - **Editor completato** (`services/editor/app/`, vanilla JS + HTML + Tailwind CDN, zero framework SPA): dev server proxy Node (`serve.js`) su porta **5174**, client HTTP (`api.js`), router hash-based, CRUD completo su musei/opere/item/visite/utenti, visit builder a due colonne, guard per ruolo e museo. 43/43 check di integrazione passati.
@@ -148,9 +148,9 @@ Email: `<username>@artaround.it`.
 
 **Risoluzione del museo — via slug, non ID statico**. `museum.config.json` usa `museumSlug` (non più `museumId`). Il Navigator risolve lo slug nell'ID reale del museo all'avvio chiamando `GET /museums?slug=...` in `AppContext.tsx`, prima di esporre il museo al resto dell'app (gate di bootstrap in `__root.tsx`). Questo rende il Navigator indipendente dall'ID fisico nel database, coerente col criterio di valutazione "generalità".
 
-**Mappa multi-piano con pin** (`map.$visitId.tsx`): `VisitStep` ha un campo opzionale `mapCoords: { x: number, y: number, floor: number }` (percentuali sull'immagine, 0-100). Convenzione interna: `floor: 1` = sale 1-45 ("Secondo piano" Uffizi nell'etichetta UI), `floor: 2` = sale 46-101 ("Primo piano" Uffizi) — numerazione non ovvia, nata da un disallineamento fra il criterio usato per i dati del seed e il naming dei file immagine (`uffizi-p1.png`/`uffizi-p2.png`); è documentata con commento esplicito nel codice per evitare regressioni. Le immagini di sfondo vivono in `services/navigator/app/public/maps/` (`uffizi-p1.png` = piano con sale 46-101, `uffizi-p2.png` = piano con sale 1-45 — i nomi file NON corrispondono numericamente al `floor` che mostrano, per via della stessa origine storica). Il componente mostra un selettore con due bottoni in ordine "Primo piano" / "Secondo piano" (ordine logico per l'utente, disaccoppiato dal valore grezzo di `floor` tramite una tabella esplicita `FLOORS` nel componente) e pin posizionati con CSS assoluto (`left: x%`, `top: y%`); il click su un pin apre una card con titolo opera e bottone per saltare a quello step nel player.
+**Mappa multi-piano con pin** (`MapView.tsx`): la posizione vive in `Artwork.location: { label, floor, x, y }` (percentuali 0-100). `VisitStep` contiene `artworkId` e `GET /visits/:id` restituisce la proiezione `mapLocation`; nessuna visita duplica più le coordinate. Convenzione interna: `floor: 1` = sale 1-45 ("Secondo piano" Uffizi nell'etichetta UI), `floor: 2` = sale 46-101 ("Primo piano" Uffizi). Le immagini di sfondo restano nella configurazione esterna del Navigator. Il componente mostra un selettore dei piani e pin CSS assoluti; il click su un pin apre una card con titolo, sala e bottone per saltare alla tappa nel player.
 
-**Coordinate mapCoords per sala** (misurate con click diretto sulle planimetrie ufficiali Uffizi gennaio 2026; più opere nella stessa sala condividono le stesse coordinate nel seed):
+**Coordinate location per sala** (misurate con click diretto sulle planimetrie ufficiali Uffizi gennaio 2026; più opere nella stessa sala condividono le stesse coordinate nel seed):
 
 | Sala | floor | x% | y% | Opere |
 |---|---|---|---|---|
@@ -216,7 +216,7 @@ Secondo livello dell'handoff di design (progetto Claude Design `80c56614-7914-43
 **Sessione**: `AppContext` ora persiste anche l'utente (`artaround_user` in `localStorage`), altrimenti nome e ruolo sparivano dal popover al primo reload pur restando valida la sessione. Il backend è stato esteso di conseguenza: `POST /auth/login` restituisce anche `fullName` (modifica additiva in `authRoutes.js`).
 
 **Scelte consapevoli diverse dai mockup**:
-- **Riga sala ("SALE 10–14")**: omessa. Non esiste un campo sala nel modello — `VisitStep` ha solo `mapCoords.floor`. Implementabile in futuro aggiungendo `room?: string` a `VisitStep` nel backend, il campo corrispondente nel `visitBuilder` dell'Editor e il valore nel seed; finché quel dato non c'è, inventarlo lato client sarebbe hard-coding su un museo specifico.
+- **Riga sala ("SALE 10–14")**: ora disponibile dalla `location.label` dell'opera e mostrata nella card del pin; resta volutamente fuori dal player, dove non aggiunge orientamento rispetto alla mappa.
 - **Timer audio ("02:14 / 03:40")**: non implementato. `speechSynthesis` non espone né durata né posizione dell'utterance: la barra mostra l'equalizzatore e lo stato, senza numeri inventati.
 - **Caret "▾" accanto al nome del museo**: rimosso. Suggerirebbe un selettore di museo che non esiste (il Navigator è mono-museo per configurazione).
 - **"Apri Editor" nel popover account**: i mockup mostrano solo "Esci", ma il link esisteva già nell'header della home e toglierlo avrebbe eliminato una funzionalità.
@@ -247,13 +247,27 @@ Le slide del docente sono esplicite sul punto: un item è caratterizzato "almeno
 
 **Griglia irregolare per scelta.** Regola editoriale del seed sulle 4 opere vetrina: elementare e medio coprono 1/2/4 min, avanzato 2/4 min, infantile solo 1min e specialistico solo 4min — nessun autore scrive una scheda specialistica lampo né un racconto per bambini di quattro minuti. Le altre 8 opere restano a due varianti. Il ripiego alla cella più vicina è quindi il caso **normale**, non la gestione di un errore. Seed: **56 item** (erano 37).
 
-**Editor.** Il visit builder mostra la stessa griglia che il player naviga: una riga per registro, un chip per durata, in grigio i registri con una sola durata (lì "dimmi di più" non avrà risposta). Cade il vincolo "un item per registro": l'unico conflitto reale è la cella già occupata — stesso registro **e** stessa durata — e lì `chooseItemWithPreview` fa scegliere quale versione tenere, che è il suo nuovo scopo.
+**Editor.** Cade il vincolo "un item per registro": l'unico conflitto reale è la cella già occupata — stesso registro **e** stessa durata — e lì `chooseItemWithPreview` fa scegliere quale versione tenere, che è il suo nuovo scopo. *(La resa nel builder è cambiata con §5i: la matrice registro × durata non esiste più, restano una lista raggruppata per registro e ordinata per durata e la modale dei contenuti.)*
 
 **Modifiche collaterali, fatte perché la feature le rendeva rilevanti:**
 
 - `GET /artwork-items` ora forza `status: 'published'` per il ruolo `visitor`, come già fa `/visits`. Prima il player chiedeva un id alla volta, già scelto dall'autore; ora carica in blocco tutte le varianti della tappa, quindi una bozza potrebbe arrivare al visitatore. `status` è anche fra gli `ignoreFilterFields` per quel ruolo, altrimenti un `?status=draft` esplicito scavalcherebbe il `baseFilter` (paginateQuery applica i query param **dopo**).
 - Il catalogo del visit builder scorre le pagine invece di chiedere `pageSize: 200`: il backend taglia a 100 senza segnalarlo, e con 56 item il margine si era dimezzato.
 - `services/backend/app/src/scripts/migrate-visit-items.js` (`npm run migrate:visit-items`), one-shot e idempotente, converte le visite scritte a mano che un re-seed non ricrea.
+
+---
+
+## 5i. Editor — redesign della "Sequenza della visita" (2026-07-28)
+
+Il Visit Builder segue ora il layout master–detail del riferimento "Galleria Bianca": la sequenza è a sinistra e il pannello di composizione degli item resta sempre visibile a destra. I due contenitori condividono la stessa riga CSS e quindi la stessa altezza anche quando una card viene espansa; sotto il breakpoint desktop si impilano solo come fallback.
+
+**Step come unità unica.** L'intera card è cliccabile e raggiungibile da tastiera; la selezione espande un solo step alla volta. Le tappe (`main_item`/`optional_item`) hanno indice, filo verticale e toggle Principale/Opzionale; logistica e transizione espongono titolo e descrizione WYSIWYG. Apertura e chiusura seed restano non eliminabili e ancorate ai bordi.
+
+**Aggiunta e ordinamento.** `Aggiungi step` offre Tappa, Logistica e Transizione. La tappa richiede prima la scelta dell'opera, nasce senza item e apre direttamente il composer; il salvataggio resta bloccato finché è vuota. Tutti gli step non protetti si riordinano sia dal campo posizione 1-based sia con drag-and-drop HTML5.
+
+**Composizione degli item.** La matrice registro × durata è stata eliminata. La card mostra una lista piatta ordinata per registro (`REGISTER_ORDER`) e durata crescente; il pannello destro espone ricerca full-text, filtri per registro/durata/stato, anteprima e selezione multipla. Gli item già assegnati o con una coppia registro+durata già occupata non sono selezionabili. Non vengono prodotti avvisi per registri mancanti: una copertura parziale è una scelta editoriale valida.
+
+**Invariante dei dati.** `components/variantSummary.js` centralizza ordinamento e chiave registro+durata. La UI impedisce nuovi conflitti e blocca il salvataggio di visite legacy incoerenti; `validateSteps()` nel backend applica lo stesso vincolo a POST e PUT, così due item distinti con uguale registro e durata non possono entrare nella stessa tappa da altri client. Il builder salva inoltre `artworkId` direttamente e usa la derivazione dagli item solo per compatibilità legacy.
 
 ---
 
@@ -381,5 +395,5 @@ Più: fino a 2 punti aggiuntivi a discrezione del docente per scelte creative e 
 1. ~~**Redesign UI Navigator**~~ → completato: token (2026-07-03, §5c) e sistema di navigazione dell'handoff (2026-07-25, §5f). Chiuso anche il fix overlap pin mappa.
 2. ~~**Navigator: immagini delle opere e copertine visita**~~ → fatto: la lista visite usa `Visit.coverImage` e il player la miniatura da `Artwork.assets[]`, entrambe risolte con `toAbsoluteUrl(baseUrl, …)`.
 3. **Deploy sui container del dipartimento** — priorità attiva. Include: scrivere il `marketplaceUrl` reale in `museum.config.json` (§5b); contattare i tecnici per le immagini Docker; adattare Navigator (build statica) e backend al setup reale.
-4. **Campo sala su `VisitStep`** (opzionale, migliora l'orientamento in sala) — `room?: string` nel modello backend + campo nel `visitBuilder` dell'Editor + valore nel seed; solo dopo si può mostrare la riga sala prevista dai mockup nel player e nella card mappa (§5f).
+4. ~~**Campo sala su `VisitStep`**~~ → risolto in modo più coerente: `Artwork.location.label` è la fonte unica della collocazione e viene proiettata nella card della mappa; non va duplicata nella visita (§5f).
 5. **`README.txt` di consegna** — da scrivere al momento della sottomissione su Virtuale, seguendo `docs/ReadmeTemplate2526-18-33.txt`, non più modificabile dopo l'invio.
