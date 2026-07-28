@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --palette-fondo:#FBFBF9;
+  --palette-superficie:#FFFFFF;
+  --palette-pietra:#ECEAE4;
+  --palette-grafite:#1A1A18;
+  --palette-muto:#6E6E68;
+  --palette-vermiglio:#D2452B;
+}
+body{margin:0;background:#f0eee9;font-family:'Instrument Sans',system-ui,sans-serif}
+a{color:#2a78d6;text-decoration:none}
+a:hover{color:#1a5aa8}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 'Instrument Sans',system-ui,sans-serif;color:#1a1a1a}
+.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 'Instrument Sans',system-ui,sans-serif;color:rgba(0,0,0,.55);max-width:900px}
+.dv-card{max-width:100%;background:var(--palette-superficie);border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.dv-opt:target .dv-oid{background:var(--palette-vermiglio);color:#fff}
+.dv-next{margin:22px 0 0;font:12px/1.5 'Instrument Sans',system-ui,sans-serif;color:rgba(0,0,0,.5)}
+
+/* Galleria Bianca — token applicati al mockup */
+.gb{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--palette-grafite)}
+.gb-display{font-family:'Figtree',system-ui,sans-serif;font-weight:700}
+.gb-muted{color:var(--palette-muto)}
+.gb-toggle{display:inline-flex;border:1.5px solid var(--palette-grafite);border-radius:8px;overflow:hidden;font-size:12px}
+.gb-toggle span{padding:4px 12px;cursor:pointer}
+.gb-toggle .on{background:var(--palette-grafite);color:#fff}
+.gb-toggle .off{color:var(--palette-muto)}
+.gb-btn-primary{border:2px solid var(--palette-vermiglio);border-radius:8px;background:var(--palette-vermiglio);color:#fff;font-family:inherit;cursor:pointer}
+.gb-btn-outline{border:2px solid var(--palette-vermiglio);border-radius:8px;background:#fff;color:var(--palette-vermiglio);font-family:inherit;cursor:pointer}
+.gb-btn-dark{border:1.5px solid var(--palette-grafite);border-radius:6px;background:var(--palette-grafite);color:#fff;font-family:inherit;cursor:pointer}
+.gb-chip{border:1.5px solid #d8d6d0;border-radius:9999px;padding:2px 10px;font-size:11px;color:var(--palette-muto)}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Sequenza della visita — Visit Builder, rifinito su "Galleria Bianca" (v2)</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+  <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Libreria agganciata — sequenza a sinistra, pannello di composizione sempre visibile a destra (allineamento a tutta colonna). Step come unità unica (logistica/transizione/tappa); tappa con toggle principale/opzionale; intera card cliccabile per aprire (freccia solo decorativa); drawer con empty state esplicito; collocazione richiamabile via modal.</div>
+  <div class="dv-card gb" style="width:700px">
+    <div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1.5px solid var(--palette-pietra);padding:14px 18px;background:var(--palette-fondo)">
+        <span class="gb-display" style="font-size:17px">Capolavori in un'ora <span class="gb-muted" style="font-weight:400;font-size:13px">· 60 min · 6 step</span></span>
+        <span style="display:flex;gap:8px;align-items:center">
+          <span class="gb-chip">bozza</span>
+          <span class="gb-btn-dark" style="padding:6px 16px;font-size:13px">Salva</span>
+        </span>
+      </div>
+
+      <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px">
+
+        <button type="button" class="gb-btn-outline" style="align-self:flex-start;display:flex;align-items:center;gap:8px;padding:10px 18px;font-size:14px">
+          <span style="font-size:18px;line-height:1">+</span><span style="font-weight:600;letter-spacing:.02em">AGGIUNGI STEP</span>
+        </button>
+
+        <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:stretch">
+
+          <div style="display:flex;flex-direction:column;gap:8px">
+
+            <div style="display:flex;align-items:center;gap:10px;border:1.5px solid var(--palette-pietra);border-radius:8px;padding:10px 12px;background:var(--palette-fondo);cursor:pointer">
+              <span style="width:22px;height:22px;border-radius:9999px;border:1.5px solid var(--palette-muto);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--palette-muto)">1</span>
+              <span style="flex:1;font-size:14px;color:var(--palette-muto)">Benvenuti alla Galleria Bianca</span>
+              <span class="gb-chip">logistica</span>
+            </div>
+
+            <div style="border:2px solid var(--palette-grafite);border-radius:8px;background:#fff;cursor:pointer">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1.5px solid var(--palette-pietra)">
+                <span style="width:22px;height:22px;border-radius:9999px;background:var(--palette-grafite);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px">2</span>
+                <span style="flex:1;font-size:15px">Ritratto di dama <span class="gb-muted" style="font-size:12px">· Bartolomeo Veneto</span></span>
+                <span class="gb-toggle" style="cursor:auto"><span class="on">principale</span><span class="off">opzionale</span></span>
+              </div>
+
+              <div style="padding:12px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;gap:6px;border:1.5px dashed #d8d6d0;border-radius:6px;padding:6px 8px">
+                  <span style="font-size:12px;color:var(--palette-muto)">titolo tappa →</span><span style="font-size:14px">La dama e il suo sguardo</span>
+                </div>
+
+                <div style="display:flex;align-items:baseline;justify-content:space-between">
+                  <span style="font-size:13px;color:var(--palette-muto)">ITEM IN TAPPA (5)</span>
+                  <span style="font-size:11px;color:var(--palette-muto)">ordinati per registro → durata</span>
+                </div>
+
+                <div style="border:1.5px solid var(--palette-pietra);border-radius:6px;overflow:hidden">
+                  <div style="display:grid;grid-template-columns:96px 62px 1fr 26px;gap:0;background:var(--palette-fondo);padding:5px 8px;font-size:11px;color:var(--palette-muto)">
+                    <span>REGISTRO</span><span>DURATA</span><span>TITOLO</span><span></span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:96px 62px 1fr 26px;padding:7px 8px;font-size:13px;border-top:1px solid var(--palette-pietra);align-items:center"><span>Infantile</span><span>2′</span><span style="color:#3a3a36">La signora dipinta</span><span style="color:var(--palette-muto);text-align:center">✕</span></div>
+                  <div style="display:grid;grid-template-columns:96px 62px 1fr 26px;padding:7px 8px;font-size:13px;border-top:1px solid var(--palette-pietra);align-items:center"><span>Elementare</span><span>2′</span><span style="color:#3a3a36">Chi era la dama</span><span style="color:var(--palette-muto);text-align:center">✕</span></div>
+                  <div style="display:grid;grid-template-columns:96px 62px 1fr 26px;padding:7px 8px;font-size:13px;border-top:1px solid var(--palette-pietra);align-items:center;background:var(--palette-fondo)"><span>Medio <span style="font-size:10px;border:1px solid var(--palette-grafite);border-radius:4px;padding:0 4px">start</span></span><span>2′</span><span style="color:#3a3a36">Ritratto e status</span><span style="color:var(--palette-muto);text-align:center">✕</span></div>
+                  <div style="display:grid;grid-template-columns:96px 62px 1fr 26px;padding:7px 8px;font-size:13px;border-top:1px solid var(--palette-pietra);align-items:center"><span>Medio</span><span>5′</span><span style="color:#3a3a36">Il gioiello e il gelsomino</span><span style="color:var(--palette-muto);text-align:center">✕</span></div>
+                  <div style="display:grid;grid-template-columns:96px 62px 1fr 26px;padding:7px 8px;font-size:13px;border-top:1px solid var(--palette-pietra);align-items:center"><span>Avanzato</span><span>9′</span><span style="color:#3a3a36">Fonti e attribuzione</span><span style="color:var(--palette-muto);text-align:center">✕</span></div>
+                </div>
+
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 12px">
+              <span style="width:22px;text-align:center;color:#c9c7c1">┆</span>
+              <span style="flex:1;border-top:1.5px dashed #d8d6d0"></span>
+              <span style="font-size:11px;color:var(--palette-muto)">transizione · verso sala 4</span>
+              <span style="flex:1;border-top:1.5px dashed #d8d6d0"></span>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;border:1.5px solid var(--palette-pietra);border-radius:8px;padding:10px 12px;background:var(--palette-fondo)">
+              <span style="width:22px;height:22px;border-radius:9999px;border:1.5px solid var(--palette-muto);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--palette-muto)">4</span>
+              <span style="flex:1;font-size:14px;color:var(--palette-muto)">Studio di panneggio</span>
+              <span class="gb-toggle" style="font-size:10px;cursor:auto"><span class="off" style="padding:2px 8px">principale</span><span class="off" style="padding:2px 8px">opzionale</span></span>
+              <span style="font-size:11px;color:var(--palette-vermiglio)">0 item</span>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;border:1.5px solid var(--palette-pietra);border-radius:8px;padding:10px 12px;background:var(--palette-fondo);cursor:pointer">
+              <span style="width:22px;height:22px;border-radius:9999px;border:1.5px solid var(--palette-muto);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--palette-muto)">5</span>
+              <span style="flex:1;font-size:14px;color:var(--palette-muto)">Natura morta con limoni</span>
+              <span class="gb-toggle" style="font-size:10px;cursor:auto"><span class="off" style="padding:2px 8px">principale</span><span class="on" style="padding:2px 8px">opzionale</span></span>
+              <span style="font-size:11px;color:var(--palette-muto)">4 item</span>
+            </div>
+          </div>
+
+          <div style="border:2px solid var(--palette-grafite);border-radius:8px;background:var(--palette-fondo);display:flex;flex-direction:column;gap:10px;padding:12px;height:100%;box-sizing:border-box">
+            <div style="display:flex;align-items:baseline;justify-content:space-between">
+              <span style="font-size:13px;font-weight:600">ITEM DELL'OPERA</span><span style="font-size:11px;color:var(--palette-muto)">step 2</span>
+            </div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:-4px">
+              <span style="font-size:12px;color:var(--palette-muto)">Ritratto di dama · sala 3</span>
+              <span style="font-size:11px;text-decoration:underline;color:var(--palette-muto);cursor:pointer">ⓘ dettagli opera</span>
+            </div>
+            <div style="border:1.5px solid var(--palette-grafite);border-radius:6px;background:#fff;padding:6px 8px;font-size:13px;color:var(--palette-muto)">🔍 cerca titolo, tag…</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">
+              <span class="gb-chip">registro ▾</span>
+              <span class="gb-chip">durata ▾</span>
+              <span class="gb-chip">tag ▾</span>
+            </div>
+            <div style="font-size:11px;color:var(--palette-muto);border-top:1px dashed #d8d6d0;padding-top:6px">— Specialistico —</div>
+            <div style="display:flex;gap:6px;align-items:flex-start;border:1.5px solid var(--palette-grafite);border-radius:6px;background:#fff;padding:6px"><span style="width:14px;height:14px;border:1.5px solid var(--palette-grafite);border-radius:3px;background:var(--palette-grafite);color:#fff;font-size:10px;text-align:center;line-height:12px">✓</span><span style="flex:1"><span style="display:block;font-size:13px">Iconografia del gelsomino</span><span style="display:block;font-size:11px;color:var(--palette-muto)">9′ · pubblicato</span></span></div>
+            <div style="display:flex;gap:6px;align-items:flex-start;border:1.5px solid #d8d6d0;border-radius:6px;background:#fff;padding:6px"><span style="width:14px;height:14px;border:1.5px solid var(--palette-muto);border-radius:3px"></span><span style="flex:1"><span style="display:block;font-size:13px;color:#3a3a36">Restauro 1994</span><span style="display:block;font-size:11px;color:var(--palette-muto)">14′ · bozza</span></span></div>
+            <div style="font-size:11px;color:var(--palette-muto);border-top:1px dashed #d8d6d0;padding-top:6px">— Avanzato —</div>
+            <div style="display:flex;gap:6px;align-items:flex-start;border:1.5px solid var(--palette-grafite);border-radius:6px;background:#fff;padding:6px"><span style="width:14px;height:14px;border:1.5px solid var(--palette-grafite);border-radius:3px;background:var(--palette-grafite);color:#fff;font-size:10px;text-align:center;line-height:12px">✓</span><span style="flex:1"><span style="display:block;font-size:13px">Il pigmento e la luce</span><span style="display:block;font-size:11px;color:var(--palette-muto)">5′ · pubblicato</span></span></div>
+            <div style="display:flex;gap:6px;align-items:flex-start;border:1.5px solid #d8d6d0;border-radius:6px;background:#fff;padding:6px;opacity:.55"><span style="width:14px;height:14px;border:1.5px solid var(--palette-muto);border-radius:3px"></span><span style="flex:1"><span style="display:block;font-size:13px">Fonti e attribuzione</span><span style="display:block;font-size:11px;color:var(--palette-muto)">9′ · già in tappa</span></span></div>
+            <button type="button" class="gb-btn-primary" style="margin-top:2px;padding:8px;font-size:14px">Aggiungi 2 item</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dv-opt" id="1a-empty">
+  <div class="dv-olabel"><a class="dv-oid" href="#1a-empty">1a-empty</a>Stesso layout, con uno step di logistica selezionato (nessuna tappa attiva): il pannello destro mostra l'empty state invece del composer, sempre alto quanto la colonna sinistra.</div>
+  <div class="dv-card gb" style="width:700px">
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1.5px solid var(--palette-pietra);padding:14px 18px;background:var(--palette-fondo)">
+        <span class="gb-display" style="font-size:17px">Capolavori in un'ora <span class="gb-muted" style="font-weight:400;font-size:13px">· 60 min · 6 step</span></span>
+        <span style="display:flex;gap:8px;align-items:center">
+          <span class="gb-chip">bozza</span>
+          <span class="gb-btn-dark" style="padding:6px 16px;font-size:13px">Salva</span>
+        </span>
+      </div>
+      <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px">
+        <button type="button" class="gb-btn-outline" style="align-self:flex-start;display:flex;align-items:center;gap:8px;padding:10px 18px;font-size:14px">
+          <span style="font-size:18px;line-height:1">+</span><span style="font-weight:600;letter-spacing:.02em">AGGIUNGI STEP</span>
+        </button>
+        <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:stretch">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="border:2px solid var(--palette-grafite);border-radius:8px;background:#fff;padding:10px 12px;display:flex;flex-direction:column;gap:8px;cursor:pointer">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:22px;height:22px;border-radius:9999px;background:var(--palette-grafite);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px">1</span>
+                <span style="flex:1;font-size:14px">Benvenuti alla Galleria Bianca</span>
+                <span class="gb-chip">logistica</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;padding-left:32px">
+                <div style="border:1.5px dashed #d8d6d0;border-radius:6px;padding:6px 8px;font-size:13px;color:var(--palette-muto)">titolo (opzionale) →</div>
+                <div style="border:1.5px dashed #d8d6d0;border-radius:6px;padding:6px 8px;font-size:13px;color:#3a3a36">Ingresso da via Garibaldi 2, biglietto incluso, guardaroba gratuito. Ritrovo davanti alla biglietteria.</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;border:1.5px solid var(--palette-pietra);border-radius:8px;padding:10px 12px;background:var(--palette-fondo);cursor:pointer">
+              <span style="width:22px;height:22px;border-radius:9999px;border:1.5px solid var(--palette-muto);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--palette-muto)">2</span>
+              <span style="flex:1;font-size:14px;color:var(--palette-muto)">Ritratto di dama</span>
+              <span class="gb-toggle" style="font-size:10px;cursor:auto"><span class="on" style="padding:2px 8px">principale</span><span class="off" style="padding:2px 8px">opzionale</span></span>
+            </div>
+          </div>
+          <div style="border:1.5px dashed #d8d6d0;border-radius:8px;background:var(--palette-fondo);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:32px 16px;text-align:center;height:100%;box-sizing:border-box">
+            <span style="font-size:28px;color:#c9c7c1">✎</span>
+            <span style="font-size:13px;color:var(--palette-muto);max-width:200px">Seleziona una tappa nella sequenza per comporne gli item</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<p class="dv-next">Prova a scrivere: "sviluppa <a class="dv-oid" href="#1a">1a</a> in alta fedeltà con la palette" · "mostrami il modal dettagli opera per <a class="dv-oid" href="#1a">1a</a>"</p>
+</section>
+
+</x-dc>
+</body>
+</html>

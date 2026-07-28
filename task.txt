@@ -1,14 +1,4 @@
 DELEGATI
-- [FATTO] Rivedere casi di errore. ApiError + friendlyMessage(status) nel
-  Navigator e nell'Editor: a schermo va sempre un testo generico in italiano,
-  il dettaglio del backend resta nei log. Gli errori di rete diventano status 0
-  invece di propagare "Failed to fetch". Il 5xx e' generico anche nell'Editor
-  perche' errorHandler non sanitizza; i 4xx la' conservano il messaggio del
-  backend, che serve a chi compila un form.
-- [FATTO] Tornare alla panoramica della visita col pulsante "Back". Gia' coperto
-  dal BackLink del player ("Torna alla visita" -> /visit/$visitId, con stop del
-  TTS). Non serve un tasto Home separato: sarebbe un quarto modo di tornare
-  indietro fuori dalle tre regole di navigazione.
 - [NON ACCOLTA] Direttiva PWA. Non e' un requisito: PWA / service worker /
   manifest / offline non compaiono nelle specifiche ne' nelle FAQ, e la base
   18-24 non la include. L'installabilita' richiede HTTPS, quindi sui container
@@ -16,28 +6,26 @@ DELEGATI
   cache non porta comunque alcun vantaggio offline. Scartata per non introdurre
   a ridosso della consegna una tecnologia non richiesta. Da riconsiderare dopo,
   se il deploy risultera' in HTTPS e si vorra' il supporto offline vero.
-- [FATTO] Trasformare le pill da testi a icone standard. Chiuso come icona
-  ACCANTO al testo, non al posto: i cinque chip logistici del player hanno ora
-  il pittogramma, l'etichetta resta. BackLink e MapPill invariati — l'indietro
-  deve nominare la destinazione a schermo, non solo in aria-label.
-- [FATTO] Considerare imagearea per mappa. lib/useMapZoomPan.ts: pan, pinch,
-  doppio-tap, rotellina, bottoni +/-/adatta. Sta in lib/ e non nella route
-  perche' MapView e' condivisa fra /map/$visitId e /map.
-- [FATTO] La descrizione testuale a schermo deve cambiare selezionando una delle
-  opzioni. Chiuso con i due assi registro × durata: "dimmi di più" e "troppo
-  semplice" ora portano a testi diversi, e una riga sotto il titolo mostra su
-  quale variante ci si trova. Vedi docs/knowledge-base.md §5g.
+
 
 TODO
-1- Le icone avatar vanno mostrate nell'Editor? B
-2- La mappa dove si inserisce nell'Editor? B
-12- Come vengono segnalati autore etc. Forse meglio a schermo nella textarea centrale. B
-19- Eliminazione utente? B
-20- Durata stimata visita dovrebbe essere calcolata a partire dagli item.
-21- Spacing freccetta Editor.
-22- Sala oltre a data nell'Editor (Artwork).
-23- Autore come primo campo sotto al titolo dell'Opera (Editor).
-24- Deploy sui due container del dipartimento: priorita' piu' alta, non iniziato.
-    Verificare con i tecnici se l'accesso e' in HTTPS (vedi PWA sopra).
-25- Pannello "Servizi e logistica" sulla mappa da museum.logistics: valutato in
-    fase di port dello zoom, rimandato per non allargare la schermata.
+EDITOR:
+- Rimuovere l'opzione di aggiungere l'immagine avatar e il dato dietro.
+- Popolare le collocazioni.
+- Selezione lingua pagina dettaglio museo (e forse anche altrove?).
+PAGINA MUSEI E DETTAGLIO:
+- La selezione multipla di default è abominevole.
+- Allargare leggermente il menù a tendina e relativo bottone nella pagina dei Musei in modo che "tutti gli stati" entri inline anche nei list items (al momento sfora per via del tick mark).
+- Il cursore scompare quando si hover su delle aree di input. Deve essere visibile.ù
+- Servizi come campo inseribile del museo deve collegarsi alle pill logistiche del navigator.
+- Info biglietti da cambiare in campi diversi.
+- Cliccare su Seleziona di un museo non deve portarti ai contenuti, deve solo cambiare il museo attivo.
+- Redesign pill "Museo attivo". Non voglio "Cambia".
+PAGINA CONTENUTI:
+- Allineamento. Problema anche nel Navigator. La freccia deve essere allineata centralmente (midline) e anche il numero nella pagina di riepilogo visitia del navigator deve essere allineato centralmente.
+
+NAVIGATOR:
+- Colore menù a tendina.
+- Come vengono segnalati autore etc. Forse meglio a schermo nella textarea centrale.
+- Pannello "Servizi e logistica" sulla mappa da museum.logistics: valutato in
+fase di port dello zoom, rimandato per non allargare la schermata.
