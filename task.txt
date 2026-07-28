@@ -10,17 +10,14 @@ DELEGATI
 
 TODO
 EDITOR:
+- Colore curatori assegnati da aggiustare.
 - Rimuovere l'opzione di aggiungere l'immagine avatar e il dato dietro.
 - Popolare le collocazioni.
 - Selezione lingua pagina dettaglio museo (e forse anche altrove?).
 PAGINA MUSEI E DETTAGLIO:
-- La selezione multipla di default è abominevole.
-- Allargare leggermente il menù a tendina e relativo bottone nella pagina dei Musei in modo che "tutti gli stati" entri inline anche nei list items (al momento sfora per via del tick mark).
-- Il cursore scompare quando si hover su delle aree di input. Deve essere visibile.ù
 - Servizi come campo inseribile del museo deve collegarsi alle pill logistiche del navigator.
-- Info biglietti da cambiare in campi diversi.
-- Cliccare su Seleziona di un museo non deve portarti ai contenuti, deve solo cambiare il museo attivo.
-- Redesign pill "Museo attivo". Non voglio "Cambia".
+- Info biglietti al momento viene preso da una textarea. Non so neanche come venga elaborato il data model. Forse si può fare di meglio.
+
 PAGINA CONTENUTI:
 - Allineamento. Problema anche nel Navigator. La freccia deve essere allineata centralmente (midline) e anche il numero nella pagina di riepilogo visitia del navigator deve essere allineato centralmente.
 
