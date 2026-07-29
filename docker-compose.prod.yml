@@ -51,6 +51,9 @@ services:
       APP_API_KEY: ${APP_API_KEY:-}
       # baseUrl del Navigator: vuoto = stessa origine dell'app (tutto assemblato qui).
       NAVIGATOR_API_BASE_URL: ""
+      # Percorso dell'Editor servito dallo stesso container; sovrascrive il
+      # valore di sviluppo eventualmente presente nella config statica.
+      NAVIGATOR_EDITOR_URL: ${NAVIGATOR_EDITOR_URL:-/editor}
       MUSEUM_SLUG: ${MUSEUM_SLUG:-galleria-degli-uffizi}
     ports:
       - "${APP_PORT:-8080}:3001"

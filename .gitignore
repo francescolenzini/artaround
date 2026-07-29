@@ -15,3 +15,8 @@ node_modules/
 
 # Rendering generato dal PDF del design system (rigenerabile con shoot.mjs) — non versionare
 docs/_design_pdf_pages/
+
+# Materiale interno di sviluppo: non fa parte della consegna/deploy.
+/.local/
+/docs/_local/
+/.claude/
