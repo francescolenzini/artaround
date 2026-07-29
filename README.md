@@ -37,32 +37,23 @@ API_KEY=<chiave-stampata> docker compose -f docker-compose.dev.yml up -d --build
 - Editor: `http://localhost:5174`
 - API e Swagger: `http://localhost:3002/docs`
 
-## Produzione: due container
+## Produzione: due container del dipartimento
 
-Il deployment usa esclusivamente:
+Il deploy finale usa esclusivamente le due immagini predefinite attivate da
+`gocker`: un container `node-22` per l'applicazione assemblata e un container
+MongoDB. Docker Compose e i Dockerfile in questo repository restano strumenti
+di sviluppo/staging locale, non il comando da eseguire sul sito di dipartimento.
 
-1. un container Node/Express che serve API, Navigator statico ed Editor statico;
-2. un container MongoDB con volume persistente.
-
-Prima del deploy sostituire in `docker/prod/app.Dockerfile` e
-`docker-compose.prod.yml` le immagini di esempio con quelle comunicate dal
-dipartimento. Copiare `.env.prod.example` in `.env.prod`, impostare segreti
-robusti e procedere:
-
-```bash
-docker compose -f docker-compose.prod.yml --env-file .env.prod build
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d mongo
-docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm app npm run seed
-# Copiare la chiave stampata in APP_API_KEY dentro .env.prod.
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
-```
-
-Il Navigator riceve al boot configurazione same-origin e URL Editor `/editor`;
-la chiave API viene iniettata dal server e non è esposta al browser.
+La procedura completa, compresa la generazione di `source/` senza
+`node_modules`, le variabili segrete, il seed e i controlli finali, è in
+[docs/DEPLOY_DIPARTIMENTO.md](docs/DEPLOY_DIPARTIMENTO.md). Il Navigator riceve
+configurazione same-origin e URL Editor `/editor`; la chiave API viene iniettata
+dal server e non è esposta al browser.
 
 ## Documentazione
 
 - [Architettura as-built](docs/ARCHITECTURE.md)
+- [Deploy di dipartimento](docs/DEPLOY_DIPARTIMENTO.md)
 - [Diagramma architetturale](docs/architecture.puml)
 - [Dettagli dell’assembly Docker](docker/README.md)
 

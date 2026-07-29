@@ -4,7 +4,11 @@
 
 const path = require('path');
 const fs = require('fs');
-const express = require('express');
+// Nel deployment di dipartimento il runtime riceve solo le dipendenze del
+// backend (il server remoto espone Node ma non npm). Il Dockerfile mantiene
+// comunque la sua installazione esplicita; questo percorso funziona in entrambe
+// le topologie e non richiede una seconda copia di Express.
+const express = require('./backend/node_modules/express');
 
 const { buildApp } = require('./backend/src/app');
 const env = require('./backend/src/config/env');

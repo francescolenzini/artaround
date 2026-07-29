@@ -17,9 +17,9 @@
 #   1) export MONGO_PASSWORD=... JWT_SECRET=... SWAGGER_PASSWORD=...
 #   2) docker compose -f docker-compose.prod.yml build
 #   3) docker compose -f docker-compose.prod.yml up -d mongo
-#   4) # seed una tantum -> stampa la API key:
+#   4) # APP_API_KEY e BOOTSTRAP_API_KEY devono essere la stessa chiave
+#      # casuale gia' impostata nell'ambiente; il seed la registra nel DB:
 #      docker compose -f docker-compose.prod.yml run --rm app npm run seed
-#      # poi: export APP_API_KEY=<chiave-stampata>
 #   5) docker compose -f docker-compose.prod.yml up -d
 #
 # App:  http://localhost:${APP_PORT:-8080}         (Navigator)
@@ -49,6 +49,8 @@ services:
       SWAGGER_PASSWORD: ${SWAGGER_PASSWORD:?serve SWAGGER_PASSWORD}
       # API key applicativa iniettata server-side (i frontend non la espongono).
       APP_API_KEY: ${APP_API_KEY:-}
+      # La stessa chiave viene inserita dal seed iniziale nel database.
+      BOOTSTRAP_API_KEY: ${BOOTSTRAP_API_KEY:-}
       # baseUrl del Navigator: vuoto = stessa origine dell'app (tutto assemblato qui).
       NAVIGATOR_API_BASE_URL: ""
       # Percorso dell'Editor servito dallo stesso container; sovrascrive il

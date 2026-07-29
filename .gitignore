@@ -20,3 +20,7 @@ docs/_design_pdf_pages/
 /.local/
 /docs/_local/
 /.claude/
+
+# Artefatti locali e rigenerabili della verifica/deploy.
+/release/
+/tmp/

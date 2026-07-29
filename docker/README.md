@@ -56,9 +56,11 @@ coerente con gli altri Dockerfile del progetto).
 I tecnici forniscono le **immagini base** (una Node/Express, una Mongo) a
 versioni fissate; non è ammesso proporre immagini custom:
 
-1. In `docker/prod/app.Dockerfile` sostituisci i tag `FROM node:20-alpine`
+1. Per lo staging locale, in `docker/prod/app.Dockerfile` sostituisci i tag `FROM node:20-alpine`
    (entrambi gli stage: `navigator-build` e `runtime`) con l'immagine Node
    fornita. Se non è adatta al build stage del Navigator, esegui `npm run build`
    dentro il loro container Node e copia `dist/` in `frontends/navigator/`.
 2. Sostituisci `mongo:7` con la loro immagine Mongo in `docker-compose.prod.yml`.
-3. Segui "Come attivare i docker di dipartimento" per porte/routing reali.
+3. Per il deploy effettivo non eseguire questo compose: segui
+   [`docs/DEPLOY_DIPARTIMENTO.md`](../docs/DEPLOY_DIPARTIMENTO.md), che usa
+   `gocker` e le immagini predefinite del dipartimento.

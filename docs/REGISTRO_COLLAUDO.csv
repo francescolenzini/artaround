@@ -1,0 +1,13 @@
+ID,Area,Esito,Ambiente,Data,Tester,Nota
+NAV-01,Navigator,PARZIALE,"Chrome desktop, produzione",2026-07-29,Codex,"Elenco Galleria degli Uffizi caricato con 3 visite; resta da verificare login da sessione nuova."
+NAV-02,Navigator,PASS,"Chrome desktop, produzione",2026-07-29,Codex,"Aperta Highlights degli Uffizi; dettaglio con 26 tappe e player avviato."
+NAV-03,Navigator,PASS,"Chrome desktop, produzione",2026-07-29,Codex,"Alla tappa La Primavera, Dimmi di più ha cambiato titolo, testo e variante da racconto a racconto esteso."
+NAV-04,Navigator,PASS,"Chrome desktop, produzione",2026-07-29,Codex,"Mappa piano 1 con pin caricata; ritorno riuscito a Tappa 03 mantenendo la variante estesa."
+NAV-05,Navigator,PASS,"Chrome 390x844, produzione",2026-07-29,Codex,"Controllo visivo del player: testo scrollabile, comandi e footer senza sovrapposizioni."
+NAV-06,Navigator,,,,,"Da verificare su telefono reale: audio di sistema e permesso microfono."
+EDT-01,Editor,PARZIALE,"Chrome desktop, produzione",2026-07-29,Codex,"Museo attivo e navigazione Musei/Contenuti/Visite caricati correttamente come admin; resta da verificare login con account diverso."
+EDT-02,Editor,PASS,"Chrome desktop, produzione",2026-07-29,Codex,"Tabella opere caricata; apertura item La Primavera riuscita con metadati e azioni disponibili."
+EDT-03,Editor,PASS,"Chrome desktop, produzione",2026-07-29,Codex,"Builder Highlights aperto: 26 step; tappa Primavera contiene 10 item e default Medio/1 minuto, coerente col Navigator."
+EDT-04,Editor,,,,,"Da eseguire con dato QA: creare/modificare e salvare, poi refresh."
+EDT-05,Editor,,,,,"Da eseguire con dato QA: builder e salvataggio/persistenza della visita."
+UX-01,UX,PARZIALE,"Chrome desktop, produzione",2026-07-29,Codex,"Nessun errore console nelle pagine Navigator e Editor controllate. Rete offline e Indietro restano da verificare manualmente."
