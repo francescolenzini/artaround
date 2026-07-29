@@ -88,8 +88,8 @@ start node-22 site252622 server.js
 ```
 
 La piattaforma richiede la porta `8000`, già impostata nel file `.env`. Dopo
-una modifica al runtime usare `restart node-22 site252622`; in consegna deve
-restare `node-22`, non `nodemon-22`.
+una modifica al runtime usa `restart site252622`; in consegna deve restare
+`node-22`, non `nodemon-22`.
 
 ### Bonifica dei contenuti residui dell'account Test
 
@@ -98,10 +98,21 @@ Il rilascio correttivo include uno script limitato alla visita
 dry-run e usa `--apply` soltanto se riporta esattamente una visita, un'opera e
 un item:
 
-```bash
-cd /home/web/site252622/html
-node backend/src/scripts/cleanup-test-data.js
-node backend/src/scripts/cleanup-test-data.js --apply
+Poiche' `mongo_site252622` e' risolvibile soltanto dalla rete Docker, esegui
+gli script dal prompt `gocker`, non dalla shell Lily:
+
+```text
+start node-22 site252622 backend/src/scripts/cleanup-test-data.js
+logs site252622
+```
+
+Il gestore `gocker` non inoltra `--apply` allo script. Dopo un dry-run
+conforme usa invece il wrapper senza argomenti:
+
+```text
+start node-22 site252622 backend/src/scripts/cleanup-test-data-apply.js
+logs site252622
+start node-22 site252622 server.js
 ```
 
 Lo script si interrompe prima della cancellazione se metadati o relazioni non
