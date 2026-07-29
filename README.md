@@ -9,7 +9,7 @@ Comprende un backend comune, il Navigator per smartphone e l’Editor desktop.
 |---|---|---|
 | `services/backend` | API, autenticazione e dati | Node.js, Express, MongoDB |
 | `services/navigator` | Visita guidata per il visitatore | React, TypeScript, TanStack Router, Vite |
-| `services/editor` | Gestione di musei, opere, item e visite | Vanilla JS, ES Modules, Tailwind CDN |
+| `services/editor` | Gestione di musei, opere, item e visite | Vanilla JS, ES Modules, Tailwind CSS compilato |
 
 `app/server.js` e `docker/prod/app.Dockerfile` assemblano i componenti per la
 produzione. L’applicazione risultante serve il Navigator su `/`, l’Editor su

@@ -62,7 +62,8 @@ dipartimento, attivati tramite gocker.
 
 #### Applicazione editor
 
-HTML5, CSS3, JavaScript ES Modules senza framework SPA. Tailwind CSS via CDN,
+HTML5, CSS3, JavaScript ES Modules senza framework SPA. Tailwind CSS compilato
+localmente,
 Google Fonts e API Web standard. L'Editor è servito dal processo Express
 integrato e comunica con le API sulla stessa origine.
 

@@ -30,7 +30,17 @@ COPY services/navigator/app/ ./
 RUN npm run build
 
 
-########################  Stage 2 — runtime Node/Express  #####################
+########################  Stage 2 — build dell’Editor  ########################
+FROM node:20-alpine AS editor-build
+WORKDIR /editor
+
+COPY services/editor/app/package*.json ./
+RUN npm ci
+
+COPY services/editor/app/ ./
+RUN npm run build:css
+
+########################  Stage 3 — runtime Node/Express  #####################
 FROM node:20-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /srv
@@ -64,6 +74,9 @@ COPY services/editor/app/index.html \
 COPY services/editor/app/components/ ./frontends/editor/components/
 COPY services/editor/app/pages/      ./frontends/editor/pages/
 COPY services/editor/app/styles/     ./frontends/editor/styles/
+# Regenerate the compiled Tailwind output in the image so production never
+# depends on a potentially stale local generated file.
+COPY --from=editor-build /editor/styles/tailwind.generated.css ./frontends/editor/styles/tailwind.generated.css
 
 EXPOSE 3001
 USER node
