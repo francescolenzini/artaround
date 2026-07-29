@@ -19,7 +19,8 @@ delle immagini sono conservati in MongoDB, così restano nel container dati.
 `services/navigator` è una SPA React/TypeScript per smartphone. Al bootstrap
 legge la configurazione esterna e risolve il museo tramite slug; dati
 editoriali, logistica e lingue arrivano dall’API. Il player separa testo a
-schermo e testo TTS, supporta comandi vocali a vocabolario controllato e offre
+schermo e testo TTS: in assenza di un override editoriale, il testo vocale è
+derivato automaticamente dal testo a schermo. Supporta inoltre comandi vocali a vocabolario controllato e offre
 controlli UI equivalenti. La mappa multi-piano usa planimetrie e coordinate
 statiche per museo.
 

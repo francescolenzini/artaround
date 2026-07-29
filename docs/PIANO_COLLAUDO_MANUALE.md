@@ -19,11 +19,11 @@ Usa [REGISTRO_COLLAUDO.csv](REGISTRO_COLLAUDO.csv): per ogni riga basta indicare
 | NAV-03 | Navigator | In una tappa-opera usa **Dimmi di più** / **Non capisco**. | Il racconto cambia oppure compare un messaggio comprensibile se non esiste una variante. |
 | NAV-04 | Navigator | Apri la mappa dal player, cambia piano se disponibile e torna indietro. | Pin e pianta si caricano; torni alla stessa tappa. |
 | NAV-05 | Navigator | Su telefono, scorri una tappa lunga e apri/chiudi **Comandi e info del museo**. | Testo, controlli e footer non si sovrappongono né escono dallo schermo. |
-| NAV-06 | Navigator | Avvia, metti in pausa e ferma il racconto; prova il microfono se Chrome lo supporta. | TTS parte/pausa/stop senza sovrapposizioni; il fallback voce non blocca l'uso touch. |
+| NAV-06 | Navigator | Avvia, metti in pausa e ferma il racconto; cambia variante con un comando vocale e prova un item con TTS automatico. | TTS parte/pausa/stop senza sovrapposizioni e dopo il cambio legge la nuova variante, anche senza override TTS; il fallback voce non blocca l'uso touch. |
 | EDT-01 | Editor | Login admin/autore, seleziona il museo e passa tra Musei, Contenuti e Visite. | Museo attivo e pagina selezionata sono sempre chiari. |
 | EDT-02 | Editor | Cerca un'opera, apri i suoi item e controlla immagine, stato, durata e lingua. | La lista è leggibile e i dati item sono coerenti. |
 | EDT-03 | Editor | Apri il builder di una visita pubblicata e confronta 2–3 tappe con Navigator. | Ordine, titoli, item iniziale e durata corrispondono. |
-| EDT-04 | Editor | Crea e salva **una** opera/item QA oppure modifica un campo non critico e salvalo. | Conferma di salvataggio; dopo refresh il dato rimane e non viene duplicato. |
+| EDT-04 | Editor | Crea un item QA con TTS automatico, poi attiva la personalizzazione e modifica prima il testo a schermo e poi quello audio. | Il testo automatico e la durata seguono quello a schermo; l'override resta modificabile, segnala un possibile disallineamento e persiste dopo il refresh. |
 | EDT-05 | Editor | Crea o modifica una visita QA con una tappa-opera; pubblicala solo se i dati QA sono completi. | Il builder segnala chiaramente i campi/vincoli mancanti e salva la visita corretta. |
 | UX-01 | Entrambi | In un flusso sopra, prova refresh, Indietro browser e una rete temporaneamente lenta/offline. | Nessuna pagina bianca o doppio salvataggio; messaggio comprensibile e recupero con refresh/riprova. |
 

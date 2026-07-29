@@ -91,6 +91,23 @@ La piattaforma richiede la porta `8000`, già impostata nel file `.env`. Dopo
 una modifica al runtime usare `restart node-22 site252622`; in consegna deve
 restare `node-22`, non `nodemon-22`.
 
+### Bonifica dei contenuti residui dell'account Test
+
+Il rilascio correttivo include uno script limitato alla visita
+`vis-1785351093475-45` del `museo-di-prova`. Verifica prima il riepilogo in
+dry-run e usa `--apply` soltanto se riporta esattamente una visita, un'opera e
+un item:
+
+```bash
+cd /home/web/site252622/html
+node backend/src/scripts/cleanup-test-data.js
+node backend/src/scripts/cleanup-test-data.js --apply
+```
+
+Lo script si interrompe prima della cancellazione se metadati o relazioni non
+coincidono e rimuove soltanto gli upload del grafo che non risultano referenziati
+da altri contenuti.
+
 ## 4. Verifica finale
 
 - `https://site252622.tw.cs.unibo.it/health` restituisce `{"status":"ok"}`;
